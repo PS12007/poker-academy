@@ -1,0 +1,112 @@
+import { mdf, alpha } from '@/engine/theory';
+import { BTN, BB, share } from '@/content/spots';
+import { pct } from '@/lib/format';
+
+export const quiz = [
+  {
+    q: 'What can the in-position player do that the out-of-position player cannot?',
+    choices: ['Bet larger', 'Check and be certain of seeing the next card for free', 'Hold better cards', 'Raise before the flop'],
+    answer: 1,
+    why: 'Checking behind ends the betting round. The out-of-position player who checks may still face a bet.',
+  },
+  {
+    q: 'What is a check-raise?',
+    choices: ['Checking, then raising after the opponent bets on the same street', 'Raising and then checking the next street', 'A raise made out of turn', 'Calling and then raising'],
+    answer: 0,
+    why: 'It is the main aggressive weapon of the player acting first.',
+  },
+  {
+    q: 'Facing a one-third pot bet, what share of your range must continue to stop a pure bluff from profiting?',
+    numeric: Math.round(mdf(3, 1) * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: 'MDF = pot / (pot + bet) = 3 / 4 = 75%.',
+  },
+  {
+    q: 'Which hands make the best check-raise bluffs on the flop?',
+    choices: ['Bottom pair', 'Draws with good equity that cannot win at showdown unimproved', 'Ace high', 'Top pair, weak kicker'],
+    answer: 1,
+    why: 'A draw gains from fold equity now and can still make the best hand when called. Weak made hands lose their showdown value by raising.',
+  },
+  {
+    q: 'Why should you sometimes check strong hands out of position?',
+    choices: ['To save chips', 'So your checking range is not all weak and cannot be bet freely', 'It is required', 'Strong hands should never check'],
+    answer: 1,
+    why: 'If checking always means weakness, the opponent bets every time. Strong checks, used for calling and check-raising, protect the rest.',
+  },
+];
+
+<Objectives>
+
+- State the practical advantages of acting last
+- Defend a checking range out of position with calls and check-raises
+- Choose check-raise hands for value and as bluffs
+- Use position to control the size of the pot
+
+</Objectives>
+
+## What last action buys
+
+Module 1 said position is information. After the flop it is worth three specific things.
+
+1. **You see their action first.** A check from them removes many strong hands from their range before you decide.
+2. **You choose whether the round ends.** Checking behind guarantees a free card. Out of position, a check only offers one.
+3. **You control the pot.** With a medium hand you can check once and keep the pot small. With a strong hand you can bet every street.
+
+The out-of-position player has none of these. Their check invites a bet, their bet can be raised, and whatever they do, they must do it again on the next street without knowing more.
+
+## Playing out of position
+
+The player acting first is not helpless. The plan has three parts.
+
+**Check most of your range to the raiser.** If you called before the flop, the raiser has the lead and usually the stronger range. Betting into them, called a donk bet, is right only on boards that shift the nut advantage to you, and even then rarely.
+
+**Defend enough.** Against a bet of a third of the pot, a pure bluff needs to work {pct(alpha(3, 1), 0)} of the time, so you must continue with about {pct(mdf(3, 1), 0)} of your range or their bluffs print money. Against a pot-sized bet the figure is {pct(mdf(1, 1), 0)}. These are guides: on boards that favor the bettor you can fold a little more, and on boards that favor you, less.
+
+**Check-raise.** Calling alone lets the bettor realize all their equity cheaply. Raising some of the time punishes automatic bets and builds pots with your best hands.
+
+<Live title="How much defense each bet size demands">
+  <BetSizeTheory start={50} />
+</Live>
+
+## The check-raise
+
+A check-raising range is polarized, like a 3-bet.
+
+- **Value:** two pair, sets and straights, the hands that want a big pot at once. On 7-6-5 against a button bet, the big blind's calling range holds two pair or better {pct(share(BB, '7s6s5d', 'twoPair'))} of the time against the button's {pct(share(BTN, '7s6s5d', 'twoPair'))}. That is a board to check-raise often.
+- **Bluffs:** draws. Open-ended straight draws, flush draws, and gutshots with a backdoor flush draw. They win immediately when the bettor folds and have outs when called.
+
+Medium hands call. Top pair with an ordinary kicker gains nothing by raising: worse hands fold and better hands continue.
+
+Size the raise to about three times the bet in position and a little more out of position. On wet boards go larger, because draws are getting a price.
+
+## Protecting your checks
+
+If you bet all your strong hands and check all your weak ones, your opponent knows what a check means and bets every time. The fix is to put some strong hands in the checking range. This matters on both sides of the table.
+
+- **Out of position as the caller:** your check-raises with strong hands do this job.
+- **Out of position as the raiser:** check some overpairs and top pairs, planning to call.
+- **In position:** check back some medium hands that are happy to see a free card, and a few strong ones on dry boards where slow play is safe.
+
+## Using position with a medium hand
+
+Say you hold second pair in position and the opponent checks. Betting three streets is too much: by the river only better hands are calling. Checking the flop or turn once gets you to showdown at a price the hand can afford, and it also induces bluffs on later streets from hands you beat. This is **pot control**, and only the player in position can do it reliably.
+
+<Remember>
+
+- Position means seeing their action, closing the betting, and controlling the pot
+- Out of position, mostly check to the raiser, then call or check-raise
+- MDF against a third-pot bet is 75%. Against a pot bet, 50%
+- Check-raise the strongest hands and draws. Call with the middle
+- Keep strong hands in your checking range
+
+</Remember>
+
+<Mistakes>
+
+- Folding too much to small bets
+- Check-raising top pair and folding to the re-raise
+- Betting out of position with medium hands that would rather see a cheap showdown
+- Checking only when weak
+
+</Mistakes>

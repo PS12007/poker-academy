@@ -1,0 +1,132 @@
+import { handVsHand, equityByNextCard, handSpec } from '@/engine/equity';
+import { parseCards, cardToString } from '@/engine/cards';
+import { pct, num } from '@/lib/format';
+
+export const flopEq = handVsHand(['AhKh', 'JsJd'], 'Th9h4c').players[0].equity;
+export const turns = equityByNextCard({ game: 'holdem', players: [handSpec('AhKh'), handSpec('JsJd')], board: parseCards('Th9h4c') });
+export const good = turns.filter((t) => t.equity[0] > 0.5).length;
+export const blank = turns.find((t) => cardToString(t.card) === '2s').equity[0];
+export const heart = turns.find((t) => cardToString(t.card) === '2h').equity[0];
+export const ace = turns.find((t) => cardToString(t.card) === 'As').equity[0];
+
+export const quiz = [
+  {
+    q: 'What is a barrel?',
+    choices: ['A very large bet', 'A bet on a later street after betting the previous one', 'A check-raise', 'A call with a draw'],
+    answer: 1,
+    why: 'Betting the flop and then the turn is a double barrel. Adding the river makes it a triple.',
+  },
+  {
+    q: 'You bet the flop with a draw and the turn is a blank. Roughly what happens to your equity?',
+    choices: ['It rises', 'It falls by nearly half, because one of your two chances is gone', 'It stays the same', 'It drops to zero'],
+    answer: 1,
+    why: `In the lesson's example it goes from ${(flopEq * 100).toFixed(0)}% on the flop to ${(blank * 100).toFixed(0)}% after a blank turn.`,
+  },
+  {
+    q: 'Which turn card is best to keep bluffing on, as the preflop raiser?',
+    choices: ['A low card that pairs the board', 'An overcard such as an ace or king that favors your range', 'A card that completes the obvious draw', 'Any card'],
+    answer: 1,
+    why: 'High cards improve the raiser\'s range and weaken the caller\'s pairs. Cards that complete draws or pair low cards help the caller.',
+  },
+  {
+    q: 'The pot grows with each street. What does that mean for turn decisions compared with flop decisions?',
+    choices: ['They matter less', 'Mistakes cost more, because bets are larger', 'No difference', 'They are always all-in'],
+    answer: 1,
+    why: 'A half-pot turn bet is roughly twice the size of a half-pot flop bet in the same hand. Errors scale with the pot.',
+  },
+  {
+    q: 'You hold a medium made hand in position on the turn and your opponent checks. What is often the best play?',
+    choices: ['Bet big to protect', 'Check behind to control the pot and reach showdown', 'Go all-in', 'Fold'],
+    answer: 1,
+    why: 'A second bet folds out worse hands and gets called by better. Checking keeps the pot at a size the hand can win.',
+  },
+];
+
+<Objectives>
+
+- Explain how equities shift from the flop to the turn
+- Sort turn cards into good, bad and neutral for your range
+- Decide when to fire a second barrel and when to give up
+- Recognize that turn mistakes cost more than flop mistakes
+
+</Objectives>
+
+## One card changes everything
+
+On the flop there are two cards to come and equities are fluid. The turn removes half of that. Made hands gain, because draws now have one chance instead of two. Draws lose, unless the turn card was theirs.
+
+Take a concrete pair of hands.
+
+<Scene hands={['AhKh', 'JsJd']} board="Th9h4c" labels={['Nut flush draw, two overcards', 'Overpair']} />
+
+On the flop the drawing hand is the favorite with {pct(flopEq)}: nine hearts, six overcards and a few backdoor straights. The engine computes what each of the 45 possible turn cards does to that number.
+
+- A blank such as the two of spades: {pct(blank)}.
+- A heart: {pct(heart)}.
+- An ace: {pct(ace)}.
+
+Only {good} of the 45 turn cards leave the draw ahead. On the other {45 - good} it becomes a clear underdog with one card to come. The average over all 45 is still {pct(flopEq)}, because equity is exactly that average, but the hand is no longer a favorite on most individual turns.
+
+<Live title="Equity by turn card">
+  <EquityTool initial={{ hands: ['AhKh', 'JsJd'], board: [34, 30, 8] }} />
+</Live>
+
+Press compute and read the chart. Then swap in your own hands.
+
+## Good and bad turn cards
+
+Think in ranges again. A turn card is good for you if it improves your range more than your opponent's.
+
+**Good for the preflop raiser:**
+
+- Overcards to the flop, especially aces and kings. The raiser holds more of them, and they demote the caller's flopped pairs.
+- Cards that leave the board dry.
+
+**Good for the caller:**
+
+- Cards that complete flush draws and straight draws. The caller's range has more of those hands after calling a flop bet.
+- Low cards that pair the board, when the caller has more of that rank.
+- Middle cards that connect with the flop.
+
+**Neutral:** low cards that change nothing, often called bricks. A brick favors whoever was ahead.
+
+## The second barrel
+
+After betting the flop and being called, you choose again. The caller's range is now stronger than it was: the weakest hands folded.
+
+**Barrel for value** with hands that are still ahead of the calling range. Top pair with a good kicker usually qualifies on a safe turn.
+
+**Barrel as a bluff** when at least one of these holds:
+
+- The turn card favors your range and scares theirs.
+- You picked up equity: a flush draw, a straight draw, or an overcard.
+- You hold blockers to their strongest hands.
+
+**Give up** with hands that have no equity and no good card. A bluff that had fold equity on the flop loses much of it once the opponent has shown they have something.
+
+**Check with the middle.** Medium hands such as second pair, or top pair with a weak kicker, are too weak to bet twice for value and too strong to turn into bluffs.
+
+## The pot is bigger now
+
+A typical single raised pot is about 5.5bb on the flop. A half-pot bet and call makes it 11bb on the turn, and the same again makes it 22bb on the river. Each street roughly doubles the stakes. A mistake on the turn costs about twice what the same mistake costs on the flop, and river mistakes cost four times as much.
+
+This is also why draws go down in value on the turn. The price has gone up and the chance of hitting has gone down. A flush draw that was a comfortable flop call is often a fold to a large turn bet, unless the implied odds are real.
+
+<Remember>
+
+- The turn cuts a draw's chances roughly in half and firms up made hands
+- A turn card is good for you if it helps your range more than theirs
+- Overcards favor the raiser. Completed draws and connected low cards favor the caller
+- Barrel with value, or with bluffs that gained equity or a good card. Give up the rest
+- Each street roughly doubles the pot, so later mistakes cost more
+
+</Remember>
+
+<Mistakes>
+
+- Betting the turn automatically because you bet the flop
+- Continuing a bluff on a card that completes the caller's draws
+- Calling large turn bets with draws on flop-style pot odds
+- Betting medium hands twice and facing a raise
+
+</Mistakes>

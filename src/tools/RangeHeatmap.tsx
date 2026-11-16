@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { parseCards } from '../engine/cards';
-import { Category, categoryOf, evaluate } from '../engine/evalCore';
-import { expandRange, HAND_CLASSES, parseRange, type Range, type WeightedCombo } from '../engine/ranges';
+import { Category } from '../engine/evalCore';
+import { shareAtLeast } from '../engine/board';
+import { expandRange, HAND_CLASSES, parseRange, type Range } from '../engine/ranges';
 import { CardField } from '../components/cards/CardField';
 import { RangeEditor } from '../components/range/RangeEditor';
 import { RangeGrid } from '../components/range/RangeGrid';
@@ -15,16 +16,6 @@ interface Result {
   boards: number;
   showdowns: number;
   ms: number;
-}
-
-/** Share of a range (by weight) that holds at least the given category on this board. */
-export function shareAtLeast(combos: WeightedCombo[], board: number[], min: Category): number {
-  let hit = 0, total = 0;
-  for (const c of combos) {
-    total += c.w;
-    if (categoryOf(evaluate([c.c1, c.c2, ...board])) >= min) hit += c.w;
-  }
-  return total ? hit / total : 0;
 }
 
 export interface HeatmapProps {

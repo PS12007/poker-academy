@@ -237,3 +237,35 @@ export function DataTable({ head, rows, caption, className }: { head: ReactNode[
     </figure>
   );
 }
+
+/** Inline exact range-against-range equity on a board: <RvR a="..." b="..." board="AsKd4c" />. */
+export function RvR({ a, b, board, of = 0 }: { a: string; b: string; board: string; of?: 0 | 1 }) {
+  const { data, error } = useCached(`rvr|${a}|${b}|${board}`, (api) => {
+    const bd = parseCards(board);
+    return api.rangeVsRange(expandRange(parseRange(a), bd), expandRange(parseRange(b), bd), bd);
+  });
+  if (error) return <span className="num text-madder">error</span>;
+  if (!data) return <span className="num pending">··.·%</span>;
+  return (
+    <span className="whitespace-nowrap">
+      <span className="num font-medium text-bone">{pct(data.equity[of], 1)}</span>
+      <How>Exact range against range on {board}: {int(data.boards)} runouts, every combo of both ranges compared on each, blocked combos removed.</How>
+    </span>
+  );
+}
+
+/** Equity of one hand against N random opponents, by Monte Carlo on the shared worker. */
+export function VsRandom({ hand, opponents }: { hand: string; opponents: number }) {
+  const { data } = useCached(`vsr|${hand}|${opponents}`, (api) => {
+    const all = expandRange(parseRange('random'));
+    const rnd: PlayerSpec = { hands: all.map((c) => [c.c1, c.c2]) };
+    return api.equity({ game: 'holdem', players: [{ hands: [parseCards(hand)] }, ...Array.from({ length: opponents }, () => rnd)], board: [], mode: 'mc', iterations: 300_000, seed: 1 });
+  });
+  if (!data) return <span className="num pending">··.·%</span>;
+  return (
+    <span className="whitespace-nowrap">
+      <span className="num font-medium text-bone">{pct(data.players[0].equity, 1)}</span>
+      <How>Monte Carlo, {int(data.samples)} trials, seed {data.seed}. 95% interval {pct(data.players[0].ci![0], 1)} to {pct(data.players[0].ci![1], 1)}.</How>
+    </span>
+  );
+}

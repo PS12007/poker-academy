@@ -1,0 +1,132 @@
+import { geometricFraction, geometricPlan, bluffFraction, mdf } from '@/engine/theory';
+import { pct, num } from '@/lib/format';
+
+export const g3 = geometricFraction(5.5, 97.5, 3);
+export const g2 = geometricFraction(17.5, 92, 2);
+export const plan = geometricPlan(5.5, 97.5, 3);
+export const valueEv = (b) => 1 + (1 / (1 + b)) * b;
+
+export const quiz = [
+  {
+    q: 'Which range shape supports the largest bets?',
+    choices: ['A range of medium-strength hands', 'A polarized range of very strong hands and bluffs', 'A range of draws only', 'Any range'],
+    answer: 1,
+    why: 'Strong hands want the most money in and bluffs want the most folds. Medium hands want neither, so they bet small or check.',
+  },
+  {
+    q: 'What is an overbet?',
+    choices: ['A bet larger than the pot', 'Any bet over half the pot', 'A bet out of turn', 'A raise'],
+    answer: 0,
+    why: 'Overbets are used with a clear nut advantage against a capped range.',
+  },
+  {
+    q: 'What is a block bet?',
+    choices: ['A large bluff', 'A small bet out of position, often to set a cheap price for showdown', 'A bet that blocks a card', 'A check-raise'],
+    answer: 1,
+    why: 'Typically 20 to 33% of the pot. It gets thin value and discourages a larger bet from the opponent.',
+  },
+  {
+    q: 'The pot is 5.5bb on the flop with 97.5bb behind. What fraction of the pot, bet on all three streets, puts stacks in exactly?',
+    numeric: Math.round(g3 * 100),
+    tolerance: 2,
+    unit: '% of pot',
+    why: `(1 + 2f)^3 = (5.5 + 195) / 5.5 = ${((5.5 + 195) / 5.5).toFixed(2)}. Taking the cube root and solving gives f = ${g3.toFixed(3)}.`,
+  },
+  {
+    q: 'If you bet larger with a balanced polarized range on the river, what happens to the share of bluffs you can include?',
+    choices: ['It falls', 'It rises', 'It stays the same', 'It becomes zero'],
+    answer: 1,
+    why: 'Bluff share = bet / (pot + 2 x bet). Bigger bets give the caller worse odds, so more bluffs are needed to keep them indifferent.',
+  },
+];
+
+<Objectives>
+
+- Explain why bet size follows the shape of your range
+- Use small bets, large bets, overbets and block bets for the right reasons
+- Compute the geometric size that gets stacks in over the remaining streets
+- Relate bet size to how many bluffs a range can hold
+
+</Objectives>
+
+## Size follows range shape
+
+Bet size is not about how strong your one hand is. If it were, opponents could read your hand from your bet. It is about what your whole range wants in this spot.
+
+Sort your betting hands by what they want from a size.
+
+- **Very strong hands** want the pot as large as possible.
+- **Bluffs** want as many folds as possible, and do not mind the size since they expect to lose it only when called.
+- **Medium hands** want to be called by worse and not raised. A big bet folds out everything they beat.
+
+So a range of nuts and bluffs, a **polarized** range, bets big. A range that includes many medium hands, a **merged** or linear range, bets small. This is the logic behind the two c-bet patterns from earlier, and it holds on every street.
+
+## Why the nuts want to bet big
+
+Take the cleanest case. You hold the nuts on the river against a bluff catcher who defends at the minimum defense frequency. Your profit beyond the pot is the bet times how often it is called.
+
+<DataTable
+  head={['Bet', 'They call (MDF)', 'You win on average', 'Bluffs per value bet']}
+  rows={[0.33, 0.5, 0.75, 1, 1.5, 2].map((b) => [`${pct(b, 0)} pot`, pct(mdf(1, b)), `${num(valueEv(b), 2)} pots`, num(b / (1 + b), 2)])}
+  caption="Value hand's EV = pot + call frequency × bet, with the pot as 1. Bluffs per value bet keeps the caller indifferent."
+/>
+
+Even though they call less often, the larger bet earns more every time, and it lets you add more bluffs as well. Against an opponent who defends correctly, a polarized range should bet as large as its nut advantage allows. That is where overbets come from.
+
+## The sizes and their jobs
+
+**Small, 25 to 33% of the pot.** For a wide, merged range with a range advantage on a static board. Asks the whole opposing range for a decision at a low price.
+
+**Medium to large, 66 to 100%.** For a polarized range on boards with draws, where strong hands need to charge and bluffs have equity.
+
+**Overbet, 125% and up.** For a polarized range when the opponent's range is capped, meaning they cannot hold the strongest hands. Common on turns and rivers that are good for the bettor and bad for the caller.
+
+**Block bet, 20 to 33% out of position.** A small bet with medium hands, usually on the river. It collects thin value from weaker hands and sets the price, instead of checking and facing a larger bet.
+
+## Geometric sizing
+
+When you hold a hand that wants to get stacks in by the river, how should the money be spread over the streets? One answer is to bet the same fraction of the pot each time, chosen so the last bet is exactly all-in. This is **geometric sizing**.
+
+Each bet and call multiplies the pot by (1 + 2f), where f is the bet as a fraction of the pot. After n streets the pot must equal the starting pot plus both stacks.
+
+<Formula name="geometric fraction">(1 + 2f)ⁿ = (pot + 2 × stack) / pot</Formula>
+
+In a single raised pot with 5.5bb in the middle and 97.5bb behind, the three-street geometric size is {pct(g3, 0)} of the pot:
+
+<Working steps={plan.map((s, i) => ({ label: ['Flop', 'Turn', 'River'][i] + `: pot ${num(s.potBefore, 1)}bb`, expr: `bet ${num(s.bet, 1)}bb`, result: `pot ${num(s.potAfter, 1)}bb, ${num(s.stackAfter, 1)}bb behind` }))} />
+
+In a 3-bet pot of 17.5bb with 92bb behind and two streets left, it is {pct(g2, 0)}.
+
+Geometric sizing is the size that extracts the most from a defender who continues correctly on every street, which is why polarized ranges gravitate to it. It is a reference point, not a rule: you size down when your range is not polarized.
+
+<Live title="Any pot, stack and number of streets">
+  <GeometricSizing />
+</Live>
+
+## Size and bluffs move together
+
+For a river bet, the share of bluffs that makes the caller indifferent is bet / (pot + 2 × bet): {pct(bluffFraction(3, 1), 0)} at a third of the pot, {pct(bluffFraction(1, 1), 0)} at the pot, {pct(bluffFraction(1, 2), 0)} at twice the pot. Bigger bets carry more bluffs. If you rarely bluff, large bets with strong hands still make sense against players who call anyway, but a thinking opponent will fold.
+
+<Live title="One bet, four numbers">
+  <BetSizeTheory start={100} />
+</Live>
+
+<Remember>
+
+- Size by the shape of your range, not the strength of your hand
+- Polarized ranges bet big. Merged ranges bet small
+- Overbet when you have the nut advantage against a capped range
+- Block bet small out of position with medium hands
+- Geometric size: (1 + 2f)ⁿ = (pot + 2 × stack) / pot
+- Bigger bets need, and allow, more bluffs
+
+</Remember>
+
+<Mistakes>
+
+- Betting big with strong hands and small with weak ones in a readable pattern
+- Using one size for every board
+- Betting so small early that stacks cannot go in by the river with a monster
+- Overbetting into a range that holds more nuts than yours
+
+</Mistakes>

@@ -1,0 +1,122 @@
+import { BTN, BB } from '@/content/spots';
+import { alpha, mdf } from '@/engine/theory';
+import { potOdds } from '@/engine/ev';
+import { pct } from '@/lib/format';
+
+export const quiz = [
+  {
+    q: 'What is a continuation bet?',
+    choices: ['Any bet on the river', 'A flop bet by the player who made the last raise before the flop', 'A bet made out of turn', 'A bet that continues a bluff from the turn'],
+    answer: 1,
+    why: 'The preflop aggressor continues the story by betting the flop.',
+  },
+  {
+    q: 'A one-third pot bet as a pure bluff needs how many folds to break even?',
+    numeric: Math.round(alpha(3, 1) * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: 'Alpha = bet / (pot + bet) = 1 / 4 = 25%.',
+  },
+  {
+    q: 'On which flop should the button bet most often against the big blind?',
+    choices: ['A-K-4 rainbow', '9-8-7 two-tone', '7-6-5 two-tone', '6-5-4 rainbow'],
+    answer: 0,
+    why: 'The button has both range and nut advantage there, so it can bet nearly its whole range for a small size.',
+  },
+  {
+    q: 'When does a large continuation bet make more sense than a small one?',
+    choices: ['When you have range advantage but the board is dry', 'When the board is dynamic and you have strong hands that need protection plus draws to bluff with', 'Always', 'Never'],
+    answer: 1,
+    why: 'Large bets go with a polarized range: strong hands that want to charge draws, and bluffs with equity. On static boards a small bet with everything does the job.',
+  },
+  {
+    q: 'You raised, three players called, and the flop misses you. What is the best default?',
+    choices: ['Bet anyway, it worked heads-up', 'Check. Somebody usually has something and fold equity is low', 'Go all-in', 'Bet the minimum'],
+    answer: 1,
+    why: 'The chance that all three missed is small. Continuation bets as bluffs lose value quickly with each extra opponent.',
+  },
+];
+
+<Objectives>
+
+- Explain why the preflop raiser can bet many flops profitably
+- Choose between betting often for a small size and betting less often for a large one
+- Read a flop as static or dynamic
+- Cut back continuation bets out of position and multiway
+
+</Objectives>
+
+## Why the raiser bets
+
+A **continuation bet**, or c-bet, is a flop bet from the player who raised last before the flop. It works for two reasons you already know.
+
+First, most hands miss most flops. An unpaired hand flops a pair or better about a third of the time, and that is true for the caller too.
+
+Second, the raiser usually has the stronger range. Betting makes the caller's many weak hands either fold their equity or pay.
+
+The price is low. A bet of one third of the pot, treated as a pure bluff, needs to work only {pct(alpha(3, 1), 0)} of the time. The caller, to stop that bluff from profiting, must continue with {pct(mdf(3, 1), 0)} of their range, and on a board that missed them they often cannot.
+
+## Two strategies
+
+Solvers and strong players settle into one of two patterns on most flops.
+
+**Bet small with most of the range.** Used when you have a clear range advantage and the board is **static**, meaning later cards rarely change who is ahead. Examples: A-K-4, K-7-2, Q-Q-5. A quarter to a third of the pot, with nearly everything: strong hands, weak pairs, overcards, air. The small size is enough because the opponent's range is weak and there is little to protect against.
+
+**Bet large with part of the range, check the rest.** Used when the board is **dynamic**, meaning many turn cards complete draws or shift the lead, or when the advantage is small. Examples: J-T-8 two-tone, 9-8-6 two-tone. Two thirds of the pot or more, with a polarized set of hands: strong made hands that need to charge draws, and draws that can win by folding the opponent or by improving. Medium hands check, because a big bet with them folds out worse and gets called by better.
+
+**Mostly check** on the boards from the last lesson where the caller holds the nut advantage: 7-6-5, 9-8-7, 6-5-4.
+
+| Flop type | Example | Frequency | Size |
+|---|---|---|---|
+| High, dry, raiser favored | A K 4 rainbow | Very high | Small |
+| One high card, dry | K 7 2 rainbow | High | Small |
+| Paired | Q Q 5 | High | Small |
+| Middling, connected, two-tone | J T 8 | Medium | Large |
+| Low and connected | 7 6 5 | Low | Mixed |
+
+## What the caller's price says
+
+<Live title="One bet from both sides">
+  <BetSizeTheory start={33} />
+</Live>
+
+At a third of the pot, the caller needs only {pct(potOdds(4, 1), 0)} equity and should defend about three hands in four. That is why a small bet targets the whole range: it asks even ace-high and bottom pair for a decision. At the full pot the caller can fold half their range, so a large bet only makes sense when you want strong second-best hands to pay and weak ones are welcome to leave.
+
+## Which hands to bet
+
+For a small bet with the whole range, there is nothing to choose. For a larger, selective bet:
+
+- **Value:** hands that can bet three streets and stay ahead of what calls. Top pair with a good kicker and better.
+- **Bluffs:** hands with equity that have little showdown value. Flush draws, open-ended straight draws, gutshots with overcards, backdoor draws to the nuts.
+- **Checks:** medium made hands such as second pair and weak top pair, which want to reach showdown cheaply, plus a few strong hands to protect the checking range.
+
+## Position and number of players
+
+**Out of position**, bet less often. You cannot close the action, a call gives the opponent position for two more streets, and checking keeps the pot smaller with your marginal hands.
+
+**Multiway**, bet much less often and mostly for value. Against two opponents, a bluff needs both to fold. Check your misses and bet your strong hands larger.
+
+Run the standard spot on any flop and see whose range it favors before deciding which pattern applies:
+
+<Live title="Button against big blind">
+  <HeatmapTool initial={{ hero: BTN, villain: BB, board: 'JsTs8d', labels: ['Button', 'Big blind'] }} />
+</Live>
+
+<Remember>
+
+- The raiser c-bets because ranges miss often and the raiser's range is stronger
+- Static board with range advantage: bet small with almost everything
+- Dynamic board: bet large with strong hands and draws, check the middle
+- Caller has the nut advantage: mostly check
+- Bet less out of position and far less multiway
+
+</Remember>
+
+<Mistakes>
+
+- Betting every flop at the same size regardless of texture
+- Betting big with medium hands
+- Firing into three or four opponents with nothing
+- Never checking a strong hand, so that your checks are always weak
+
+</Mistakes>

@@ -1,0 +1,112 @@
+import { BTN, BB, share } from '@/content/spots';
+import { pct } from '@/lib/format';
+
+export const quiz = [
+  {
+    q: 'What is range advantage?',
+    choices: ['Having the best single hand', 'Your whole range having more equity than the opponent\'s whole range on this board', 'Acting last', 'Having more chips'],
+    answer: 1,
+    why: 'It is an average over every hand each player can hold, not a statement about any one hand.',
+  },
+  {
+    q: 'What is nut advantage?',
+    choices: ['Holding the nuts right now', 'Having a larger share of the very strongest hands in your range', 'Having more draws', 'Having position'],
+    answer: 1,
+    why: 'It concerns the top of the ranges. A player can trail in average equity and still hold more sets and straights.',
+  },
+  {
+    q: 'The button opens and the big blind calls. On which flop does the button have the larger range advantage?',
+    choices: ['A-K-4 rainbow', '7-6-5 with two spades', '9-8-7 with two spades', '6-5-4 rainbow'],
+    answer: 0,
+    why: 'High cards hit the opener, who holds every big ace and king. The caller 3-bet its best aces and kings before the flop and holds more middling connected cards.',
+  },
+  {
+    q: 'Why is the big blind\'s calling range described as capped?',
+    choices: ['It has a maximum bet', 'It lacks the strongest preflop hands, which would have 3-bet', 'It cannot raise', 'It is limited to suited hands'],
+    answer: 1,
+    why: 'Calling instead of re-raising removes aces, kings and usually ace-king from the range, which matters most on high-card boards.',
+  },
+  {
+    q: 'Which advantage most supports large bets?',
+    choices: ['Range advantage', 'Nut advantage', 'Neither', 'Position alone'],
+    answer: 1,
+    why: 'Big bets need hands that want to play for stacks, plus bluffs to balance them. Only the player with more of the top hands can do that credibly.',
+  },
+];
+
+<Objectives>
+
+- Define range advantage and nut advantage and tell them apart
+- Predict which player a flop favors from the preflop action
+- Explain what a capped range is
+- Connect each kind of advantage to how often and how large to bet
+
+</Objectives>
+
+## Boards meet ranges, not hands
+
+Before the flop you saw that each player holds a range. The flop does not treat ranges equally. Some boards connect with the hands the raiser tends to hold, and others with the caller's.
+
+The running example for this module is the most common postflop spot: the **button opens and the big blind calls**. The button holds the teaching open range. The big blind holds the calling range from the blind defense lesson, which has no aces, kings or ace-king because those 3-bet.
+
+Two measures describe how a flop treats the two ranges.
+
+**Range advantage** is about the average. Whose range has more equity against the other's?
+
+**Nut advantage** is about the top. Whose range contains a larger share of the hands strong enough to play for stacks?
+
+## Three flops
+
+<DataTable
+  head={['Flop', 'Button equity', 'Button: two pair or better', 'Big blind: two pair or better']}
+  rows={[
+    ['A K 4 rainbow', <RvR key="1" a={BTN} b={BB} board="AsKd4c" />, pct(share(BTN, 'AsKd4c', 'twoPair')), pct(share(BB, 'AsKd4c', 'twoPair'))],
+    ['K 7 2 rainbow', <RvR key="2" a={BTN} b={BB} board="Ks7d2c" />, pct(share(BTN, 'Ks7d2c', 'twoPair')), pct(share(BB, 'Ks7d2c', 'twoPair'))],
+    ['7 6 5 two spades', <RvR key="3" a={BTN} b={BB} board="7s6s5d" />, pct(share(BTN, '7s6s5d', 'twoPair')), pct(share(BB, '7s6s5d', 'twoPair'))],
+    ['9 8 7 two spades', <RvR key="4" a={BTN} b={BB} board="9s8s7d" />, pct(share(BTN, '9s8s7d', 'twoPair')), pct(share(BB, '9s8s7d', 'twoPair'))],
+  ]}
+  caption="Exact range against range for the course's teaching ranges. Different ranges give different numbers, but the pattern holds."
+/>
+
+**A-K-4.** The button has both advantages. It holds all the strong aces and kings, and the sets of aces and kings. The big blind's range is capped: most of its best pairs on this board are weak aces.
+
+**K-7-2.** The button is ahead on average again, but the top of the ranges is close. Both players have sets of sevens and twos, and neither has many.
+
+**7-6-5 and 9-8-7.** The equities are roughly level, and the big blind now holds more of the strong hands. Low connected cards are what a calling range is made of: small pairs for sets, suited connectors for straights and two pair. The button has these too, but they are a smaller part of a range full of high cards.
+
+## What each advantage is for
+
+**Range advantage supports betting often.** If your range is ahead on average, betting many hands for a small size makes the weaker range pay with all its marginal holdings. On A-K-4 the button can bet nearly everything small.
+
+**Nut advantage supports betting big.** A large bet says you can have hands that want all the money in. If your opponent has more of those than you do, big bets get raised. On 9-8-7 the button should check often and size down, because the big blind can check-raise with a range full of straights, sets and two pair.
+
+**When you have neither**, play defensively: check more, call rather than raise, and let the favored player bluff into you with their excess of weak hands.
+
+## Explore it
+
+The heatmap computes both measures for any two ranges and any board, and shows the equity of every hand in the grid.
+
+<Live title="Button opening range against big blind calling range">
+  <HeatmapTool initial={{ hero: BTN, villain: BB, board: 'AsKd4c', labels: ['Button', 'Big blind'] }} />
+</Live>
+
+Change the board to 7s6s5d and watch the top-of-range rows flip. Then try a paired board such as 8s8d3c.
+
+<Remember>
+
+- Range advantage: more equity on average. Nut advantage: more of the strongest hands
+- The preflop raiser is favored on high-card boards. The caller catches up on low connected boards
+- A caller's range is capped: its best hands would have re-raised
+- Range advantage lets you bet often. Nut advantage lets you bet big
+- With neither, check and defend
+
+</Remember>
+
+<Mistakes>
+
+- Thinking only about your own two cards on the flop
+- Betting big on boards where the caller holds more of the strong hands
+- Assuming the preflop raiser is always the favorite
+- Confusing average equity with who can have the nuts
+
+</Mistakes>

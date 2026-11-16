@@ -1,0 +1,148 @@
+import { BB } from '@/content/spots';
+import { expandRange, parseRange, countCombos } from '@/engine/ranges';
+import { parseCards } from '@/engine/cards';
+import { evaluate, categoryOf } from '@/engine/evalCore';
+import { potOdds } from '@/engine/ev';
+import { pct, num } from '@/lib/format';
+
+export const flop = parseCards('Ks8d3c');
+export const start = countCombos(parseRange(BB));
+export const combos = expandRange(parseRange(BB), flop);
+export const bucket = (c) => {
+  const r = evaluate([c.c1, c.c2, ...flop]);
+  const cat = categoryOf(r);
+  if (cat >= 2) return 'strong';
+  if (cat === 1) {
+    const pairRank = Math.floor((r - 1278) / 220);
+    if (pairRank === 11) return 'top';
+    if (pairRank === 6) return 'middle';
+    return 'weak';
+  }
+  return 'none';
+};
+export const counts = combos.reduce((m, c) => { const b = bucket(c); m[b] = (m[b] || 0) + c.w; return m; }, {});
+export const live = combos.length;
+export const cont = counts.strong + counts.top + counts.middle + counts.weak;
+export const river = counts.strong + counts.top;
+
+export const quiz = [
+  {
+    q: 'What is the right starting point for reading an opponent\'s hand?',
+    choices: ['Guess their exact cards', 'The range of hands consistent with their preflop action from that seat', 'Assume they have aces', 'Their facial expression'],
+    answer: 1,
+    why: 'Every later inference removes hands from that starting range. If the starting range is wrong, everything after it is too.',
+  },
+  {
+    q: 'As a hand goes on, what happens to a range?',
+    choices: ['It gets wider', 'It only gets narrower. Hands folded or played differently earlier cannot come back', 'It resets each street', 'It stays the same'],
+    answer: 1,
+    why: 'Each action filters the range. A hand that would have raised the flop is not there on the river after a flop call.',
+  },
+  {
+    q: `The big blind's calling range has ${Math.round(start)} combos before the flop. On K-8-3, how many of the remaining combos have at least a pair?`,
+    numeric: Math.round(cont),
+    tolerance: 4,
+    why: `With the three board cards removed, ${Math.round(live)} combos remain, and ${Math.round(cont)} of them hold a pair or better. The rest have king-high or worse.`,
+  },
+  {
+    q: 'A player check-calls the flop and turn on a draw-heavy board, then leads out big when the flush card comes. What does the line suggest?',
+    choices: ['A bluff nearly always', 'A flush, more often than not, since the line matches a draw that got there', 'Top pair', 'Nothing can be inferred'],
+    answer: 1,
+    why: 'Ask which hands take every action in the sequence. Passive calls followed by sudden aggression when a draw completes is a consistent story for a made draw.',
+  },
+  {
+    q: 'Why count combos instead of listing hands?',
+    choices: ['It is faster', 'Because hands are not equally likely, and the decision depends on proportions', 'It is traditional', 'There is no reason'],
+    answer: 1,
+    why: 'Three combos of a set and twelve of top pair are four to one in favor of top pair. A list hides that.',
+  },
+];
+
+<Objectives>
+
+- Start a read from a preflop range and narrow it with each action
+- Sort a range on a board into strength groups and count them
+- Check a line for consistency across streets
+- Turn the final count into a call or fold
+
+</Objectives>
+
+## A process, not a guess
+
+Hand reading is not naming the two cards someone holds. It is bookkeeping: start with every hand they could have, and after each action cross out the ones that would have done something else. What remains at the decision point is their range, and the count of what remains decides your play.
+
+Four rules keep the bookkeeping honest.
+
+1. **Start before the flop.** Position and action define the starting range.
+2. **Ranges only shrink.** A hand removed on the flop stays removed.
+3. **Ask what they would do with each group**, not what you would do.
+4. **Count combos.** Proportions decide, not possibilities.
+
+## A worked read
+
+You open the button and the big blind calls. Their starting range is the calling range from Module 3: {num(start, 0)} combos, with no aces, kings or ace-king, since those would have 3-bet.
+
+**The flop comes K-8-3 rainbow.** Three cards are now visible, leaving {num(live, 0)} live combos. The engine sorts them by what they hold.
+
+<DataTable
+  head={['Group', 'Combos', 'Share']}
+  rows={[
+    ['Two pair or a set', num(counts.strong, 0), pct(counts.strong / live)],
+    ['Top pair (a king)', num(counts.top, 0), pct(counts.top / live)],
+    ['Middle pair (an eight)', num(counts.middle, 0), pct(counts.middle / live)],
+    ['Other pairs', num(counts.weak, 0), pct(counts.weak / live)],
+    ['No pair', num(counts.none, 0), pct(counts.none / live)],
+  ]}
+  caption="The big blind's teaching calling range on Ks 8d 3c, counted by the engine."
+/>
+
+Most of the range has missed. That is normal, and it is why a small bet does well here.
+
+**You bet a third of the pot and they call.** Cross out most of the no-pair group: on this dry board there are no real draws, so hands without a pair mostly fold, apart from a few ace-highs and backdoor draws. The very strongest hands might have raised, but on a dry board many players slow-play, so keep them. What continues is roughly the {num(cont, 0)} combos with a pair or better, and the largest group by far is medium and small pairs.
+
+**The turn is a 2. You bet two thirds of the pot and they call again.** A second, larger bet is harder to call with an underpair or bottom pair. Typical players now hold mostly top pair or better, plus the stronger eights. Suppose the weak pairs fold and the eights call about half the time.
+
+**The river is a 5. They check and you hold king-queen.** Their range is top pair or better, {num(river, 0)} combos, plus some eights. Against their kings your queen kicker is ahead of or level with every one: this range holds no ace-king, and its only king-queen is the offsuit one, which ties. The strong hands number only {num(counts.strong, 0)}. A value bet is clearly right, and the sizing lesson says a medium size that worse kings and eights can call.
+
+Had they instead raised the turn, the read flips. The hands that raise a turn after calling a flop on a dry board are the {num(counts.strong, 0)} strong combos, with very few bluffs available on a board with no draws. King-queen becomes a fold.
+
+Check the counts with your own cards removed:
+
+<Live title="Count any holding with blockers">
+  <ComboCounter start="KJ" dead="Ks8d3cKhQc" />
+</Live>
+
+## Consistency
+
+A real hand takes a believable action on every street. When an opponent's final bet represents a hand that would have played an earlier street differently, discount it.
+
+- A river bet representing a set, from a player who called a wet flop and turn without raising, is less credible. Sets usually raise wet boards.
+- A river bet representing a flush, when the flush draw came on the flop and they called twice, is very credible.
+- A bet representing an ace-high board hit, from a range that 3-bets its strong aces preflop, is missing many of those combos.
+
+Bluffs have to come from somewhere too. If no draws missed, there are few natural bluffs, and a big bet is weighted toward value.
+
+## From count to decision
+
+At the end, the read becomes one comparison. Facing a bet, count their value combos and their plausible bluffs, compute the bluff share, and compare it with the pot odds. Facing a pot-sized bet you need {pct(potOdds(2, 1), 0)}. If you count 20 value combos and 5 bluffs, bluffs are 20% and you fold. With 20 and 12, bluffs are 37.5% and you call.
+
+The estimate will be rough. It will still be better than deciding by how strong your hand feels.
+
+<Remember>
+
+- Start with the preflop range and narrow it one action at a time
+- Ranges only shrink
+- Sort the range into groups on the board and count combos in each
+- Check that the story is consistent across every street
+- Compare bluff combos with value combos, then with the pot odds
+
+</Remember>
+
+<Mistakes>
+
+- Putting an opponent on one hand and refusing to revise it
+- Adding hands back into a range that earlier action ruled out
+- Reading opponents as if they play the way you do
+- Fearing the few strongest combos while ignoring the many medium ones
+
+</Mistakes>

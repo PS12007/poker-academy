@@ -1,0 +1,128 @@
+import { potOdds, evCall } from '@/engine/ev';
+import { bluffFraction, alpha } from '@/engine/theory';
+import { pct, num, signed } from '@/lib/format';
+
+export const need = potOdds(175, 75);
+
+export const quiz = [
+  {
+    q: 'On the river, when is a bet a good value bet?',
+    choices: ['When you have the best hand more than half the time overall', 'When you win more than half the time against the hands that call', 'When you hold top pair', 'When the opponent checked'],
+    answer: 1,
+    why: 'Hands that fold do not matter. A value bet profits only if it beats more than half of the calling range (a little more if you can be raised).',
+  },
+  {
+    q: 'The pot is 100 and your opponent bets 75 on the river. How often must your bluff catcher be good to call?',
+    numeric: Math.round(need * 1000) / 10,
+    tolerance: 0.8,
+    unit: '%',
+    why: '75 / (175 + 75) = 30%. There are no more cards, so equity here is the share of their betting range that is bluffs.',
+  },
+  {
+    q: 'What is a bluff catcher?',
+    choices: ['A hand that beats all value bets', 'A hand that beats bluffs and loses to every value hand', 'A draw', 'A hand that should always raise'],
+    answer: 1,
+    why: 'Its exact strength is irrelevant. Top pair and third pair are the same hand if both beat only bluffs.',
+  },
+  {
+    q: 'What is a merged betting range?',
+    choices: ['Only the nuts and air', 'Strong and medium-strength hands betting for value, with few bluffs', 'A range with no pairs', 'A check-raise range'],
+    answer: 1,
+    why: 'Merged means betting hands down into the middle of your range. It is used with smaller sizes against opponents who call too much.',
+  },
+  {
+    q: 'Which hands make the best river bluffs?',
+    choices: ['Hands with some showdown value', 'Hands with no showdown value that block the opponent\'s calling hands', 'Medium pairs', 'Any hand'],
+    answer: 1,
+    why: 'A hand that can win by checking should check. Bluff with hands that lose otherwise, and prefer ones that make calls less likely.',
+  },
+];
+
+<Objectives>
+
+- Treat the river as a street with no equity left to realize
+- Bet thinly for value by counting what calls
+- Decide bluff-catching calls from pot odds and the opponent's bluff frequency
+- Tell polarized ranges from merged ones and pick bluffs correctly
+
+</Objectives>
+
+## No more cards
+
+The river is the simplest street in one way: nothing can change. Every hand either wins or loses at showdown. Draws are now busted or made. That removes two reasons for betting that applied earlier, protection and building a pot for a draw, and leaves only two.
+
+- **Value:** worse hands call.
+- **Bluff:** better hands fold.
+
+A river bet that does neither is a mistake, and on the river it is easy to check which one you are making.
+
+## Thin value
+
+A value bet is profitable when you are ahead of **the range that calls**, not the range you face before betting. That difference is where most missed value hides.
+
+Suppose you hold top pair with a decent kicker and your opponent checks to you. Their range holds some better hands, many worse pairs, and busted draws. If you bet half the pot, the busted draws fold. Of the hands that call, how many do you beat? If the answer is more than half, bet.
+
+Betting hands that are only modestly ahead of the calling range is called **thin value**. Winning players do it constantly. Typical opponents call too much on the river, so a hand that feels marginal is often well ahead of what pays it off.
+
+Two cautions. In position, the bet closes the action unless you are raised. Out of position, a check may induce a bluff from worse hands that would have folded to a bet, so some medium hands earn more by checking and calling. And if a raise is likely, you need a bigger margin, since you will often have to fold the best hand or pay off a better one.
+
+## Bluff catching
+
+Now the other side. Your opponent bets the river and you hold a hand that loses to everything they bet for value. Its only way to win is if they are bluffing. Such a hand is a **bluff catcher**.
+
+With no cards to come, your equity is the fraction of their betting range that is bluffs. Compare it with the price.
+
+<Working steps={[
+  { label: 'Pot 100, they bet 75. Equity needed', expr: '75 / (175 + 75)', result: pct(need) },
+  { label: 'If they bluff 40% of the time', expr: '0.40 × 175 − 0.60 × 75', result: signed(evCall(175, 75, 0.4)) },
+  { label: 'If they bluff 20% of the time', expr: '0.20 × 175 − 0.80 × 75', result: signed(evCall(175, 75, 0.2)) },
+]} />
+
+So the whole decision is an estimate of one number. Count the value combos they can have, count the hands that could be bluffing, and see whether bluffs are more than {pct(need, 0)} of the total. The combinatorics lesson gave you the method.
+
+<Live title="Price any river bet">
+  <PotOddsTool initial={{ pot: 100, bet: 75, equity: 30 }} />
+</Live>
+
+In practice, most players at low and middle stakes bluff the river less than the price requires, especially with large bets and raises. Against an unknown opponent, folding bluff catchers to big river bets and to river raises is a sound default. Against players known to bluff, the same hand is a call.
+
+## Polarized and merged
+
+A river betting range has one of two shapes.
+
+**Polarized.** Very strong hands and bluffs, nothing between. The medium hands check, because they beat bluffs anyway and lose to value. Polarized ranges use large sizes: the strong hands want maximum payment and the bluffs want maximum folds. For the caller to be indifferent, the share of bluffs must equal the caller's pot odds. At a pot-sized bet that is {pct(bluffFraction(1, 1), 0)} bluffs. At half pot, {pct(bluffFraction(2, 1), 0)}.
+
+**Merged.** Strong and medium hands together, few bluffs, smaller sizes. This is the thin-value shape. It works against opponents who call too wide, because your medium hands get paid by even weaker ones.
+
+Which to use depends on the opponent's range. Against a capped range full of bluff catchers, polarize and bet big. Against a wide, sticky range, merge and bet smaller.
+
+## Choosing bluffs
+
+On the river a bluff needs fold equity alone. A pot-sized bluff must work {pct(alpha(1, 1), 0)} of the time and a half-pot bluff {pct(alpha(2, 1), 0)}.
+
+Pick hands by two rules.
+
+1. **No showdown value.** If a hand might win by checking, checking is better. Busted draws are the natural bluffs.
+2. **Good blockers.** Prefer hands that hold cards your opponent needs for a call, and that do not hold the cards they would fold. A later lesson covers this in detail.
+
+Keep the number of bluffs in proportion. Too few and nobody needs to pay your value bets. Too many and every bluff catcher is a call.
+
+<Remember>
+
+- On the river, bet only for value or as a bluff
+- Value bet when you beat more than half of the hands that call
+- A bluff catcher's equity is the opponent's bluff frequency. Compare it with pot odds
+- Polarized ranges bet big with nuts and air. Merged ranges bet smaller with strong and medium hands
+- Bluff with hands that cannot win a showdown
+- Big river bets and raises from typical players are rarely bluffs
+
+</Remember>
+
+<Mistakes>
+
+- Checking back hands that would be called by worse
+- Bluffing with a hand that would have won at showdown
+- Calling large river bets because your hand looks strong in absolute terms
+- Betting a medium hand that only better hands call
+
+</Mistakes>

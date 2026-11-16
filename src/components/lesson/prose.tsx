@@ -2,7 +2,7 @@ import { lazy, Suspense, type ComponentProps, type ComponentType, type ReactNode
 import { Link } from 'react-router-dom';
 import { C } from '../cards/PlayingCard';
 import { Figure, Working } from '../ui/primitives';
-import { Cards, DataTable, Eq, Example, Formula, LessonLink, Live, Mistakes, Objectives, Remember, Scene, Term } from './blocks';
+import { Cards, DataTable, Eq, Example, Formula, LessonLink, Live, Mistakes, Objectives, Remember, RvR, Scene, Term, VsRandom } from './blocks';
 
 import { BluffEV, BoardReader, ComboCounter, DealDemo, HandNamer, MinRaiseCalc, Num, OutsTable, PotOddsStrip, RankingTable, StartingChart, TableDiagram } from './widgets';
 import { BetSizeTheory, GeometricSizing, VsOpenChart } from './widgets2';
@@ -66,5 +66,5 @@ export const MDX_COMPONENTS = {
   Objectives, Remember, Example, Mistakes, Formula, Live, Cards, Scene, Eq, Term, LessonLink, DataTable, Figure, Working, C,
   BluffEV, BoardReader, ComboCounter, DealDemo, HandNamer, MinRaiseCalc, Num, OutsTable, PotOddsStrip, RankingTable, StartingChart, TableDiagram,
   OutsTool, PotOddsTool, EquityTool, SidePotTool, VarianceTool, HeatmapTool, RangeTool,
-  BetSizeTheory, GeometricSizing, VsOpenChart,
+  BetSizeTheory, GeometricSizing, VsOpenChart, RvR, VsRandom,
 };

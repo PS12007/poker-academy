@@ -111,3 +111,13 @@ export function boardTexture(board: readonly number[]): BoardTexture {
     nuts: findNuts(board),
   };
 }
+
+/** Share of a weighted set of holdings that makes at least `min` category on this board (3 to 5 cards). */
+export function shareAtLeast(combos: readonly { c1: number; c2: number; w: number }[], board: readonly number[], min: Category): number {
+  let hit = 0, total = 0;
+  for (const c of combos) {
+    total += c.w;
+    if (categoryOf(evaluate([c.c1, c.c2, ...board])) >= min) hit += c.w;
+  }
+  return total ? hit / total : 0;
+}

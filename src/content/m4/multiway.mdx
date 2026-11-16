@@ -1,0 +1,135 @@
+import { alpha } from '@/engine/theory';
+import { pct, num } from '@/lib/format';
+
+export const each = (b, n) => 1 - Math.pow(alpha(1, b), 1 / n);
+export const allMiss = (n) => Math.pow(1 - 0.35, n);
+
+export const quiz = [
+  {
+    q: 'A bet into two opponents needs both to fold. If each folds 60% of the time independently, how often do both fold?',
+    numeric: 36,
+    tolerance: 0.5,
+    unit: '%',
+    why: '0.6 x 0.6 = 36%. Fold equity falls quickly as players are added.',
+  },
+  {
+    q: 'Facing a pot-sized bet heads-up, you must defend 50%. With two players facing the bet, about how often must each defend to hold the bettor to the same result?',
+    numeric: Math.round(each(1, 2) * 1000) / 10,
+    tolerance: 1.5,
+    unit: '%',
+    why: `The bettor needs both to fold with total probability 50%. Each can fold sqrt(0.5) = 70.7% and defend ${(each(1, 2) * 100).toFixed(1)}%.`,
+  },
+  {
+    q: 'How should your bluffing frequency change in multiway pots?',
+    choices: ['Bluff more, the pot is bigger', 'Bluff much less', 'No change', 'Only bluff the river'],
+    answer: 1,
+    why: 'More opponents means more chances that someone has a hand, and each individual can fold more often without being exploited.',
+  },
+  {
+    q: 'Which hands go up in value multiway?',
+    choices: ['Top pair with a weak kicker', 'Hands that make the nuts: sets, nut flush draws, straights', 'Ace-high', 'Bottom pair'],
+    answer: 1,
+    why: 'With several players in, the winning hand at showdown is stronger on average, and second-best hands pay the nuts.',
+  },
+  {
+    q: 'You hold an overpair on a wet board against three opponents and face a bet and a raise. What does that usually mean?',
+    choices: ['They are both bluffing', 'At least one very strong hand. One pair is in serious trouble', 'You should re-raise', 'Nothing'],
+    answer: 1,
+    why: 'Raising into several players shows real strength, because the raiser knows bluffs succeed rarely multiway.',
+  },
+];
+
+<Objectives>
+
+- Explain why fold equity collapses as players are added
+- Divide the burden of defense among several players
+- Tighten value ranges and cut bluffs multiway
+- Favor hands that make the nuts
+
+</Objectives>
+
+## Everything gets tighter
+
+Most theory in this module assumed two players. Add a third and nearly every conclusion shifts in the same direction: bet less, bluff less, need more to continue.
+
+Three effects drive it.
+
+## Equity is shared
+
+Heads-up, the average hand has half the pot. Three ways it has a third. Even the best hand loses ground with every caller.
+
+Pocket aces, all-in before the flop against random hands:
+
+<DataTable
+  head={['Opponents', 'Equity of aces', 'Fair share']}
+  rows={[1, 2, 3, 4].map((n) => [n, <VsRandom key={n} hand="AsAh" opponents={n} />, pct(1 / (n + 1))])}
+  caption="Monte Carlo against random hands. Aces stay well above a fair share, but they win outright less and less often."
+/>
+
+Aces are still a large favorite relative to the field. The point is the trend: a hand that wins 85% heads-up wins barely more than half against four opponents, and on the times it loses it often loses a big pot. This is one reason to raise and thin the field with strong pairs.
+
+## Someone usually has something
+
+If each opponent connects with a flop about 35% of the time, the chance that everyone missed falls fast.
+
+<DataTable
+  head={['Opponents', 'All missed']}
+  rows={[1, 2, 3, 4].map((n) => [n, pct(allMiss(n))])}
+  caption="0.65 to the power of the number of opponents, treating hands as independent. A simplification, but the shape is right."
+/>
+
+Heads-up, a continuation bet as a bluff faces a hand that missed about two times in three. Against three opponents all three miss only about a quarter of the time. Bluffs that were automatic become losing plays.
+
+## The burden of defense is shared
+
+Heads-up, if you fold too often to a bet, the bettor profits with any two cards, so you alone must defend at the minimum defense frequency. Multiway, the bettor needs everyone to fold. The defenders share the job.
+
+For a pot-sized bet, a bluff must work 50% of the time. If n players each fold with the same frequency, each can fold 0.5 to the power 1/n.
+
+<DataTable
+  head={['Players facing the bet', 'Each may fold', 'Each defends']}
+  rows={[1, 2, 3].map((n) => [n, pct(1 - each(1, n)), pct(each(1, n))])}
+  caption="Pot-sized bet. Each defender's share so that a pure bluff still breaks even."
+/>
+
+In practice the split is not even. The last player to act, who closes the action, defends more. Players with others still behind them defend less, because they can be raised. But the conclusion stands: you can and should fold much more often multiway than the heads-up numbers suggest.
+
+<Live title="Try three hands at once">
+  <EquityTool initial={{ hands: ['AsAh', '8h7h', 'KdQd'], board: [] }} />
+</Live>
+
+Add a flop of 9h6c2d and see how far the overpair's share falls with two live hands against it.
+
+## How to adjust
+
+**Value bet tighter and bigger.** A hand worth three streets heads-up may be worth one or two multiway. When you do bet for value, bet larger: several players are getting a price, and draws must be charged.
+
+**Bluff rarely, and only with equity.** Pure bluffs need too many folds. Semi-bluff with strong draws to the nuts.
+
+**Respect aggression.** A bet into several players is stronger than the same bet heads-up. A raise is stronger still. Fold one-pair hands to raises far more readily.
+
+**Prefer the nuts.** With more players, the best hand at showdown is stronger. Nut flush draws beat small flush draws by a wide margin, because someone often holds the bigger flush. Sets and straights get paid by second-best hands.
+
+**Position matters more.** Acting last with several players means seeing every action before you decide.
+
+**Check more as the preflop raiser.** Your range advantage is diluted across several calling ranges, each of which hit some part of the board.
+
+<Remember>
+
+- Each added player lowers your equity and your fold equity
+- Against three opponents, everyone misses only about a quarter of the time
+- Defense is shared: each player may fold far more than the heads-up MDF
+- Bet for value tighter and larger. Bluff rarely
+- A bet or raise into several players means strength
+- Draws to the nuts go up. Second-best hands go down
+
+</Remember>
+
+<Mistakes>
+
+- Continuation betting air into three players
+- Calling down with top pair against multiway aggression
+- Drawing to non-nut flushes and straights in big multiway pots
+- Applying heads-up defense frequencies when others share the job
+
+</Mistakes>

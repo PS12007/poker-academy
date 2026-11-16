@@ -1,0 +1,124 @@
+import { spr, geometricFraction } from '@/engine/theory';
+import { pct, num } from '@/lib/format';
+
+export const g = (s, n) => geometricFraction(1, s, n);
+
+export const quiz = [
+  {
+    q: 'The pot on the flop is 20bb and the effective stack behind is 60bb. What is the SPR?',
+    numeric: spr(60, 20),
+    tolerance: 0.05,
+    why: 'Stack divided by pot: 60 / 20 = 3.',
+  },
+  {
+    q: 'At a low SPR of about 2, how should you treat top pair with a good kicker?',
+    choices: ['As a hand to fold to any bet', 'As a hand strong enough to get all-in', 'As a bluff catcher only', 'As a draw'],
+    answer: 1,
+    why: 'There is only one pot-sized bet left. Too few better hands exist, relative to the pot already out there, to justify folding.',
+  },
+  {
+    q: 'At a high SPR of 15, which hands gain the most value?',
+    choices: ['One-pair hands', 'Hands that make sets, straights and nut flushes', 'Ace-high', 'All hands equally'],
+    answer: 1,
+    why: 'Deep money rewards hands that can win a very large pot. One pair wins small pots and loses big ones.',
+  },
+  {
+    q: 'Which stack does SPR use?',
+    choices: ['Your stack', 'The largest stack at the table', 'The effective stack: the smaller of the two', 'The average stack'],
+    answer: 2,
+    why: 'You can only win or lose what the shorter of the two players has.',
+  },
+  {
+    q: 'With an SPR of 4 on the flop, about what fraction of the pot bet on all three streets gets stacks in?',
+    numeric: Math.round(g(4, 3) * 100),
+    tolerance: 3,
+    unit: '% of pot',
+    why: `(1 + 2f)^3 = 1 + 2 x 4 = 9, so 1 + 2f = 2.08 and f = ${g(4, 3).toFixed(2)}.`,
+  },
+];
+
+<Objectives>
+
+- Compute the stack-to-pot ratio
+- Judge how strong a hand must be to play for stacks at a given SPR
+- Plan bet sizes across streets from the SPR
+- See how preflop choices set the SPR
+
+</Objectives>
+
+## One number for how deep the hand is
+
+The **stack-to-pot ratio** is the effective stack divided by the pot, measured at the start of the flop.
+
+<Formula name="stack-to-pot ratio">SPR = effective stack / pot</Formula>
+
+It answers one question: how many bets are left? At an SPR of 1, a single pot-sized bet is all-in. At 13, there is room for three large bets and a raise. Stack size alone does not tell you this. A 100bb stack in a 4-bet pot is shallow, and a 40bb stack in a limped pot is deep.
+
+## Commitment
+
+Being **committed** means that folding is no longer correct, because the pot is too large relative to what is left. The lower the SPR, the weaker the hand that qualifies.
+
+The reasoning is pot odds. With an SPR of 1, calling an all-in bet needs only one third equity. Top pair has far more than that against any reasonable betting range. With an SPR of 13, getting all-in means the opponent has put thirteen pots behind their hand, and the range that does that crushes one pair.
+
+| SPR | Typical spot | Willing to stack off with |
+|---|---|---|
+| Under 2 | 4-bet pot | Any pair, strong draws |
+| 2 to 4 | 3-bet pot | Top pair, overpairs, strong draws |
+| 4 to 7 | Squeezed or short-stacked pot | Top pair top kicker, overpairs with care |
+| 7 to 13 | Single raised pot | Two pair and better |
+| Over 13 | Deep-stacked pot | Sets, straights, strong flushes |
+
+Treat the table as guidance drawn from the pot-odds logic, not as fixed law. The board and the opponent move every line. On a wet board with a loose opponent, the thresholds drop. Against a tight player who raises the turn, they rise.
+
+## Planning from the flop
+
+SPR lets you decide the whole betting plan on the flop instead of improvising street by street. The geometric size tells you what to bet on each street to get stacks in by the river.
+
+<DataTable
+  head={['SPR', 'Three streets', 'Two streets', 'One street']}
+  rows={[1, 2, 4, 7, 13, 18].map((s) => [s, pct(g(s, 3), 0), pct(g(s, 2), 0), pct(g(s, 1), 0)])}
+  caption="Pot fraction to bet on each remaining street so the last bet is exactly all-in."
+/>
+
+Reading across at SPR 4: about two thirds of the pot on each of three streets, or 100% twice. At SPR 13, three bets of about pot. If you hold a hand that wants stacks in and you bet a third of the pot on the flop at SPR 13, the money cannot get in without an overbet or a raise later.
+
+The same table tells a drawing or medium hand what it faces. At SPR 2, a flop bet commits both players. At SPR 13, there is room to call once and re-evaluate.
+
+<Live title="Plan the streets">
+  <GeometricSizing pot={17} stack={92} />
+</Live>
+
+## Hand values shift with SPR
+
+**Low SPR favors high-card strength.** Top pair and overpairs are near the top of what is possible when little money is behind. Draws lose value because there are no implied odds, though they gain fold equity as semi-bluff shoves.
+
+**High SPR favors nut potential.** Sets, straights and nut flushes can win stacks. Top pair becomes a hand that wants a medium pot and one or two streets of value, not three.
+
+## You set the SPR before the flop
+
+Because the pot on the flop is built by preflop bets, your preflop sizing chooses the SPR.
+
+- With big pairs and ace-king, 3-betting creates a low SPR where one pair plays easily.
+- With small pairs and suited connectors, calling keeps the SPR high and the implied odds large.
+- When short-stacked, even a single raise creates a low SPR, so speculative hands lose their purpose.
+
+A common error is to 3-bet a hand that plays well at high SPR and then find it has become a marginal top pair in a pot it cannot leave.
+
+<Remember>
+
+- SPR = effective stack / pot on the flop
+- Low SPR: one pair is strong, commit readily. High SPR: need two pair or better for stacks
+- Single raised pots are around SPR 13 to 18. 3-bet pots about 4 to 5. 4-bet pots under 2
+- Use the geometric size to plan how stacks go in
+- Preflop sizing sets the SPR. Choose it to suit your hand
+
+</Remember>
+
+<Mistakes>
+
+- Stacking off with one pair in a deep single raised pot
+- Folding an overpair at SPR 2
+- Betting too small early with a monster, leaving stacks impossible to get in
+- Calling 3-bets with speculative hands when the SPR will be too low to pay them
+
+</Mistakes>

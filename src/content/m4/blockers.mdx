@@ -1,0 +1,138 @@
+import { parseCards } from '@/engine/cards';
+import { countCombos, parseRange } from '@/engine/ranges';
+import { bluffFraction } from '@/engine/theory';
+import { pct, num } from '@/lib/format';
+
+export const hearts = (dead) => { const d = new Set(parseCards(dead)); const h = []; for (let r = 0; r < 13; r++) { const c = r * 4 + 2; if (!d.has(c)) h.push(c); } return h; };
+export const flushes = (dead) => { const h = hearts(dead); return (h.length * (h.length - 1)) / 2; };
+export const nutFlushes = (dead) => { const h = hearts(dead); return h.includes(50) ? h.length - 1 : 0; };
+export const board = 'Kh9h4h2c7d';
+export const left = (name, dead) => countCombos(parseRange(name), parseCards(dead));
+export const b2 = 'Ks9d4c2h7s';
+export const value = (dead) => countCombos(parseRange('KK, 99, AK, KQ'), parseCards(dead));
+
+export const quiz = [
+  {
+    q: 'The board has three hearts. You hold the ace of hearts and no other heart. How many nut flush combos can your opponent have?',
+    numeric: 0,
+    tolerance: 0,
+    why: 'The nut flush needs the ace of hearts, and you are holding it.',
+  },
+  {
+    q: 'On K-9-4 of hearts with two more non-heart cards, how many two-heart combos exist in total?',
+    numeric: flushes(board),
+    tolerance: 0,
+    why: 'Ten hearts are unseen. Choose 2 from 10 = 45.',
+  },
+  {
+    q: 'You hold the ace of hearts. How many two-heart combos remain?',
+    numeric: flushes(board + 'Ah'),
+    tolerance: 0,
+    why: 'Nine hearts are unseen. Choose 2 from 9 = 36. Holding one heart removes a fifth of their flushes, including all of the strongest.',
+  },
+  {
+    q: 'For a river bluff, which card would you rather hold?',
+    choices: ['One that blocks hands they would fold', 'One that blocks hands they would call with', 'It makes no difference', 'The lowest card possible'],
+    answer: 1,
+    why: 'Removing calling hands raises the fraction of their range that folds. Holding their folding hands does the opposite.',
+  },
+  {
+    q: 'You face a river bet with a bluff catcher. Which holding makes calling better?',
+    choices: ['Cards that block their value hands', 'Cards that block their busted draws', 'Any pair', 'Suited cards'],
+    answer: 0,
+    why: 'Blocking value shifts their range toward bluffs. Blocking their missed draws removes the very bluffs you hope to catch.',
+  },
+];
+
+<Objectives>
+
+- Count how one card in your hand changes an opponent's range
+- Choose river bluffs by what they block and unblock
+- Choose bluff-catching calls the same way
+- Keep blockers in proportion: a tiebreaker, not a strategy
+
+</Objectives>
+
+## Small numbers, late streets
+
+Card removal was introduced in the combinatorics lesson. Before the flop its effects are modest. By the river, ranges have been cut down to a few dozen combos, and removing five or ten of them can swing a close decision.
+
+A blocker is useful in two directions.
+
+- **Blocking** hands you want them not to have.
+- **Unblocking** hands you want them to keep.
+
+## The nut flush blocker
+
+The clearest example. The board is K-9-4 of hearts with two blanks, and your opponent's line is consistent with a flush.
+
+<Scene hands={['AhQc']} board="Kh9h4h2c7d" labels={['One heart: the ace']} />
+
+<DataTable
+  head={['You hold', 'Their flush combos', 'Their nut flush combos']}
+  rows={[
+    ['No heart', flushes(board), nutFlushes(board)],
+    ['The ace of hearts', flushes(board + 'Ah'), nutFlushes(board + 'Ah')],
+    ['The queen of hearts', flushes(board + 'Qh'), nutFlushes(board + 'Qh')],
+  ]}
+  caption="Two-heart holdings with the board removed, counted by the engine."
+/>
+
+Holding any single heart removes {flushes(board) - flushes(board + 'Ah')} of their {flushes(board)} flushes. Holding the ace does more: it removes every nut flush. They can never be certain they hold the best hand. That makes the bare ace of the flush suit the best bluffing card on such boards, and it is why a big bluff here with the ace is credible while the same bluff with a low heart is much less so.
+
+## Blockers for bluffing
+
+A river bluff succeeds when they fold. So the ideal bluffing hand:
+
+1. **Blocks their calls.** It holds cards that appear in the hands they would call with.
+2. **Unblocks their folds.** It does not hold cards from the hands they would fold.
+
+Suppose the board is K-9-4-2-7 without a flush, and their calling range is K-K, 9-9, A-K and K-Q: {value(b2)} combos. If you hold a king, each of those groups loses combos.
+
+<Live title="See the combos disappear">
+  <ComboCounter start="AK" dead="Ks9d4c2h7sKd" />
+</Live>
+
+With a king in your hand, ace-king drops from {left('AK', b2)} combos to {left('AK', b2 + 'Kd')} and pocket kings from {left('KK', b2)} to {left('KK', b2 + 'Kd')}. A missed draw holding a king is a better bluff than a missed draw without one.
+
+The unblocking half matters as much. If their folding range is missed straight draws such as J-T and Q-J, then bluffing with J-T yourself is poor: you hold the cards that make up the hands you need them to have.
+
+## Blockers for calling
+
+When you hold a bluff catcher, the logic reverses.
+
+- **Block their value.** If you hold cards that reduce their strong combos, more of their bets are bluffs.
+- **Unblock their bluffs.** If their bluffs are missed flush draws, you do not want to hold cards of that suit.
+
+This leads to a result that surprises people. Among hands of equal showdown strength, such as several different second pairs, the best call is the one whose side card interferes least with the opponent's bluffs. The worst is the one holding their missed draw.
+
+## Keep it in proportion
+
+The balanced bluff share against a pot-sized bet is {pct(bluffFraction(1, 1), 0)}. Blockers move the true share a few points either way. That is decisive when the decision was close, and irrelevant when it was not.
+
+So use them in this order.
+
+1. Decide from ranges and pot odds whether the spot is a clear bet, call or fold.
+2. If it is clear, blockers do not change it.
+3. If it is close, or you are choosing which of several similar hands to bluff or call with, let blockers pick.
+
+Against opponents who never fold, no blocker makes a bluff good. Against opponents who never bluff, no blocker makes a call good.
+
+<Remember>
+
+- One card of a suit removes a fifth of their flushes. The ace removes every nut flush
+- Bluff with hands that block their calls and unblock their folds
+- Call with hands that block their value and unblock their bluffs
+- Blockers matter most on the river, where ranges are narrow
+- They break ties. They do not override a clear decision
+
+</Remember>
+
+<Mistakes>
+
+- Bluffing with the cards that make up their folding range
+- Calling with a hand that blocks the draws they would be bluffing with
+- Treating a blocker as a reason to bluff a player who always calls
+- Ignoring blockers on the river when choosing between similar hands
+
+</Mistakes>
