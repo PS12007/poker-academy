@@ -1,0 +1,134 @@
+import { buildPots } from '@/engine/sidePots';
+
+export const pots = buildPots([{ committed: 40 }, { committed: 100 }, { committed: 100 }]);
+
+export const quiz = [
+  {
+    q: 'How many community cards are on the board after the turn?',
+    numeric: 4,
+    tolerance: 0,
+    why: 'Three on the flop plus one on the turn. The river adds the fifth.',
+  },
+  {
+    q: 'Who posts the big blind?',
+    choices: ['The player on the button', 'The player directly left of the button', 'The player two seats left of the button', 'The first player to act'],
+    answer: 2,
+    why: 'The small blind is directly left of the button and the big blind is the next seat. The button moves one seat clockwise after every hand, so everyone pays the blinds in turn.',
+  },
+  {
+    q: 'The board is A-K-Q-J-10 in mixed suits. You hold 9-9 and your opponent holds 2-3. Who wins?',
+    choices: ['You, with the pair of nines', 'Your opponent', 'The pot is split', 'Whoever bet last'],
+    answer: 2,
+    why: 'The best five cards for both players are the straight on the board. Neither hole card improves on it, so the board plays and the pot is split.',
+  },
+  {
+    q: 'Three players are all-in. Ana put in 40, Ben put in 100, Cho put in 100. How large is the main pot that Ana can win?',
+    numeric: pots[0].amount,
+    tolerance: 0,
+    why: `Ana can win 40 from each player including herself: 3 x 40 = ${pots[0].amount}. The other ${pots[1].amount} forms a side pot that only Ben and Cho can win.`,
+  },
+  {
+    q: 'Before the flop, which player acts first?',
+    choices: ['The small blind', 'The big blind', 'The player left of the big blind', 'The button'],
+    answer: 2,
+    why: 'The blinds have already put money in, so action starts with the next player, called under the gun. On every later street the small blind acts first.',
+  },
+  {
+    q: 'You must use both of your hole cards to make your hand in Hold\'em.',
+    choices: ['True', 'False'],
+    answer: 1,
+    why: 'You may use two, one or none of your hole cards. Your hand is the best five out of all seven. The rule requiring exactly two applies to Omaha, not Hold\'em.',
+  },
+];
+
+<Objectives>
+
+- Describe the order of play in a hand from the blinds to showdown
+- Name the four betting rounds and how many cards each reveals
+- Work out a split pot
+- Divide chips into a main pot and side pots when stacks are uneven
+
+</Objectives>
+
+## The setup
+
+Texas Hold'em is played by two to ten players. One seat is marked with a disc called the **button**. It stands for the dealer, and it moves one seat clockwise after every hand.
+
+Before any cards are dealt, the two players to the left of the button must put in forced bets:
+
+- The **small blind**, directly left of the button, posts half a bet.
+- The **big blind**, the next seat, posts a full bet.
+
+The blinds exist so there is always something to win. Without them the correct strategy would be to wait for aces and nothing else. The size of the big blind also names the game: a game with blinds of 1 and 2 is a 1/2 game, and stacks are measured in big blinds. A stack of 200 in that game is 100 big blinds, written 100bb.
+
+## Four rounds of betting
+
+Each player receives two private cards, face down. These are the **hole cards**. Then:
+
+| Street | Cards dealt | Board total | First to act |
+|---|---|---|---|
+| Preflop | 2 hole cards each | 0 | Left of the big blind |
+| Flop | 3 community cards | 3 | Small blind |
+| Turn | 1 community card | 4 | Small blind |
+| River | 1 community card | 5 | Small blind |
+
+After each deal there is a round of betting that moves clockwise. A round ends when every player still in the hand has put in the same amount, or all but one have folded. The next lesson covers the betting actions themselves.
+
+If two or more players remain after the river betting, there is a **showdown**. Each makes the best five-card hand from their two hole cards and the five on the board, using any combination: both hole cards, one, or none.
+
+## When the board plays
+
+Because the community cards are shared, two players often end up with the same five-card hand. Then the pot is split equally.
+
+<Scene hands={['9s9d', '3c2h']} board="AsKdQhJcTs" />
+
+The board is an ace-high straight. A pair of nines does not improve on it, and neither does three-two. Both players play the board and each takes half the pot. A split also happens when both players use one hole card of the same rank, such as two players holding an ace with kickers too small to matter.
+
+## All-in and side pots
+
+You can never be forced out of a hand for lack of chips, and you can never win more from a player than you put in yourself. A player who bets everything is **all-in**. They stay in the hand to showdown but can only win the part of the pot they matched.
+
+When players are all-in for different amounts, the chips are divided into layers:
+
+1. Take the smallest all-in amount. Everyone contributes that much to the **main pot**. Every player still in can win it.
+2. Whatever the remaining players put in above that goes into a **side pot**, which only they can win.
+3. Repeat for each different stack size.
+
+<Example title="Three stacks, two pots">
+
+Ana is all-in for 40. Ben and Cho each put in 100.
+
+- Main pot: 40 from each of three players = {pots[0].amount}. Ana, Ben and Cho can all win it.
+- Side pot: the extra 60 from Ben and 60 from Cho = {pots[1].amount}. Only Ben and Cho can win it.
+
+If Ana has the best hand and Ben the second best, Ana takes {pots[0].amount} and Ben takes {pots[1].amount}. Ana tripled her 40 and still did not win the whole table's chips.
+
+</Example>
+
+Change the stacks, fold players and set who has the best hand:
+
+<Live title="Side pot calculator">
+  <SidePotTool />
+</Live>
+
+The amount you can actually win or lose against one opponent is the smaller of your two stacks. That number is called the **effective stack**, and it matters far more than your own stack size.
+
+<Remember>
+
+- Button, then small blind, then big blind, clockwise. The button moves every hand
+- Four betting rounds: preflop, flop (3 cards), turn (1), river (1)
+- Preflop the player left of the big blind acts first. After the flop the small blind does
+- Your hand is the best five of seven. You may use two, one or none of your hole cards
+- Identical five-card hands split the pot
+- You can only win from each player as much as you put in. Uneven all-ins create side pots
+
+</Remember>
+
+<Mistakes>
+
+- Believing you must use both hole cards. That is Omaha
+- Missing that the board plays and paying off a bet when the best you can do is split
+- Counting your whole stack as at risk when your opponent has less than you. Only the effective stack is in play
+- Forgetting that the order of action changes after the flop
+
+</Mistakes>

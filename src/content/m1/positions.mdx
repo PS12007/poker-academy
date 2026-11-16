@@ -1,0 +1,104 @@
+import { openRange } from '@/engine/teachingRanges';
+import { rangeFraction } from '@/engine/ranges';
+import { pct } from '@/lib/format';
+
+export const utg = rangeFraction(openRange('UTG'));
+export const btn = rangeFraction(openRange('BTN'));
+
+export const quiz = [
+  {
+    q: 'Which seat acts last on the flop, turn and river?',
+    choices: ['Big blind', 'Under the gun', 'Cutoff', 'Button'],
+    answer: 3,
+    why: 'After the flop, action starts left of the button and ends on the button. If the button has folded, the nearest remaining player to its right acts last.',
+  },
+  {
+    q: 'Why is acting last an advantage?',
+    choices: ['You get better cards', 'You see what your opponents do before you decide', 'You pay smaller blinds', 'You are allowed to bet more'],
+    answer: 1,
+    why: 'Position is information. The cards and the betting limits are the same for everyone. The player acting last makes each decision knowing one more fact than the player acting first.',
+  },
+  {
+    q: 'In a six-handed game, which seat is to the right of the button?',
+    choices: ['Hijack', 'Cutoff', 'Small blind', 'Under the gun'],
+    answer: 1,
+    why: 'Clockwise from the first to act: under the gun, hijack, cutoff, button, small blind, big blind. The cutoff is directly before the button.',
+  },
+  {
+    q: 'Which seat should open the widest range of hands when everyone folds to it?',
+    choices: ['Under the gun', 'Hijack', 'Cutoff', 'Button'],
+    answer: 3,
+    why: `The button has only two players left to beat and is guaranteed position after the flop. In this course's teaching ranges the button opens ${(btn * 100).toFixed(0)}% of hands against ${(utg * 100).toFixed(0)}% under the gun.`,
+  },
+  {
+    q: 'You are in the small blind and the button raises. If you call, where will you act on the flop?',
+    choices: ['Last', 'First', 'It depends on the cards', 'Second'],
+    answer: 1,
+    why: 'The small blind is first to act on every street after the flop. That is why it is the least profitable seat even though half a blind is already paid.',
+  },
+];
+
+<Objectives>
+
+- Name the six seats at a six-handed table
+- State the order of action before and after the flop
+- Explain why acting last is worth money
+- Connect position to how many hands you should play
+
+</Objectives>
+
+## The seats
+
+Seats are named by where they sit relative to the button. In a six-handed game, going clockwise from the first player to act before the flop:
+
+<Live title="Tap a seat, switch the street">
+  <TableDiagram />
+</Live>
+
+With more players the extra seats are added in early position, between the big blind and the hijack. With fewer players the early seats disappear first. The button, the blinds and the cutoff are always there.
+
+The order of action is different before and after the flop, and the diagram shows both. Before the flop the blinds act last because they have already put money in. From the flop onward the small blind acts first and the button acts last.
+
+## Position is information
+
+Suppose you hold a medium pair on the flop against one opponent.
+
+If you act first, you must choose between checking and betting without knowing anything about their hand. If you check, they might bet and you still will not know whether it is strength or a bluff.
+
+If you act last, you have already seen their choice. If they checked, their hand is more likely to be weak, and you may bet or take a free card as you prefer. If they bet, you know the price before you decide whether to continue.
+
+The player in position gets to do all of this on the flop, again on the turn, and again on the river. Three streets, each decided with one extra piece of information. The player acting last also controls the size of the pot: they can end the betting round by checking behind, or build the pot by betting.
+
+Over thousands of hands this adds up to a large and measurable effect. In records of real games, players win the most from the button and lose the most from the blinds, where they pay forced bets and then play the rest of the hand out of position.
+
+## What it means before the flop
+
+Position changes which hands are worth playing. The reasoning has two parts.
+
+1. **Players left to act.** Under the gun, five players remain who might wake up with a strong hand. On the button, only two do.
+2. **Position after the flop.** The button always acts last postflop. Under the gun usually does not.
+
+So the earlier your seat, the stronger your hand needs to be. The teaching ranges used later in this course open {pct(utg, 0)} of hands under the gun and {pct(btn, 0)} on the button. Same cards, three times as many playable, purely because of the seat.
+
+Two terms you will see constantly from here on:
+
+- **In position (IP):** you act after your opponent on this street.
+- **Out of position (OOP):** you act before them.
+
+<Remember>
+
+- Six seats, clockwise: UTG, HJ, CO, BTN, SB, BB
+- Preflop action starts left of the big blind. Postflop it starts with the small blind
+- The button acts last on every postflop street
+- Acting last means deciding with more information, on three streets
+- Earlier seat, tighter range. Later seat, wider range
+
+</Remember>
+
+<Mistakes>
+
+- Playing the same hands from every seat
+- Calling raises from the small blind because half a blind is already in. You will be out of position for the whole hand
+- Treating the blinds as late position. They act last only before the flop
+
+</Mistakes>

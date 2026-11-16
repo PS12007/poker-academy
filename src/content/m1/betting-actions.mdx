@@ -1,0 +1,126 @@
+export const quiz = [
+  {
+    q: 'Nobody has bet on the flop and the action is on you. Which actions are available?',
+    choices: ['Call or fold', 'Check or bet', 'Check, call or raise', 'Fold only'],
+    answer: 1,
+    why: 'With no bet to match you can check (pass) or bet. Calling and raising only exist once someone has bet. You could fold, but folding for free is never right.',
+  },
+  {
+    q: 'A player bets 20. The next player raises to 60. What is the smallest total you may re-raise to?',
+    numeric: 100,
+    tolerance: 0,
+    why: 'The last raise added 40 (from 20 to 60). Your raise must add at least 40 more: 60 + 40 = 100.',
+  },
+  {
+    q: 'What is a value bet?',
+    choices: ['A bet meant to make better hands fold', 'A small bet to see the next card cheaply', 'A bet you expect worse hands to call', 'Any bet on the river'],
+    answer: 2,
+    why: 'You bet for value when you believe you have the best hand and want weaker hands to pay. A bluff is the opposite: you want better hands to fold.',
+  },
+  {
+    q: 'You say "I call" and then push out enough chips to raise. What stands?',
+    choices: ['The raise, because chips speak', 'The call, because the verbal declaration came first and is binding', 'Whichever the dealer prefers', 'Your hand is dead'],
+    answer: 1,
+    why: 'A clear verbal declaration made in turn is binding. This is also why announcing your action before moving chips protects you from string bet rulings.',
+  },
+  {
+    q: 'The big blind is 2. Everyone folds to you before the flop and you want to raise. What is the minimum you can raise to?',
+    numeric: 4,
+    tolerance: 0,
+    why: 'The big blind counts as a bet of 2. A raise must add at least the size of that bet: 2 + 2 = 4.',
+  },
+  {
+    q: 'In no-limit, what is the largest bet you may make?',
+    choices: ['The size of the pot', 'Twice the last bet', 'All the chips you have on the table', 'Ten big blinds'],
+    answer: 2,
+    why: 'No-limit means the upper bound is your own stack. The lower bound is the minimum bet or raise.',
+  },
+];
+
+<Objectives>
+
+- Name the five actions and say when each is available
+- Compute the minimum legal raise
+- Tell a value bet from a bluff
+- Avoid the common procedural errors in live games
+
+</Objectives>
+
+## Five actions
+
+On your turn you choose from a short menu. What is on the menu depends on whether someone has already bet in this round.
+
+**If nobody has bet:**
+
+- **Check.** Pass the turn and put in nothing. You stay in the hand.
+- **Bet.** Put chips in. Everyone after you must now respond.
+
+**If someone has bet:**
+
+- **Fold.** Give up your cards. You lose what you already put in and nothing more.
+- **Call.** Match the bet exactly.
+- **Raise.** Increase the bet. Everyone, including the original bettor, must respond to the new amount.
+
+A betting round is over when all remaining players have put in the same amount, or when everyone has checked. Before the flop the big blind counts as a bet, so the first player cannot check: they call 1bb, raise, or fold.
+
+## How much you can bet
+
+The game in this course is **no-limit** Hold'em. The name describes the upper bound: at any time you may bet all the chips in front of you.
+
+There is a lower bound too.
+
+- The minimum **bet** is one big blind.
+- The minimum **raise** must increase the bet by at least as much as the previous bet or raise did.
+
+The second rule trips people up, so here it is in numbers. Someone bets 10. A raise must add at least 10, so the smallest raise is to 20. Suppose instead the raise is to 30. That raise added 20, so the next raise must add at least 20: the smallest re-raise is to 50.
+
+<Live title="Work out any spot">
+  <MinRaiseCalc />
+</Live>
+
+One exception: a player who does not have enough chips for a full raise may still go all-in for whatever they have.
+
+## Why bet at all
+
+Every bet you make should have one of two purposes.
+
+A **value bet** is a bet with a hand you expect to be best, made so that worse hands call and pay you. A **bluff** is a bet with a hand you expect to be worst, made so that better hands fold.
+
+If a bet does neither, it is usually a mistake. Betting a medium-strength hand often achieves the worst of both: worse hands fold and better hands call. Asking which worse hands call and which better hands fold, before putting chips in, is the single most useful habit in the game. Later modules put numbers on how often each needs to happen. The tool below gives a first taste: it shows what a bluff earns on average for any pot, bet size and folding frequency.
+
+<Live title="A first look at the arithmetic">
+  <BluffEV />
+</Live>
+
+Notice that a bluff does not need to work most of the time. A half-pot bluff shows a profit if it works more than a third of the time.
+
+## Procedure and etiquette
+
+Live games have a few rules that exist to keep the game fair. Online, the software enforces them for you.
+
+- **Act in turn.** Acting early gives information to players who have not acted yet.
+- **One motion.** A raise must be made in a single motion or announced first. Putting out calling chips and then reaching back for more is a **string bet** and will be ruled a call. Saying the word raise, or the amount, before touching chips avoids the problem.
+- **Verbal is binding.** If you say call, you have called.
+- **One chip is a call.** Tossing in a single oversized chip without speaking counts as a call, not a raise.
+- **Protect your hand.** Keep your cards on the table and in view. Do not show them to anyone while the hand is live.
+- **Do not talk about a hand in progress** if you have folded. What you threw away is information.
+- **Do not slow roll.** If you clearly have the winner at showdown, turn it over promptly.
+
+<Remember>
+
+- No bet in front of you: check or bet. Facing a bet: fold, call or raise
+- A raise must add at least the size of the previous bet or raise
+- In no-limit the maximum is always your whole stack
+- Bet for value (worse hands call) or as a bluff (better hands fold). Know which before you bet
+- Announce your action out loud before moving chips
+
+</Remember>
+
+<Mistakes>
+
+- Folding when you could check for free
+- Betting a medium hand without knowing what you want to happen
+- Making a string bet by adding chips in two motions
+- Assuming a bluff has to work more than half the time to be profitable
+
+</Mistakes>

@@ -4,6 +4,8 @@ import {
   type EquityRequest, type EquityResult, type NextCardEquity, type ProgressFn,
 } from '../engine/equity';
 import type { WeightedCombo } from '../engine/ranges';
+import { fiveCardCategoryCounts } from '../engine/combinatorics';
+import { simulateVariance, type VarianceInput, type VarianceResult } from '../engine/variance';
 
 const api = {
   equity(req: EquityRequest, onProgress?: ProgressFn): EquityResult {
@@ -27,6 +29,14 @@ const api = {
   rangeVsRange(hero: WeightedCombo[], villain: WeightedCombo[], board: number[], dead: number[] = []) {
     const r = rangeVsRangeBoard(hero, villain, board, dead);
     return { ...r, heroClasses: classEquities(r.hero) };
+  },
+  fiveCardCounts(): { counts: number[]; ms: number } {
+    const t0 = Date.now();
+    const counts = fiveCardCategoryCounts();
+    return { counts, ms: Date.now() - t0 };
+  },
+  variance(input: VarianceInput): VarianceResult {
+    return simulateVariance(input);
   },
 };
 

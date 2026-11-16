@@ -1,0 +1,122 @@
+import { FIVE_CARD_COUNTS } from '@/engine/combinatorics';
+import { int, pct } from '@/lib/format';
+
+export const quiz = [
+  {
+    q: 'Which hand is stronger: a flush or a straight?',
+    choices: ['Straight', 'Flush', 'They tie', 'It depends on the high card'],
+    answer: 1,
+    why: `A flush is rarer: ${FIVE_CARD_COUNTS[5].toLocaleString('en-US')} of the 2,598,960 five-card hands are flushes, against ${FIVE_CARD_COUNTS[4].toLocaleString('en-US')} straights.`,
+  },
+  {
+    q: 'Two players both hold a pair of aces. Player one has A-A-K-7-2, player two has A-A-Q-J-9. Who wins?',
+    choices: ['Player two, because Q-J-9 adds up to more', 'Player one, because the king is the highest side card', 'It is a tie', 'Whoever has the ace of spades'],
+    answer: 1,
+    why: 'After the pair, side cards (kickers) are compared one at a time from the highest. King beats queen, and the comparison stops there.',
+  },
+  {
+    q: 'Which is the lowest possible straight?',
+    choices: ['2-3-4-5-6', 'A-2-3-4-5', 'K-A-2-3-4', '10-J-Q-K-A'],
+    answer: 1,
+    why: 'The ace can play low to make A-2-3-4-5, called the wheel. It counts as a five-high straight. Straights cannot wrap around, so K-A-2-3-4 is nothing.',
+  },
+  {
+    q: 'How many of the 2,598,960 five-card hands are a full house?',
+    numeric: FIVE_CARD_COUNTS[6],
+    tolerance: 0,
+    why: 'Pick the rank of the three (13 ways) and which three suits (4 ways), then the rank of the pair (12 ways) and which two suits (6 ways): 13 x 4 x 12 x 6 = 3,744.',
+  },
+  {
+    q: 'Both players have a flush in spades. How is the winner decided?',
+    choices: ['It is always a tie', 'By the highest card in each flush, then the next highest, and so on', 'By who has more spades', 'By the suit of the fifth card'],
+    answer: 1,
+    why: 'Flushes are compared card by card from the top. Suits are never ranked against each other in poker.',
+  },
+  {
+    q: 'You hold seven cards in total. How many of them make up your hand?',
+    choices: ['All seven', 'Your two plus the best three on the board', 'The best five, in any combination', 'The best six'],
+    answer: 2,
+    why: 'A poker hand is always exactly five cards. Extra cards are ignored completely, even for breaking ties.',
+  },
+];
+
+<Objectives>
+
+- Rank all nine hand categories from memory
+- Explain why the order is what it is
+- Break ties with kickers
+- Pick the best five cards out of seven
+
+</Objectives>
+
+## Nine categories, ordered by rarity
+
+A poker hand is exactly five cards. Every five-card hand falls into one of nine categories, and the categories are ranked by how hard they are to get. The rarer the hand, the more it beats.
+
+That is the entire logic of the ranking, and you can check it. The table below is not copied from anywhere. When this page opened, the engine dealt every one of the 2,598,960 possible five-card hands and counted how many land in each category.
+
+<Live title="Counted in your browser">
+  <RankingTable />
+</Live>
+
+Read the counts from top to bottom. Each category is more common than the one above it, with no exceptions. A flush beats a straight because there are {int(FIVE_CARD_COUNTS[5])} flushes and {int(FIVE_CARD_COUNTS[4])} straights. A full house beats a flush because there are only {int(FIVE_CARD_COUNTS[6])} full houses.
+
+{pct(FIVE_CARD_COUNTS[0] / 2598960)} of all hands are nothing at all. Add one-pair hands and you have covered {pct((FIVE_CARD_COUNTS[0] + FIVE_CARD_COUNTS[1]) / 2598960)} of everything that can be dealt. Keep that in mind whenever you feel you are waiting too long for a big hand.
+
+## Ties and kickers
+
+Within a category, hands are compared by the ranks of their cards. The rule is always the same: compare the most important cards first, and move to the next only if they are equal.
+
+- **Pair against pair.** The higher pair wins. If the pairs match, compare the three side cards from highest to lowest. Those side cards are called **kickers**.
+- **Two pair.** Compare the higher pair, then the lower pair, then the one kicker.
+- **Three of a kind.** Compare the three, then the two kickers.
+- **Straight.** Only the top card matters.
+- **Flush.** Compare all five cards from the top down.
+- **Full house.** Compare the three, then the pair.
+
+Suits never break ties. The ace of spades is worth exactly as much as the ace of clubs. If two hands have the same five ranks, they split the pot.
+
+<Example title="A kicker decides it">
+
+Two players both make a pair of kings.
+
+<Scene hands={['KsQd', 'Kh9h']} board="Kd8c4s2h3d" />
+
+Player one plays K-K-Q-8-4. Player two plays K-K-9-8-4. The pairs are equal, so compare the best kicker: queen against nine. Player one wins the whole pot. Dominated kickers like this are one of the most common ways beginners lose money, which is why K-9 is a much worse starting hand than it looks.
+
+</Example>
+
+## The ace goes both ways
+
+The ace is the highest card, but it can also sit below the two to complete the straight A-2-3-4-5. That straight is called the wheel and it is the lowest straight there is: it loses to 2-3-4-5-6. The ace cannot be in the middle. Q-K-A-2-3 is not a straight.
+
+## Best five of seven
+
+In Hold'em you will have seven cards to work with: two of your own and five shared. Your hand is the best five-card hand you can make from them. The other two cards do not exist for any purpose.
+
+Try it. Pick any five to seven cards and the engine will name the hand and frame the five that play.
+
+<Live title="Try any cards">
+  <HandNamer start="AsAdKsKdQsQd2h" />
+</Live>
+
+The starting example has three pairs. There is no such hand as three pair. The best five cards are aces and kings with a queen kicker, and the second queen is discarded.
+
+<Remember>
+
+- Order, best to worst: straight flush, four of a kind, full house, flush, straight, three of a kind, two pair, one pair, high card
+- The order is the order of rarity. Rarer beats more common
+- A hand is exactly five cards. Kickers break ties, suits never do
+- The ace is high, and also low in A-2-3-4-5 only
+- With seven cards, only the best five count
+
+</Remember>
+
+<Mistakes>
+
+- Thinking a straight beats a flush. It is the other way round
+- Counting a sixth card as a tiebreaker. Only five cards play
+- Ranking suits. In poker all four suits are equal
+- Ignoring the kicker when starting a hand. Top pair with a weak kicker often loses to top pair with a better one
+
+</Mistakes>

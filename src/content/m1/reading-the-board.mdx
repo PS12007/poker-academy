@@ -1,0 +1,132 @@
+import { findNuts, boardTexture } from '@/engine/board';
+import { parseCards } from '@/engine/cards';
+
+export const n1 = findNuts(parseCards('Ks7d2c'));
+export const n2 = findNuts(parseCards('JsTs9d'));
+export const n3 = findNuts(parseCards('8s8d3c'));
+export const n4 = findNuts(parseCards('Ah9h4h2c7d'));
+export const wet = boardTexture(parseCards('JsTs9d'));
+export const dry = boardTexture(parseCards('Ks7d2c'));
+
+export const quiz = [
+  {
+    q: 'The flop is K-7-2 in three different suits. What is the best possible hand right now?',
+    choices: ['A pair of aces', 'Three kings', 'Two pair, kings and sevens', 'A straight'],
+    answer: 1,
+    why: `No straight or flush is possible with three cards this far apart. The engine checks every two-card holding and finds: ${n1.name}. Only pocket kings make it.`,
+  },
+  {
+    q: 'The board is J-10-9 with two spades. Which holding is the nuts?',
+    choices: ['Pocket jacks', 'King-queen', 'Queen-eight', 'Ace-king of spades'],
+    answer: 1,
+    why: `King-queen makes the king-high straight. Queen-eight makes a lower straight and loses to it. The engine result: ${n2.name}.`,
+  },
+  {
+    q: 'What does a paired board make possible that an unpaired board does not?',
+    choices: ['Flushes', 'Straights', 'Full houses and four of a kind', 'Nothing'],
+    answer: 2,
+    why: 'A full house needs a pair plus three of a kind among five cards. With two hole cards, that requires at least a pair on the board.',
+  },
+  {
+    q: 'Which flop is the wettest?',
+    choices: ['K-7-2 rainbow', '8-8-3 rainbow', 'A-K-4 rainbow', '9-8-7 with two hearts'],
+    answer: 3,
+    why: 'Three connected cards with a flush draw available give opponents straights, straight draws and flush draws. The other three boards allow almost no draws.',
+  },
+  {
+    q: 'You hold A-A on a board of 9-8-7-6 with three hearts and you have no heart. How should you think about your hand?',
+    choices: ['It is still the best starting hand, so it is strong', 'It is one pair on a board where straights and flushes are easy to make. It is now a weak hand', 'It is the nuts', 'It cannot lose'],
+    answer: 1,
+    why: 'Hand strength is relative to the board. Any ten or five makes a straight and any two hearts make a flush. One pair is near the bottom of what is possible here.',
+  },
+  {
+    q: 'The final board is A-9-4-2-7 with three hearts. What do you need to hold the nuts?',
+    choices: ['Any two hearts', 'The king of hearts and any other heart', 'Pocket aces', 'The ace of hearts'],
+    answer: 1,
+    why: `The ace of hearts is on the board, so the highest heart you can hold is the king. Engine result: ${n4.name}, made by ${n4.holdings.length} holdings, all containing the king of hearts.`,
+  },
+];
+
+<Objectives>
+
+- Find the nuts on any board
+- Spot which draws a board allows
+- Understand what a paired board changes
+- Classify a board as wet or dry and say why it matters
+
+</Objectives>
+
+## Your hand is only as good as the board lets it be
+
+A pair of aces is the best starting hand. On a board of 9-8-7-6 with three hearts, it is close to worthless. Nothing about the aces changed. The board changed what other players can have.
+
+Reading the board means answering three questions every time new cards arrive:
+
+1. What is the best possible hand?
+2. What draws are possible?
+3. How does my hand rank among everything that is possible?
+
+## The nuts
+
+The best possible hand on a given board is called **the nuts**. To find it, check from the top of the rankings down.
+
+- **Three or more cards of one suit?** A flush is possible, and maybe a straight flush.
+- **A pair on the board?** Full houses and four of a kind are possible.
+- **Three cards within a five-card span?** A straight is possible.
+- **None of these?** The nuts is three of a kind, made with a pocket pair matching the highest board card.
+
+On K-7-2 in three suits, none of the first three apply, so the nuts is {n1.name.toLowerCase()}. On J-10-9 the nuts is a {n2.name.toLowerCase()}, held by king-queen. On 8-8-3 it is {n3.name.toLowerCase()}.
+
+The tool below does this by brute force: it tries every two-card holding an opponent could have and reports the best.
+
+<Live title="Any flop, turn or river">
+  <BoardReader />
+</Live>
+
+## Draws
+
+A **draw** is a hand that is not strong yet but will be if the right card comes. The two main kinds:
+
+- **Flush draw.** You have four cards of one suit and need a fifth. Possible whenever the board has two or three of a suit.
+- **Straight draw.** You have four cards toward a straight. If either end completes it, such as holding 8-7 on a 6-5-K board, it is **open-ended**. If only one rank in the middle works, it is a **gutshot**.
+
+Draws matter even when you do not have one, because your opponent might. A made hand on a board full of draws is in more danger, and usually wants to bet so that draws pay to continue.
+
+## Paired boards
+
+When the board pairs, the ceiling rises. Full houses and four of a kind become possible, and flushes and straights are no longer the nuts.
+
+Pairing also changes existing hands. Suppose you hold 7-6 on a flop of 7-6-2 and have two pair. If the turn and river come king, king, your best five cards are now kings and sevens with a six. Your pair of sixes no longer plays. Any pocket pair from eights up has a better two pair than you, and so does anyone holding a seven with a kicker above your six. Your two pair has been **counterfeited**: the board gave everyone a pair that outranks one of yours.
+
+## Wet and dry
+
+Players describe boards by how many strong hands and draws they allow.
+
+A **dry** board has few. K-7-2 in three suits is the standard example. Of the 1,176 holdings an opponent could have, exactly {dry.straightCombos + dry.flushDrawCombos + dry.openEndedCombos} have a straight, a flush draw or a straight draw with eight outs. Whoever is ahead now is likely to stay ahead.
+
+A **wet** board has many. On J-10-9 with two spades, {wet.straightCombos} holdings already have a straight, {wet.flushDrawCombos} have a flush draw and {wet.openEndedCombos} have a straight draw with eight or more outs. Leads change often.
+
+Why it matters:
+
+- On wet boards, strong made hands should bet larger and more often. Free cards are dangerous.
+- On dry boards, small bets do the job. There is little to protect against.
+- On wet boards, one pair shrinks in value quickly as more cards come.
+
+<Remember>
+
+- The nuts is the best possible hand on this board. Find it every street
+- Three of a suit: flushes. A pair: full houses. Three connected cards: straights
+- A draw needs one more card. Flush draws and open-ended straight draws are the strong ones
+- A paired board can counterfeit two pair
+- Wet boards have many draws, dry boards few. Bet bigger on wet boards with made hands
+
+</Remember>
+
+<Mistakes>
+
+- Valuing a hand by its name instead of by what the board allows
+- Missing a possible straight when the board cards are not in order
+- Holding a small flush and forgetting that a bigger one is possible
+- Giving free cards on wet boards with a hand that is ahead now
+
+</Mistakes>

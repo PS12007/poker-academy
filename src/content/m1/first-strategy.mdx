@@ -1,0 +1,123 @@
+import { BEGINNER_EARLY, BEGINNER_LATE } from '@/engine/teachingRanges';
+import { parseRange, rangeFraction, countCombos } from '@/engine/ranges';
+import { probFlopPairOrBetterUnpaired } from '@/engine/combinatorics';
+import { pct } from '@/lib/format';
+
+export const early = rangeFraction(parseRange(BEGINNER_EARLY));
+export const late = rangeFraction(parseRange(BEGINNER_LATE));
+
+export const quiz = [
+  {
+    q: 'What does tight-aggressive mean?',
+    choices: ['Play many hands and call often', 'Play few hands, and bet or raise with the ones you play', 'Play few hands and mostly call', 'Bluff on every street'],
+    answer: 1,
+    why: 'Tight describes how many hands you enter with. Aggressive describes how you play them: betting and raising rather than checking and calling.',
+  },
+  {
+    q: 'With the beginner chart, roughly what share of hands do you fold from early position?',
+    choices: ['About half', 'About 70%', 'More than 90%', 'About 30%'],
+    answer: 2,
+    why: `The early chart holds ${(early * 100).toFixed(1)}% of all starting hands, so you fold ${(100 - early * 100).toFixed(1)}%. Folding this much is correct, not timid.`,
+  },
+  {
+    q: 'Everyone folds to you in the cutoff with A-J suited. What should you do?',
+    choices: ['Call the big blind', 'Raise to about 2.5 to 3 big blinds', 'Fold', 'Go all-in'],
+    answer: 1,
+    why: 'When you are first into the pot, raise or fold. Raising can win the blinds immediately and gives you the betting lead if you are called. Just calling does neither.',
+  },
+  {
+    q: 'How often does an unpaired starting hand flop at least one pair (or better, using either hole card)?',
+    numeric: Math.round(probFlopPairOrBetterUnpaired() * 1000) / 10,
+    tolerance: 2,
+    unit: '%',
+    why: 'Six cards pair one of your two ranks. The chance none of them appear in three flop cards is C(44,3)/C(50,3). One minus that is 32.4%. You miss about two flops in three.',
+  },
+  {
+    q: 'Why is K-9 offsuit a poor hand to play even though it contains a king?',
+    choices: ['It can never make a straight', 'When it makes top pair it often faces a king with a better kicker', 'Kings are unlucky', 'It is not a poor hand'],
+    answer: 1,
+    why: 'Hands that share your high card with a better kicker dominate you. You win small pots when you are ahead and lose large ones when you are behind.',
+  },
+  {
+    q: 'You raised before the flop with A-K and the flop comes 9-7-4. One opponent, who called from the big blind, checks to you. What is a reasonable default?',
+    choices: ['Always give up', 'A small bet, because the board is likelier to have missed them than to have hit them', 'Go all-in', 'Check and fold to any bet no matter what'],
+    answer: 1,
+    why: 'Most hands miss most flops. As the preflop raiser a modest bet often wins the pot at once, and you still have six cards that give you top pair.',
+  },
+];
+
+<Objectives>
+
+- Explain what tight-aggressive means and why it works
+- Use a two-part starting hand chart
+- Size an opening raise
+- Follow a default plan after the flop
+
+</Objectives>
+
+## Tight and aggressive
+
+A complete beginner strategy fits in one sentence: **play few hands, and bet them hard.**
+
+**Tight** is about selection. Most starting hands lose money on average, because they make weak pairs and second-best hands. Throwing them away costs you nothing but patience.
+
+**Aggressive** is about how you play the hands you keep. Betting and raising gives you two ways to win: your opponent can fold, or you can have the best hand. Checking and calling gives you one. Players who mostly call need the best hand every time.
+
+The combination works against weak opposition for a plain reason. You show up with stronger hands than they do, and you make them pay to see whether theirs is good enough.
+
+## A first starting chart
+
+Here is a chart small enough to memorize today. It has two versions, one for the first three seats and one for the button and cutoff.
+
+<Live title="Two charts to start with">
+  <StartingChart custom={[{ label: 'Early seats', range: BEGINNER_EARLY }, { label: 'Late seats', range: BEGINNER_LATE }]} />
+</Live>
+
+The early chart is {pct(early)} of all hands. The late chart is {pct(late)}. That means from early position you fold more than nine hands in ten, and even from the best seats you fold about four in five. This is the part beginners find hardest and it is the part that makes the money.
+
+How to read the grid: pairs run down the diagonal. Hands above the diagonal are **suited** (both cards the same suit, written with an s). Hands below are **offsuit** (written with an o). Suited hands are a little stronger because they can make flushes, but only a little. Being suited does not rescue a bad hand.
+
+## Why the weak hands lose
+
+The hands that get beginners into trouble are the ones that look playable: an ace or a king with a small side card. The problem is **domination**. When K-9 makes a pair of kings, the hands that give it real action usually hold a king with a better kicker.
+
+The engine can put a number on it. Ace-jack against ace-king has only <Eq a="AhJc" b="AsKd" /> equity. That is less than seven-deuce has against the same ace-king (<Eq a="7h2c" b="AsKd" />), because seven-deuce at least has two cards of its own to pair. King-nine against king-queen has <Eq a="Kh9c" b="KsQd" />. In both cases you are behind and you will not find out until you have paid for the lesson.
+
+## How to enter the pot
+
+**If nobody has raised: raise or fold.** Do not just call the big blind. A raise to about 2.5 to 3 big blinds is standard. Add one big blind for each player who has already called.
+
+Raising does three things calling cannot. It can win the blinds on the spot. It thins the field, which makes your strong hands more likely to hold up. And it gives you the lead in the betting after the flop.
+
+**If someone has raised before you:** tighten up sharply. With the very best hands (the top pairs and ace-king) raise again, to about three times their raise. Fold nearly everything else for now. Module 3 fills in the rest.
+
+## After the flop
+
+An unpaired hand flops a pair or better only {pct(probFlopPairOrBetterUnpaired())} of the time. Your opponents miss just as often, which gives the preflop raiser a simple plan.
+
+1. **You raised and hit top pair or better.** Bet. Aim for about half to two thirds of the pot. You want worse pairs and draws to call.
+2. **You raised and missed, against one opponent.** A small bet, about a third of the pot, will often win it. If it is called and you do not improve, slow down.
+3. **You raised and missed, against two or more.** Mostly check. Someone usually has something.
+4. **You face a large bet or a raise and hold one pair.** Be willing to fold. Large bets and raises from typical opponents are value far more often than bluffs.
+
+None of this is optimal. It is a set of defaults that keeps you out of expensive situations while you learn the reasons, and the reasons are what the rest of the course is for.
+
+<Remember>
+
+- Play few hands. Bet and raise with the ones you play
+- First into the pot: raise to 2.5 to 3 big blinds or fold. Do not limp
+- Early seats play about {pct(early, 0)} of hands. Late seats about {pct(late, 0)}
+- Avoid dominated hands: weak aces and kings lose big pots
+- You miss two flops in three. So does everyone else
+- One pair is rarely good against a big bet or a raise
+
+</Remember>
+
+<Mistakes>
+
+- Playing any two suited cards. Suitedness adds only a few points of equity
+- Calling the big blind instead of raising
+- Refusing to fold top pair to heavy action
+- Getting bored and widening the chart. Folding is most of the job
+
+</Mistakes>

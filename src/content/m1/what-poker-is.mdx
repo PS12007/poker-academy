@@ -1,0 +1,104 @@
+export const quiz = [
+  {
+    q: 'What are the two ways to win a pot?',
+    choices: ['Have the best hand at showdown, or make everyone else fold', 'Have the best hand, or have the most chips', 'Bet the most, or act last', 'Only by showing the best hand'],
+    answer: 0,
+    why: 'A pot is awarded at showdown to the best hand, or earlier to the last player who has not folded. The second route is why betting matters as much as the cards.',
+  },
+  {
+    q: 'In a cash game, what is a 100 chip worth?',
+    choices: ['Nothing until the game ends', 'Exactly 100 in real money', 'It depends on how many players remain', 'It depends on your finishing place'],
+    answer: 1,
+    why: 'Cash game chips are money. You can stand up at any time and exchange them at face value.',
+  },
+  {
+    q: 'In a tournament, how are prizes decided?',
+    choices: ['By the number of chips you cash out', 'By the number of pots you won', 'By the order in which players are eliminated', 'By the best single hand shown'],
+    answer: 2,
+    why: 'Tournament chips cannot be cashed out. You are paid according to when you run out of them, and the last player standing takes first prize.',
+  },
+  {
+    q: 'You call a large bet with a weak draw, hit your card, and win a big pot. What can you conclude about the call?',
+    choices: ['It was correct, because it won', 'Nothing yet. One result does not tell you whether a decision was good', 'It was wrong, because draws always lose money', 'It was correct if the pot was large'],
+    answer: 1,
+    why: 'A decision is good or bad based on its average result over all the ways the cards could fall, not on the one way they fell this time.',
+  },
+  {
+    q: 'Which of these is fully under your control at a poker table?',
+    choices: ['The cards you are dealt', 'The cards that come on the board', 'What your opponents hold', 'Which hands you play and how much you bet'],
+    answer: 3,
+    why: 'Cards are random and identical in distribution for everyone. The only edge available is in the decisions.',
+  },
+];
+
+<Objectives>
+
+- State the goal of the game and the two ways a pot is won
+- Explain the difference between chips in a cash game and chips in a tournament
+- Separate the quality of a decision from the result of one hand
+
+</Objectives>
+
+## A betting game played with cards
+
+Poker is a game where players bet chips into a shared pile called the **pot**, and one player takes it. Cards decide who has the best hand, but cards are only half of it. The pot goes to a player in one of two ways:
+
+1. **At showdown.** The betting ends, the remaining players turn their cards over, and the best hand wins.
+2. **Before showdown.** Someone bets, and every other player gives up their hand rather than match the bet. The bettor wins without showing anything.
+
+That second route is what makes poker a game of decisions. A hand that would lose at showdown can win the pot by betting. A hand that would win can lose money by paying off a better one. Every choice you make is about money in the pot against money you must put in.
+
+Here is one complete hand, start to finish, with no betting. Each player gets two private cards. Five shared cards go in the middle. Best five-card hand wins.
+
+<Live title="Deal as many as you like">
+  <DealDemo />
+</Live>
+
+Deal twenty or thirty. You will see that most of the time neither player has much: a pair, sometimes just a high card. That is the first useful fact about the game. Big hands are rare, so most pots are fought over with modest ones.
+
+## What you control
+
+You do not control which cards arrive. Over a long enough stretch, every player is dealt the same mix of good and bad hands. The only thing that differs from player to player is what they do with them: which hands they play, when they bet, how much, and when they let go.
+
+This has an uncomfortable consequence. In the short run a bad decision can win and a good decision can lose. Somebody calls a huge bet needing one specific card, and the card comes. The call was still a mistake, because across all the cards that could have come it loses money on average.
+
+The whole course is built on that idea. We will not ask whether a play worked. We will ask what it earns on average, and that question has an answer you can calculate.
+
+## Chips and money
+
+There are two formats, and chips mean different things in each.
+
+**Cash games.** You sit down with money and receive chips of equal value. The forced bets stay the same size all session. You may leave whenever you like and take your chips with you as cash. A chip is worth exactly its face value, so winning 50 in chips is winning 50.
+
+**Tournaments.** Everyone pays the same entry fee and starts with the same number of chips. The chips cannot be cashed out. The forced bets rise on a schedule, players are eliminated when they lose all their chips, and prize money is paid by finishing position. Chips are a means of survival, not money. Doubling your stack does not double what you expect to earn. A later module puts exact numbers on that.
+
+| | Cash game | Tournament |
+|---|---|---|
+| Chips are worth | Face value | Nothing directly |
+| Forced bets | Fixed | Rise over time |
+| You can leave | Any time | Only by busting or winning |
+| You are paid | What you have when you leave | By finishing place |
+
+Most of this course uses cash game thinking, where one chip is one unit of money, because the arithmetic is cleanest there. Tournaments get their own module once the foundations are in place.
+
+## Where the house fits in
+
+Players compete against each other, not against the casino. The venue earns by taking a small cut of each pot or of each tournament entry, called the rake. This means the average player loses slowly, and breaking even against opponents is not enough. To win, you need to be noticeably better than the people you sit with.
+
+<Remember>
+
+- A pot is won by the best hand at showdown or by being the last player who has not folded
+- You cannot control the cards. You control only your decisions
+- Judge a decision by its average result, never by one outcome
+- Cash game chips are money. Tournament chips are not
+- The rake means you must beat your opponents by a margin to profit
+
+</Remember>
+
+<Mistakes>
+
+- Deciding a play was right because it won this time
+- Treating tournament chips as if each one were worth the same amount of money
+- Believing poker is a contest of who gets dealt the best cards. Over time everyone gets the same cards
+
+</Mistakes>

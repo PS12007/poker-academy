@@ -13,7 +13,7 @@ export default defineConfig({
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
   worker: { format: 'es' },
   test: {
-    include: ['tests/**/*.test.ts'],
+    include: ['tests/**/*.test.{ts,tsx}'],
     environment: 'node',
     testTimeout: 120_000,
     coverage: { include: ['src/engine/**'], reporter: ['text-summary'] },
