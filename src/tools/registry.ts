@@ -30,7 +30,7 @@ export const TOOLS: ToolMeta[] = [
     blurb: 'Break-even equity, EV of a call, implied odds, MDF and alpha from one set of inputs.',
     component: lazy(() => import('./PotOddsCalculator')),
   },
-  { id: 'heatmap', serial: 'T-05', title: 'Range vs Range Heatmap', track: "Hold'em", blurb: 'Exact equity of every hand in a range against another range on a given board.' },
+  { id: 'heatmap', serial: 'T-05', title: 'Range vs Range Heatmap', track: "Hold'em", blurb: 'Exact equity of every hand in a range against another range on a given board.', component: lazy(() => import('./RangeHeatmap')) },
   { id: 'side-pots', serial: 'T-06', title: 'Side Pot Calculator', track: 'All games', blurb: 'Who can win which chips when stacks are uneven.', component: lazy(() => import('./SidePotCalculator')) },
   { id: 'toy-games', serial: 'T-07', title: 'Toy Game Lab', track: "Hold'em", blurb: 'The polarized river game and Kuhn poker solved by CFR while you watch.' },
   { id: 'push-fold', serial: 'T-08', title: 'Push/Fold Nash Solver', track: 'Tournaments', blurb: 'Heads-up jam and call ranges by stack depth and ante, solved in your browser.' },

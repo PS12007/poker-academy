@@ -1,0 +1,131 @@
+import { VS_OPEN } from '@/engine/teachingRanges';
+import { parseRange, countCombos } from '@/engine/ranges';
+import { alpha } from '@/engine/theory';
+import { pct, num } from '@/lib/format';
+
+export const f = VS_OPEN['IP-vs-late'];
+export const v = countCombos(parseRange(f.value));
+export const b = countCombos(parseRange(f.bluff));
+// 3-bet to 8bb over a 2.5bb open: risk 8 to win 1.5 + 2.5.
+export const need = alpha(4, 8);
+
+export const quiz = [
+  {
+    q: 'Someone opens to 2.5bb and you re-raise. What is that called?',
+    choices: ['A 2-bet', 'A 3-bet', 'A 4-bet', 'A squeeze'],
+    answer: 1,
+    why: 'The big blind is the first bet, the open raise the second, and the re-raise the third.',
+  },
+  {
+    q: 'What is a polarized 3-betting range?',
+    choices: ['Only the best hands', 'The best hands plus some bluffs, while medium-strength hands call', 'Every hand above a cutoff', 'Only suited hands'],
+    answer: 1,
+    why: 'Polarized means two ends. Hands in the middle are good enough to call and not good enough to welcome a 4-bet, so they call.',
+  },
+  {
+    q: 'When is a linear 3-betting range better than a polarized one?',
+    choices: ['When calling is unattractive, such as from the small blind or against players who call 3-bets too often', 'Always', 'Never', 'Only with short stacks'],
+    answer: 0,
+    why: 'If you have no good calling range, or your opponent will not fold, 3-bet your best hands in order of strength and skip the bluffs.',
+  },
+  {
+    q: 'Why are hands like A-5 suited popular 3-bet bluffs?',
+    choices: ['They are the weakest hands', 'They block aces and ace-king, and still make strong hands when called', 'They always win', 'They cannot be 4-bet'],
+    answer: 1,
+    why: 'The ace removes combos of the hands that continue against a 3-bet, and the hand keeps flush and straight potential when it sees a flop.',
+  },
+  {
+    q: 'You are out of position. How should your 3-bet size compare with when you are in position?',
+    choices: ['Smaller', 'The same', 'Larger', 'Always all-in'],
+    answer: 2,
+    why: 'Out of position you realize less equity after the flop, so you charge more and prefer to end the hand now. About 4 times the open, against 3 times in position.',
+  },
+  {
+    q: 'You 3-bet to 8bb over a 2.5bb open as a pure bluff. How often must everyone fold for it to break even?',
+    numeric: Math.round(need * 1000) / 10,
+    tolerance: 1.5,
+    unit: '%',
+    why: 'You risk 8 to win the 4bb in the pot (1.5 in blinds plus the 2.5 open): 8 / (8 + 4) = 66.7%.',
+  },
+];
+
+<Objectives>
+
+- Explain the two reasons to 3-bet
+- Build a polarized range and a linear range, and know when each applies
+- Size a 3-bet in and out of position
+- Choose bluffs by blockers and playability
+
+</Objectives>
+
+## Two reasons to re-raise
+
+A **3-bet** is a re-raise over an open. Like every bet it has to be for value or a bluff.
+
+**For value.** Your hand is ahead of the range that will continue against it. Aces and kings always qualify. Whether queens, jacks and ace-king do depends on who opened and from where.
+
+**As a bluff.** Your hand is not ahead of their continuing range, but they will fold often enough, and the hand has something going for it when they do not.
+
+The second reason is what makes the first one pay. A player who only 3-bets aces and kings gets no action, because everyone folds. Adding bluffs forces opponents to continue with worse hands or surrender the pot.
+
+## Polarized ranges
+
+Facing a raise in position, you have three choices with any hand: 3-bet, call or fold. That lets you sort hands by what they want.
+
+- **The strongest hands** want to build the pot: 3-bet for value.
+- **Good hands that play well after the flop** (medium pairs, suited broadway) prefer to call. They are ahead of the opener's range but behind the range that continues against a 3-bet.
+- **Hands just short of a call** make the best bluffs. Folding them costs little, and they have blockers or playability.
+- **Everything else** folds.
+
+A range of best hands plus bluffs, with the middle calling, is **polarized**.
+
+<Live title="Four common spots">
+  <VsOpenChart start="IP-vs-late" />
+</Live>
+
+In the in-position chart against a late open, the value hands are {num(v, 0)} combos and the bluffs {num(b, 0)}. Switch to the early-position spots and see both parts shrink: a tight opener has a strong range, so there is less to attack.
+
+## Linear ranges
+
+Sometimes calling is a poor option. From the small blind you would be out of position with the big blind still to act. Against a player who never folds to 3-bets, bluffs burn money.
+
+In those spots use a **linear** range: 3-bet the best hands you would play, in order of strength, and fold the rest. No bluffs, and few or no calls. A linear range against a loose opener might be tens and better, ace-queen and better, and the best suited broadways.
+
+## Choosing bluffs
+
+Two properties make a good 3-bet bluff.
+
+1. **Blockers.** An ace in your hand removes half the combos of pocket aces and a quarter of ace-king from their range. Those are the hands that 4-bet you.
+2. **Playability when called.** Suited aces make nut flushes and wheel straights. Suited connectors flop draws that can keep betting.
+
+That is why A-5 suited through A-2 suited appear in almost every bluffing range. An offsuit hand like K-7 has neither property: it blocks little and flops badly.
+
+How much it helps, in numbers: ace-five suited has <Eq a="As5s" b="QQ+, AKs, AKo" /> equity against a range of queens or better and ace-king. King-seven offsuit has <Eq a="Kh7c" b="QQ+, AKs, AKo" />.
+
+## Sizing
+
+- **In position:** about 3 times the open. Over 2.5bb, make it 7.5 to 8bb.
+- **Out of position:** about 4 times. Over 2.5bb, make it 10 to 11bb.
+
+Out of position you want more folds and a smaller stack-to-pot ratio if called, so you charge more.
+
+As a pure bluff, 8bb over a 2.5bb open risks 8 to win 4 and needs {pct(need)} folds. Few opponents fold that often, which is the point of choosing bluffs with equity: the hand wins a share of the pots where it gets called.
+
+<Remember>
+
+- 3-bet for value when ahead of the range that continues, or as a bluff with blockers and playability
+- Polarized: best hands and bluffs 3-bet, the middle calls
+- Linear: best hands only, in order. Use it when calling is bad or folds are rare
+- Size about 3 times the open in position, 4 times out of position
+- Against tight openers 3-bet less. Against loose late openers 3-bet more
+
+</Remember>
+
+<Mistakes>
+
+- 3-betting only aces and kings, so nobody pays you
+- Turning good calling hands like K-Q suited into 3-bets that only better hands continue against
+- Bluffing with offsuit junk that has no blockers
+- Bluffing players who never fold before the flop
+
+</Mistakes>

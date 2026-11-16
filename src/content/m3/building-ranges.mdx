@@ -1,0 +1,135 @@
+import { parseRange, countCombos, rangeFraction, rangeToString } from '@/engine/ranges';
+import { parseCards } from '@/engine/cards';
+import { pct, num } from '@/lib/format';
+
+export const c = (t, dead = '') => countCombos(parseRange(t), parseCards(dead));
+export const ex = 'JJ+, AQs+, AKo';
+export const wide = '22+, A2s+, KTs+, QTs+, JTs, T9s, 98s, ATo+, KJo+';
+
+export const quiz = [
+  {
+    q: 'In range notation, what does "TT+" mean?',
+    choices: ['Tens only', 'Tens and every higher pocket pair', 'Ten-ten suited', 'Any hand with a ten'],
+    answer: 1,
+    why: 'A plus sign after a pair extends upward to aces: TT, JJ, QQ, KK, AA.',
+  },
+  {
+    q: 'What does "ATs+" include?',
+    choices: ['ATs only', 'ATs, AJs, AQs, AKs', 'Every suited ace', 'ATs and ATo'],
+    answer: 1,
+    why: 'For unpaired hands the plus raises the kicker up to one below the high card.',
+  },
+  {
+    q: `How many combos are in the range ${ex}?`,
+    numeric: c(ex),
+    tolerance: 0,
+    why: 'Four pairs at 6 each is 24. AQs and AKs are 4 each, 8. AKo is 12. Total 44.',
+  },
+  {
+    q: 'What share of all 1,326 starting combos is a 44-combo range, to the nearest tenth of a percent?',
+    numeric: Math.round(rangeFraction(parseRange(ex)) * 1000) / 10,
+    tolerance: 0.15,
+    unit: '%',
+    why: '44 / 1,326 = 3.3%. A range this tight is typical for a 4-bet or a very tight 3-bet.',
+  },
+  {
+    q: 'Which adds more combos to a range: all six pocket pairs from 22 to 77, or the single hand A-K offsuit plus A-Q offsuit?',
+    choices: ['The six pairs, 36 combos', 'The two offsuit hands, 24 combos', 'They are equal', 'Neither adds any'],
+    answer: 0,
+    why: 'Six pairs at 6 combos each is 36. Two offsuit hands at 12 each is 24. Offsuit hands are heavy, but six pairs still outweigh two of them.',
+  },
+  {
+    q: 'You weight a hand at 50% in a range. What does that mean?',
+    choices: ['You hold half the cards', 'You take this action with that hand half the time', 'The hand is half as strong', 'It is an error'],
+    answer: 1,
+    why: 'Weights are frequencies. A hand at 50% contributes half its combos to the count.',
+  },
+];
+
+<Objectives>
+
+- Read and write standard range notation
+- Convert between a list of hands, a combo count and a percentage
+- Use weights for hands played part of the time
+- Build, save and compare ranges in the Range Builder
+
+</Objectives>
+
+## Why think in ranges
+
+You never know an opponent's two cards. You know what they did, and each action is consistent with a set of hands. That set is their **range**. Strong players do not guess a single hand and hope. They carry a range, cut it down as the hand goes on, and act against all of it at once.
+
+Your own play is a range as well. In any spot you would take the same action with many hands, and your opponents are playing against that whole set.
+
+So a working player needs a fast way to write ranges down and count them.
+
+## The grid
+
+The 13 by 13 grid holds all 169 starting hands.
+
+- The **diagonal** is pocket pairs, aces at the top left.
+- **Above** the diagonal are suited hands.
+- **Below** are offsuit hands.
+
+The grid is not to scale. Each cell looks the same size, but a pair is 6 combos, a suited hand 4 and an offsuit hand 12. The offsuit half of the grid holds 936 of the 1,326 combos. A range that looks small on the grid can be large if it sits below the diagonal.
+
+## Notation
+
+| You write | It means | Combos |
+|---|---|---|
+| `QQ` | Pocket queens | {c('QQ')} |
+| `TT+` | Tens and better | {c('TT+')} |
+| `22-55` | Twos through fives | {c('22-55')} |
+| `AKs` | Ace-king suited | {c('AKs')} |
+| `AKo` | Ace-king offsuit | {c('AKo')} |
+| `AK` | Both | {c('AK')} |
+| `ATs+` | ATs, AJs, AQs, AKs | {c('ATs+')} |
+| `A5s-A2s` | Suited wheel aces | {c('A5s-A2s')} |
+| `T9s-65s` | Suited connectors from T9 down to 65 | {c('T9s-65s')} |
+| `76s:0.5` | 76 suited, half the time | {c('76s:0.5')} |
+
+Separate items with commas. The count column is computed by the same parser the tools use.
+
+## From hands to a percentage
+
+A range is often quoted as a percentage of all hands, which is its combos divided by 1,326.
+
+- The range {ex} is {c(ex)} combos, {pct(rangeFraction(parseRange(ex)))} of hands.
+- The range {wide} is {c(wide)} combos, {pct(rangeFraction(parseRange(wide)))}.
+
+Percentages are for communicating size. For decisions, count the combos that matter after removing the cards you can see. On a board of A-K-4, the tight range above drops from {c(ex)} combos to {c(ex, 'AsKd4c')}.
+
+## Weights
+
+Good strategies sometimes play one hand two ways. A hand might 3-bet half the time and call the other half. In a range that is written as a weight between 0 and 1, and the hand contributes that share of its combos.
+
+You do not need mixed frequencies to play well at this stage. Weights are most useful for describing an opponent you are unsure about: a player who probably has ace-queen here but not always.
+
+## Build one
+
+The Range Builder is the workbench for all of this. Type notation or drag across the grid, set a brush weight, enter known cards to see blockers applied, and save ranges by name. The second range and the compare view show how two ranges overlap.
+
+<Live title="Range Builder">
+  <RangeTool />
+</Live>
+
+An exercise worth doing once: build what you think a tight player raises with under the gun, read off the percentage, and compare it with the teaching range from the opening lesson. Then enter A-K as known cards and watch how many of their strongest combos disappear.
+
+<Remember>
+
+- Pairs on the diagonal, suited above, offsuit below
+- Pair 6 combos, suited 4, offsuit 12. The grid is not to scale
+- `+` extends a pair upward or a kicker upward. `-` gives an interval
+- Percentage of hands = combos / 1,326
+- A weight is a frequency. Count combos after removing visible cards
+
+</Remember>
+
+<Mistakes>
+
+- Putting an opponent on one exact hand
+- Judging the size of a range by how much of the grid it covers
+- Forgetting your own range is visible to observant opponents
+- Counting combos without removing the board and your hand
+
+</Mistakes>

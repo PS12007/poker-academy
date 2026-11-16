@@ -1,0 +1,120 @@
+import { alpha } from '@/engine/theory';
+import { evBluff } from '@/engine/ev';
+import { pct, num, signed } from '@/lib/format';
+
+export const dead = 1.5 + 2.5 + 2.5;
+export const sq = alpha(dead, 12);
+export const iso = alpha(1.5 + 1, 4);
+
+export const quiz = [
+  {
+    q: 'What is a squeeze?',
+    choices: ['A small bet on the river', 'A 3-bet after an open raise and one or more callers', 'Calling with a weak hand', 'A raise from the big blind only'],
+    answer: 1,
+    why: 'The opener is squeezed between your raise and the caller behind them, and the caller has already shown a hand that did not want to 3-bet.',
+  },
+  {
+    q: 'An open to 2.5bb gets one caller. You squeeze to 12bb. How often must both fold for a pure bluff to break even?',
+    numeric: Math.round(sq * 1000) / 10,
+    tolerance: 1.5,
+    unit: '%',
+    why: `The pot holds ${dead}bb (blinds 1.5, open 2.5, call 2.5). 12 / (12 + ${dead}) = ${(sq * 100).toFixed(1)}%.`,
+  },
+  {
+    q: 'Why should a squeeze be larger than a normal 3-bet?',
+    choices: ['To look strong', 'There is more money in the pot and more players getting a price to call', 'It is a rule', 'It should be smaller'],
+    answer: 1,
+    why: 'Each caller adds dead money and improves everyone\'s odds. Add roughly the size of the open for each caller.',
+  },
+  {
+    q: 'What is the main risk of cold calling a raise with players left to act behind you?',
+    choices: ['You may be squeezed and forced to fold', 'You get worse cards', 'You lose the button', 'There is no risk'],
+    answer: 0,
+    why: 'Your call caps your range and invites a squeeze. The hands that call best are the ones that can stand a multiway pot.',
+  },
+  {
+    q: 'A weak player limps. With a good hand, what is the standard play?',
+    choices: ['Limp behind', 'Raise to isolate, about 3bb plus one per limper', 'Fold', 'Minimum raise'],
+    answer: 1,
+    why: 'An isolation raise aims to play heads-up, in position, against the weakest range at the table.',
+  },
+];
+
+<Objectives>
+
+- Recognize a squeeze spot and size the raise
+- Compute the fold equity a squeeze needs
+- Choose hands for cold calling and know its risks
+- Raise over limpers to isolate
+
+</Objectives>
+
+## Pots with more than two players before the flop
+
+So far each spot had an opener and one responder. Real tables add callers and limpers, and each one changes the price and the ranges.
+
+## The squeeze
+
+A **squeeze** is a 3-bet made after an open raise and at least one call. It works for two reasons.
+
+1. **Dead money.** The caller's chips are in the pot with a range that is rarely strong. Players with premium hands usually 3-bet themselves, so a call marks the hand as medium strength.
+2. **The opener is trapped.** They must act with a caller still behind them, which makes continuing harder.
+
+**Sizing.** Start from a normal 3-bet and add about one open-raise for each caller. Over a 2.5bb open and one caller, 11 to 13bb in position and 13 to 15bb out of position.
+
+<Working steps={[
+  { label: 'Pot: blinds + open + call', expr: '1.5 + 2.5 + 2.5', result: `${dead}bb` },
+  { label: 'Squeeze to 12bb as a pure bluff needs', expr: `12 / (12 + ${dead})`, result: pct(sq) },
+  { label: 'EV if both fold 70% of the time', expr: `0.70 × ${dead} − 0.30 × 12`, result: signed(evBluff(dead, 12, 0.7)) + 'bb' },
+  { label: 'EV if both fold 55% of the time', expr: `0.55 × ${dead} − 0.45 × 12`, result: signed(evBluff(dead, 12, 0.55)) + 'bb' },
+]} />
+
+That is the bluff with a hand that has no value when called. Use the sliders to see how the answer moves with the dead money and the size.
+
+<Live title="A squeeze as a bluff: pot 6.5, bet 12">
+  <BluffEV />
+</Live>
+
+**Which hands.** Value is the same hands you would 3-bet for value heads-up, slightly tighter. Bluffs want blockers: suited aces, and suited kings with good kickers. Squeezing light works best when the opener is loose and the caller is someone who calls too much before the flop and folds to pressure.
+
+## Cold calling
+
+A **cold call** is calling a raise when you have no money in the pot yet. It has costs that a 3-bet does not.
+
+- You can be squeezed by players behind and have to fold.
+- Your range is **capped**: without the hands that would have 3-bet, you are known not to hold aces or kings.
+- You invite more callers, and pots with several players are harder to win.
+
+So the hands that cold call are those that do well in multiway pots and are not dominated: pocket pairs for set value, suited broadway hands, suited connectors. The closer you are to the button, the safer a call is, because fewer players remain to squeeze. From the button, calling a wide range is reasonable. From the hijack facing an under-the-gun raise, mostly 3-bet or fold.
+
+## Limpers and isolation
+
+A **limp** is a call of the big blind before the flop. Open-limping is weak for the reasons in the opening lesson, and it tells you the limper's range is missing its best hands.
+
+The standard response with a good hand is an **isolation raise**: a raise sized to fold everyone else and play heads-up, in position, against the limper.
+
+- Size: 3bb plus 1bb for each limper, plus one more if you are out of position.
+- Range: wider than your normal open from that seat when the limper is weak, because your opponent's range is weak and you will often take the pot with one bet.
+
+As a pure bluff, raising to 4bb over one limper risks 4 to win 2.5 and needs {pct(iso)} folds. It rarely needs to work as a bluff, since you choose hands that play well when called.
+
+When several players have limped and you hold a speculative hand like a small pair or suited connector on the button, limping behind is acceptable. You get a good price in position with a hand that wants many opponents.
+
+<Remember>
+
+- A squeeze is a 3-bet over an open and a caller. Add one open size per caller
+- The caller's range is capped, which is why squeezing works
+- Squeeze to 12bb into 6.5bb needs 64.9% folds as a pure bluff
+- Cold call hands that play well multiway, and less often from early seats
+- Isolate limpers with 3bb plus one per limper
+
+</Remember>
+
+<Mistakes>
+
+- Using a normal 3-bet size with callers in the pot
+- Cold calling in early position with hands that fold to a squeeze
+- Limping behind with strong hands that should isolate
+- Squeezing light against players who never fold
+
+</Mistakes>

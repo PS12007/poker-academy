@@ -1,0 +1,125 @@
+import { potOdds } from '@/engine/ev';
+import { VS_OPEN } from '@/engine/teachingRanges';
+import { parseRange, rangeFraction } from '@/engine/ranges';
+import { mdf } from '@/engine/theory';
+import { pct, num } from '@/lib/format';
+
+export const price = (open) => potOdds(1.5 + open, open - 1);
+export const sbPrice = (open) => potOdds(1.5 + open, open - 0.5);
+export const defend = (k) => { const f = VS_OPEN[k]; const r = parseRange([f.value, f.bluff, f.call].join(', ')); return rangeFraction(r); };
+export const mdfBB = mdf(1.5, 2.5);
+
+export const quiz = [
+  {
+    q: 'The button opens to 2.5bb and the small blind folds. What raw equity does the big blind need to call?',
+    numeric: Math.round(price(2.5) * 1000) / 10,
+    tolerance: 0.8,
+    unit: '%',
+    why: 'The pot is 0.5 + 1 + 2.5 = 4bb and the call costs 1.5bb: 1.5 / (4 + 1.5) = 27.3%.',
+  },
+  {
+    q: 'Why does the big blind need more than that raw equity in practice?',
+    choices: ['Because of the rake only', 'Because it plays out of position and will not realize all of its equity', 'Because the cards are different', 'It does not'],
+    answer: 1,
+    why: 'Out of position, hands capture less than their raw share. A hand needs raw equity comfortably above the pot odds to make up for it.',
+  },
+  {
+    q: 'The opener raises to 2bb instead of 2.5bb. What happens to the big blind\'s defending range?',
+    choices: ['It tightens', 'It widens, because the price improves', 'No change', 'It becomes all-in or fold'],
+    answer: 1,
+    why: `The call is 1bb into 3.5bb: ${(price(2) * 100).toFixed(1)}% needed instead of ${(price(2.5) * 100).toFixed(1)}%. Smaller opens should be defended wider.`,
+  },
+  {
+    q: 'Compared with the big blind, the small blind should mostly:',
+    choices: ['Call more', '3-bet or fold, and call rarely', 'Never play', 'Limp'],
+    answer: 1,
+    why: 'The small blind gets a worse price, is out of position, and still has the big blind behind who can squeeze. Calling is the weakest of its options.',
+  },
+  {
+    q: 'Against which opener does the big blind defend the most hands?',
+    choices: ['Under the gun', 'Hijack', 'Cutoff', 'Button'],
+    answer: 3,
+    why: 'The button opens the widest and weakest range, so more of your hands have enough equity against it.',
+  },
+];
+
+<Objectives>
+
+- Compute the big blind's price against any open size
+- Explain why the price alone overstates what you can defend
+- Defend wider against late and small opens, tighter against early and large ones
+- Play the small blind as a 3-bet or fold seat
+
+</Objectives>
+
+## The discount
+
+The big blind has already paid one blind. Facing an open to 2.5bb with the small blind folded, the pot holds 4bb and calling costs only 1.5bb more.
+
+<Working steps={[
+  { label: 'Pot: small blind + big blind + open', expr: '0.5 + 1 + 2.5', result: '4bb' },
+  { label: 'Cost to call', expr: '2.5 − 1', result: '1.5bb' },
+  { label: 'Equity needed', expr: '1.5 / (4 + 1.5)', result: pct(price(2.5)) },
+]} />
+
+Almost any two cards have {pct(price(2.5), 0)} raw equity against a button opening range. Seven-two offsuit comes close. If pot odds were the whole story, the big blind would never fold.
+
+## Why you still fold
+
+Raw equity assumes the hand is checked to showdown. The big blind is out of position against a player with the betting lead, and it will be bet off many hands that had equity. This is the equity realization effect from Module 2 at full strength.
+
+A rough working rule: an offsuit, unconnected hand out of position captures perhaps two thirds of its raw equity, while a suited connected hand captures close to all of it. So the hands that defend are not chosen by raw equity alone. Suited hands, connected hands and hands with an ace or king defend. Offsuit junk folds, even when its raw equity clears the price.
+
+The price still matters. It is the reason the big blind's range is far wider than any other seat's response to a raise.
+
+<DataTable
+  head={['Open size', 'Call costs', 'Big blind needs', 'Small blind needs']}
+  rows={[2, 2.25, 2.5, 3, 4].map((o) => [`${o}bb`, `${num(o - 1, 2)}bb`, pct(price(o)), pct(sbPrice(o))])}
+  caption="Equity needed = call / (pot + call), with the other blind folded. The small blind's figure ignores the big blind still to act, which makes it worse than shown."
+/>
+
+## A defending range
+
+The chart shows a simplified big blind strategy against an early open and a button open.
+
+<Live title="Big blind against early and late opens">
+  <VsOpenChart start="BB-vs-late" />
+</Live>
+
+Against the button this range continues with {pct(defend('BB-vs-late'))} of hands. Against an early-position open it continues with {pct(defend('BB-vs-early'))}. The early opener's range is so much stronger that many hands which were fine against the button are now dominated.
+
+For comparison, a 2.5bb open risks 2.5 to win the 1.5bb of blinds, so the minimum defense frequency for the players behind, taken together, is {pct(mdfBB)}. They do not have to reach that figure exactly, because the opener's hand is not a pure bluff: it has equity when called. But it explains why folding the big blind too often makes any two cards a profitable open against you.
+
+## The small blind
+
+The small blind is the hardest seat. It has paid half as much, so its price is worse. It is first to act on every later street. And the big blind is still behind, able to re-raise.
+
+For those reasons most strong players use a **3-bet or fold** strategy from the small blind against a raise, with a linear range: the best hands 3-bet, the rest fold, and very little calls.
+
+When everyone folds to the small blind, it is a contest against one player. Raising a wide range is standard, as in the opening chart.
+
+## Adjustments
+
+- **Smaller opens, wider defense.** Against a minimum raise, defend most suited hands and many offsuit ones.
+- **Larger opens, tighter defense.** Against 3bb or more, drop the weakest hands first.
+- **Multiway.** If another player has already called, your price improves but your equity share falls. Favor hands that make strong draws and fold dominated offsuit hands.
+- **Rake.** In raked games, marginal defends lose their small edge. Tighten a little, and 3-bet some hands instead of calling since pots won before the flop are often unraked.
+
+<Remember>
+
+- Big blind against 2.5bb needs 27.3% raw equity. Against 2bb, 22.2%
+- Out of position you under-realize, so suited and connected hands defend and offsuit junk folds
+- Defend widest against the button, tightest against under the gun
+- Smaller open, wider defense
+- Small blind: mostly 3-bet or fold
+
+</Remember>
+
+<Mistakes>
+
+- Folding the big blind to small late-position opens with playable suited hands
+- Defending offsuit junk because the price looks good
+- Calling from the small blind with hands that play badly out of position
+- Using the same defending range against every seat and size
+
+</Mistakes>

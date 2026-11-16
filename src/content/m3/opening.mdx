@@ -1,0 +1,119 @@
+import { openRange, POSITIONS } from '@/engine/teachingRanges';
+import { rangeFraction, countCombos } from '@/engine/ranges';
+import { alpha } from '@/engine/theory';
+import { pct, num } from '@/lib/format';
+
+export const fr = (p) => rangeFraction(openRange(p));
+export const steal = alpha(1.5, 2.5);
+export const steal3 = alpha(1.5, 3);
+
+export const quiz = [
+  {
+    q: 'Everyone folds to you. What are your sensible options before the flop?',
+    choices: ['Call or fold', 'Raise or fold', 'Check or raise', 'Call or raise'],
+    answer: 1,
+    why: 'Open-limping gives up the chance to win the blinds outright and lets the big blind see a flop for free. Raise the hands worth playing and fold the rest.',
+  },
+  {
+    q: 'A raise to 2.5bb wins 1.5bb of blinds when everyone folds. How often must it succeed to break even with a hand that has no value otherwise?',
+    numeric: Math.round(steal * 1000) / 10,
+    tolerance: 1,
+    unit: '%',
+    why: 'Risk 2.5 to win 1.5: 2.5 / (2.5 + 1.5) = 62.5%. Real hands also win after the flop, so the true requirement is much lower.',
+  },
+  {
+    q: 'Why does the button open far more hands than under the gun?',
+    choices: ['The button gets better cards', 'Fewer players are left to act and the button has position after the flop', 'The blinds are smaller on the button', 'It is a rule'],
+    answer: 1,
+    why: `Two players behind instead of five, plus guaranteed position. In the teaching ranges the button opens ${(fr('BTN') * 100).toFixed(0)}% and under the gun ${(fr('UTG') * 100).toFixed(0)}%.`,
+  },
+  {
+    q: 'What happens to your opening size when two players have limped in front of you?',
+    choices: ['Make it smaller', 'Keep it the same', 'Add about one big blind per limper', 'Go all-in'],
+    answer: 2,
+    why: 'Each limper adds dead money and gets a better price to call. A larger raise restores the price you want to charge.',
+  },
+  {
+    q: 'Why raise the same size with your whole opening range?',
+    choices: ['It is easier to count chips', 'So the size reveals nothing about your hand', 'Bigger raises are illegal', 'To save time'],
+    answer: 1,
+    why: 'If you raise bigger with strong hands and smaller with weak ones, observant opponents read your hand from the bet.',
+  },
+];
+
+<Objectives>
+
+- Open the pot by raising, with a range that depends on your seat
+- Choose an opening size and adjust it for limpers
+- Explain why stealing the blinds is profitable on its own
+- Keep your sizing from giving away your hand
+
+</Objectives>
+
+## Raise first in
+
+When everyone before you has folded, you are **first in**, and the right play with any hand worth entering the pot is a raise. Module 1 gave this as a rule. Here is the arithmetic behind it.
+
+There is 1.5bb in the pot from the blinds. If you raise to 2.5bb and everyone folds, you win 1.5bb at once. Treat the raise as a pure bluff for a moment: it risks 2.5 to win 1.5, so it breaks even if it works {pct(steal)} of the time. From the button only two players can call, and each folds well over half their hands to a raise.
+
+That is before counting what your cards are worth. When you are called you still have a hand, often the better one, and usually position. So the bar for opening is much lower than {pct(steal, 0)}, and a wide range of hands clears it from late position.
+
+Calling the big blind does none of this. It cannot win the blinds, it invites everyone in cheaply, and it tells the table your hand is not strong.
+
+## Ranges by seat
+
+Each seat has its own opening range. Earlier seats face more players and worse position, so they play fewer hands.
+
+<Live title="Simplified teaching ranges, six-handed, 100bb">
+  <StartingChart />
+</Live>
+
+<DataTable
+  head={['Seat', 'Share of hands', 'Combos', 'Players left to act']}
+  rows={['UTG', 'HJ', 'CO', 'BTN', 'SB'].map((p, i) => [p, pct(fr(p)), num(countCombos(openRange(p)), 0), 5 - i])}
+  caption="Counted from the charts above. These are original simplified ranges for learning, not solver output."
+/>
+
+Notice how the ranges grow. Every seat keeps all the hands of the seat before it and adds the next tier: more suited aces, more suited connectors, then offsuit broadway hands, and on the button a long tail of suited hands and offsuit aces.
+
+The small blind is a special case. Only one player is left, which argues for a wide range, but you will be out of position for the whole hand, which argues against. The chart resolves it with a range a little wider than the cutoff's.
+
+## How big
+
+A raise to between **2 and 3 big blinds** is standard, and 2.5bb is a good default. The size is a trade.
+
+- Larger raises win more when the blinds fold and charge callers more, but risk more when you are re-raised and must fold.
+- Smaller raises risk less, which lets you open more hands, but give the big blind a better price to defend.
+
+At 3bb a pure steal needs to work {pct(steal3, 0)} of the time, against {pct(steal, 0)} at 2.5bb.
+
+**Add one big blind per limper.** Players who have already called make the pot bigger and are getting a better price. With two limpers, open to about 4.5 or 5bb.
+
+**Use one size for the whole range.** If aces get a big raise and suited connectors a small one, anyone paying attention knows which you have.
+
+## Adjusting
+
+The charts are a baseline for unknown opponents. Shift them when you know something.
+
+- Blinds that fold too much: open wider, especially on the button.
+- A player behind who re-raises often: open tighter and prefer hands that can continue.
+- Calling stations in the blinds: drop the weakest suited hands and add high cards that make top pair.
+
+<Remember>
+
+- First in, raise or fold. Do not limp
+- Default open is 2.5bb, plus one big blind per limper
+- Earlier seat, tighter range. Each seat adds a tier to the one before
+- A 2.5bb steal breaks even at 62.5% folds with a worthless hand, and real hands need far less
+- One size for every hand in the range
+
+</Remember>
+
+<Mistakes>
+
+- Limping in behind nobody
+- Opening the same range from every seat
+- Sizing up with strong hands and down with weak ones
+- Forgetting to size up over limpers
+
+</Mistakes>

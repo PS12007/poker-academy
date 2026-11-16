@@ -1,0 +1,119 @@
+import { evShove } from '@/engine/ev';
+import { spr } from '@/engine/theory';
+import { pct, num, signed } from '@/lib/format';
+
+export const sprSrp = spr(97.5, 5.5);
+export const spr3 = spr(92, 17.5);
+export const spr4 = spr(78, 45.5);
+export const shove = (fe, eq) => evShove(fe, 31.5, eq, 201.5, 92);
+
+export const quiz = [
+  {
+    q: 'What is a typical 4-bet size over a 3-bet at 100bb?',
+    choices: ['About the same as the 3-bet', 'About 2.2 to 2.5 times the 3-bet', 'Five times the 3-bet', 'Always all-in'],
+    answer: 1,
+    why: 'The pot is already large, so a small multiple still gets most of the fold equity while leaving room to fold bluffs to a shove.',
+  },
+  {
+    q: 'A hand has 40% equity when called. You shove 92bb more into a pot of 31.5bb and the final pot would be 201.5bb. They fold half the time. Is the shove profitable?',
+    choices: ['Yes', 'No', 'Exactly break-even', 'Cannot be determined'],
+    answer: 0,
+    why: `When called: 0.40 x 201.5 - 92 = ${(0.4 * 201.5 - 92).toFixed(1)}. EV = 0.5 x 31.5 + 0.5 x ${(0.4 * 201.5 - 92).toFixed(1)} = ${shove(0.5, 0.4).ev.toFixed(1)}bb.`,
+  },
+  {
+    q: 'How does the stack-to-pot ratio on the flop change from a single raised pot to a 3-bet pot?',
+    choices: ['It rises', 'It falls sharply', 'It stays the same', 'It doubles'],
+    answer: 1,
+    why: `With 100bb stacks it falls from about ${sprSrp.toFixed(0)} to about ${spr3.toFixed(0)}. Less room to maneuver means top pair and overpairs go up in value.`,
+  },
+  {
+    q: 'As stacks get shorter, what happens to the value of hands like A-K and medium pairs before the flop?',
+    choices: ['It falls', 'It rises, because they can get all-in with good equity and realize all of it', 'No change', 'They become unplayable'],
+    answer: 1,
+    why: 'Short stacks remove postflop play. All-in hands realize 100% of their equity, which favors high-card strength over speculative suited hands.',
+  },
+  {
+    q: 'Which hands gain the most as stacks get deeper?',
+    choices: ['Offsuit aces', 'Hands that can make the nuts: suited aces, suited connectors, small pairs', 'King-jack offsuit', 'None'],
+    answer: 1,
+    why: 'Deep stacks mean large implied odds. Hands that make straights, flushes and sets win big pots, while one-pair hands get into trouble.',
+  },
+];
+
+<Objectives>
+
+- Size a 4-bet and understand why it is small relative to the pot
+- Evaluate a 5-bet shove with the shove EV formula
+- Track how the stack-to-pot ratio falls with each raise
+- Adjust hand values for stack depth
+
+</Objectives>
+
+## The fourth and fifth bets
+
+Each re-raise narrows the ranges. By the time someone 4-bets, they hold a very strong hand or a bluff chosen with care, and almost nothing between.
+
+**4-bet sizing.** At 100bb, a 4-bet is usually **2.2 to 2.5 times the 3-bet**: 20 to 24bb over a 3-bet to 9. That looks small, but the pot is already big and a larger size would commit you. A small 4-bet keeps the option of folding your bluffs if they shove.
+
+**4-bet ranges.** Value is aces and kings always, with queens and ace-king joining against opponents who 3-bet wide. Bluffs are few and nearly always hold an ace or a king as a blocker: A-5 suited is the standard example again.
+
+**The 5-bet** at 100bb is all-in. There is no room for a sixth bet.
+
+## Is a shove profitable?
+
+Use the shove formula from the EV lesson. Suppose you 3-bet to 8bb, face a 4-bet to 22bb, and consider shoving 100bb. The pot holds 31.5bb, you risk 92 more, and the final pot if called is 201.5bb.
+
+<DataTable
+  head={['Your equity when called', 'They fold 0%', 'They fold 25%', 'They fold 50%']}
+  rows={[0.3, 0.35, 0.4, 0.45, 0.5].map((e) => [pct(e, 0), signed(shove(0, e).ev, 1), signed(shove(0.25, e).ev, 1), signed(shove(0.5, e).ev, 1)])}
+  caption="EV in big blinds = fold% × 31.5 + (1 − fold%) × (equity × 201.5 − 92). Computed by the engine."
+/>
+
+Two things stand out. With no fold equity you need about {pct(92 / 201.5)} when called, and with real fold equity a hand with 35 to 40% does fine. That is why ace-king is a comfortable shove against most 4-betting ranges: against a tight range of queens or better and ace-king it has <Eq a="AsKd" b="QQ+, AKs, AKo" />, and it blocks aces and kings.
+
+Queens are the awkward hand. Against kings or better and ace-king they have <Eq a="QsQh" b="KK+, AKs, AKo" />, fine against a wide 4-bettor and poor against a tight one. The decision is about the opponent's range, and the calculator lets you test your assumption.
+
+<Live title="Put a hand against a 4-betting range">
+  <EquityTool initial={{ hands: ['QsQh', ''], ranges: [null, 'KK+, AKs, AKo'] }} />
+</Live>
+
+Add queens and jacks to the range and watch the answer change.
+
+## Every raise shrinks the SPR
+
+The **stack-to-pot ratio** (SPR) is the effective stack divided by the pot at the start of the flop. It measures how much play is left.
+
+| Pot type | Pot on the flop | Stack behind | SPR |
+|---|---|---|---|
+| Single raised | 5.5bb | 97.5bb | {num(sprSrp, 1)} |
+| 3-bet | 17.5bb | 92bb | {num(spr3, 1)} |
+| 4-bet | 45.5bb | 78bb | {num(spr4, 1)} |
+
+At an SPR near {num(sprSrp, 0)}, stacks go in over three large bets and only very strong hands want that. At {num(spr3, 0)}, two bets do it and an overpair is usually happy. At {num(spr4, 1)}, one bet is all-in, and any pair or good draw is committed. Module 4 has a lesson on planning around this number.
+
+## Stack depth changes hand values
+
+The 100bb charts are not universal.
+
+**Shorter stacks (20 to 40bb)** remove postflop play. Hands are valued by all-in equity, because that is how they will be played. High cards and pairs go up. Suited connectors and small suited aces go down, since there is no money behind to win when they hit. 3-bets become shoves or are sized to commit.
+
+**Deeper stacks (150bb and more)** do the opposite. Implied odds grow, so hands that make the nuts go up. One-pair hands go down, because the pots they win are small and the pots they lose are huge. Even kings can fold before the flop at extreme depth.
+
+<Remember>
+
+- 4-bet to about 2.2 to 2.5 times the 3-bet. At 100bb the 5-bet is all-in
+- 4-bet bluffs hold an ace or king blocker
+- Shove EV = fold% × pot + (1 − fold%) × (equity × final pot − risk)
+- SPR falls from about 18 to 5 to under 2 as the pot is raised, 3-bet and 4-bet
+- Short stacks reward raw equity. Deep stacks reward nut potential
+
+</Remember>
+
+<Mistakes>
+
+- 4-betting so large that you cannot fold a bluff
+- Stacking off with queens or ace-king against a player who only 4-bets aces and kings
+- Using 100bb ranges with 30bb or 250bb
+- Ignoring that a 3-bet pot plays for stacks far more easily
+
+</Mistakes>

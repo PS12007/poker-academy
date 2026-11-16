@@ -5,6 +5,7 @@ import { Figure, Working } from '../ui/primitives';
 import { Cards, DataTable, Eq, Example, Formula, LessonLink, Live, Mistakes, Objectives, Remember, Scene, Term } from './blocks';
 
 import { BluffEV, BoardReader, ComboCounter, DealDemo, HandNamer, MinRaiseCalc, Num, OutsTable, PotOddsStrip, RankingTable, StartingChart, TableDiagram } from './widgets';
+import { BetSizeTheory, GeometricSizing, VsOpenChart } from './widgets2';
 
 /** Full tools embedded in lessons load on demand so the lesson shell stays small. */
 function embed<P extends { embedded?: boolean }>(load: () => Promise<{ default: ComponentType<P> }>) {
@@ -22,6 +23,8 @@ const PotOddsTool = embed(() => import('../../tools/PotOddsCalculator'));
 const EquityTool = embed(() => import('../../tools/EquityCalculator'));
 const SidePotTool = embed(() => import('../../tools/SidePotCalculator'));
 const VarianceTool = embed(() => import('../../tools/VarianceSimulator'));
+const HeatmapTool = embed(() => import('../../tools/RangeHeatmap'));
+const RangeTool = embed<{ embedded?: boolean }>(() => import('../../tools/RangeBuilder'));
 
 const slug = (children: ReactNode) =>
   String(Array.isArray(children) ? children.join('') : children)
@@ -62,5 +65,6 @@ export const MDX_COMPONENTS = {
   td: (props: ComponentProps<'td'>) => <td className="border-b border-bone/10 py-2 pr-4 align-top" {...props} />,
   Objectives, Remember, Example, Mistakes, Formula, Live, Cards, Scene, Eq, Term, LessonLink, DataTable, Figure, Working, C,
   BluffEV, BoardReader, ComboCounter, DealDemo, HandNamer, MinRaiseCalc, Num, OutsTable, PotOddsStrip, RankingTable, StartingChart, TableDiagram,
-  OutsTool, PotOddsTool, EquityTool, SidePotTool, VarianceTool,
+  OutsTool, PotOddsTool, EquityTool, SidePotTool, VarianceTool, HeatmapTool, RangeTool,
+  BetSizeTheory, GeometricSizing, VsOpenChart,
 };
