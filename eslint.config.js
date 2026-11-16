@@ -18,6 +18,7 @@ export default tseslint.config(
       'no-restricted-imports': 'off',
     },
   },
+  { files: ['scripts/**/*.mjs'], languageOptions: { globals: { ...globals.browser, ...globals.node } } },
   {
     files: ['src/engine/**/*.ts'],
     rules: {

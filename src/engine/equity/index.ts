@@ -11,7 +11,7 @@ export { rangeVsRangeBoard, classEquities } from './rangeVsRange';
 export type { ComboEquity, RangeVsRangeResult } from './rangeVsRange';
 
 /** Evaluations auto mode is willing to enumerate before switching to Monte Carlo. */
-export const DEFAULT_EXACT_BUDGET = 60_000_000;
+export const DEFAULT_EXACT_BUDGET = 250_000_000;
 
 export function validateRequest(req: EquityRequest): void {
   if (req.players.length < 2 || req.players.length > 9) throw new Error('Equity needs 2 to 9 players');
