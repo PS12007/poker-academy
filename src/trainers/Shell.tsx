@@ -164,3 +164,27 @@ export function Choices<T extends string | number>({
     </div>
   );
 }
+
+/** A single numeric answer box that submits on Enter. Remount it per round with a key. */
+export function NumericAnswer({ label, onSubmit, disabled, suffix }: { label: string; onSubmit: (v: number) => void; disabled?: boolean; suffix?: string }) {
+  const [text, setText] = useState('');
+  return (
+    <form
+      className="flex items-end gap-3"
+      onSubmit={(e) => {
+        e.preventDefault();
+        const v = Number(text);
+        if (!disabled && text.trim() !== '' && Number.isFinite(v)) onSubmit(v);
+      }}
+    >
+      <div className="w-56">
+        <label className="label block" htmlFor="drill-answer">{label}</label>
+        <div className="flex items-baseline gap-2">
+          <input id="drill-answer" className="field !text-[22px]" inputMode="decimal" autoFocus autoComplete="off" value={text} disabled={disabled} onChange={(e) => setText(e.target.value.replace(/[^\d.]/g, ''))} />
+          {suffix && <span className="label">{suffix}</span>}
+        </div>
+      </div>
+      <button type="submit" className="btn" disabled={disabled || text === ''}>Lock in</button>
+    </form>
+  );
+}

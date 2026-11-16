@@ -33,4 +33,4 @@ No rounded cards with drop shadows, no gradient buttons, no glass. Tokens live i
 
 ## Current phase
 
-Phase 5: Modules 3 and 4 (preflop, postflop), heatmap tool, more drills. Phases 1 to 4 are done and deployed to GitHub Pages on every push to main.
+Phase 6: game theory (Kuhn CFR, river toy game, push/fold solver, Module 5). Phases 1 to 5 are done. Every push to main deploys to GitHub Pages.
