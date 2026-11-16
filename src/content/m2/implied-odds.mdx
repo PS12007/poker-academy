@@ -1,0 +1,148 @@
+import { potOdds, impliedOddsNeeded, evCall, evCallImplied } from '@/engine/ev';
+import { probFlopSetOrBetter, oddsAgainst } from '@/engine/combinatorics';
+import { pct, num, signed } from '@/lib/format';
+
+export const eq = 9 / 46;
+export const need = impliedOddsNeeded(200, 100, eq);
+export const pSet = probFlopSetOrBetter();
+export const setNeed = impliedOddsNeeded(5.5, 3, pSet);
+export const gutNeed = impliedOddsNeeded(150, 50, 4 / 47);
+
+export const quiz = [
+  {
+    q: 'What are implied odds?',
+    choices: ['The odds printed on the table', 'Pot odds adjusted for money you expect to win on later streets when you hit', 'The odds of being dealt a pair', 'Odds that include the rake'],
+    answer: 1,
+    why: 'Pot odds only count what is in the pot now. Implied odds add the future bets you expect to collect when your hand comes in.',
+  },
+  {
+    q: 'On the turn the pot is 200 including a 100 bet. You have 9 outs. About how much extra must you win on the river, on average when you hit, to break even on the call?',
+    numeric: Math.round(need),
+    tolerance: 12,
+    why: `Extra = call x (1 - equity) / equity - pot = 100 x ${(1 - eq).toFixed(3)} / ${eq.toFixed(3)} - 200 = ${need.toFixed(0)}.`,
+  },
+  {
+    q: 'How often does a pocket pair flop a set or better?',
+    numeric: Math.round(pSet * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: 'Two cards make your set. The chance none of them is among three flop cards is C(48,3)/C(50,3) = 88.2%. So you hit 11.8% of the time, about 7.5 to 1 against.',
+  },
+  {
+    q: 'Which situation gives the best implied odds?',
+    choices: ['Short stacks and a draw everyone can see', 'Deep stacks and a hidden draw to the nuts', 'Deep stacks and a draw to a weak flush', 'An opponent who folds whenever a draw completes'],
+    answer: 1,
+    why: 'You need chips behind to win, a hand the opponent cannot see coming, and a made hand strong enough that you are the one collecting.',
+  },
+  {
+    q: 'What are reverse implied odds?',
+    choices: ['Implied odds for the bettor', 'Money you stand to lose later when you make your hand and it is second best', 'Odds when acting first', 'The chance of a split pot'],
+    answer: 1,
+    why: 'Some hands hit and still lose, and they lose more because you now have something worth calling with. That future loss has to be subtracted.',
+  },
+  {
+    q: 'Your opponent is all-in and you are considering a call. How much are your implied odds worth?',
+    choices: ['Whatever is left in your stack', 'Nothing. There is no more betting', 'Half the pot', 'It depends on position'],
+    answer: 1,
+    why: 'Implied odds come from future bets. If no more money can go in, only the direct pot odds matter.',
+  },
+];
+
+<Objectives>
+
+- Explain why pot odds alone can understate or overstate a call
+- Compute how much you need to win later for a call to break even
+- Judge when implied odds are real and when they are wishful
+- Identify hands with reverse implied odds
+
+</Objectives>
+
+## Money that is not in the pot yet
+
+Pot odds compare your call with what is in the pot now. That is exact when the call ends the betting. Usually it does not. If you call on the flop or turn, there are more betting rounds to come, and what happens in them changes the value of the call.
+
+**Implied odds** account for money you expect to win later, on the times you make your hand. If you hit a hidden draw and your opponent pays off a river bet, that bet was part of your reward for calling earlier, even though it was not in the pot at the time.
+
+## How much do you need?
+
+Take a call that is wrong on direct odds and ask what would make it right. Let the extra amount you win after hitting be X.
+
+<Formula name="break-even extra">X = call × (1 − equity) / equity − pot</Formula>
+
+It comes from setting the EV to zero: equity × (pot + X) − (1 − equity) × call = 0.
+
+<Example title="A flush draw facing a pot-sized turn bet">
+
+The pot is 100, your opponent bets 100, and you have nine outs with one card to come.
+
+<Working steps={[
+  { label: 'Equity', expr: '9 / 46', result: pct(eq) },
+  { label: 'Direct price', expr: '100 / (200 + 100)', result: pct(potOdds(200, 100)) },
+  { label: 'EV on direct odds', expr: `${num(eq, 3)} × 200 − ${num(1 - eq, 3)} × 100`, result: signed(evCall(200, 100, eq)) },
+  { label: 'Extra needed when you hit', expr: `100 × ${num(1 - eq, 3)} / ${num(eq, 3)} − 200`, result: num(need, 0) },
+  { label: 'Check: EV with that extra', expr: `${num(eq, 3)} × (200 + ${num(need, 0)}) − ${num(1 - eq, 3)} × 100`, result: signed(evCallImplied(200, 100, eq, need)) },
+]} />
+
+So the call breaks even only if you win about {num(need, 0)} more on the river, on average, every time the flush comes. That is more than the whole pot. Against most opponents, who slow down when the third heart lands, you will not get it.
+
+</Example>
+
+Try your own numbers. The last input in the calculator is the extra you expect to win.
+
+<Live title="Add future winnings">
+  <PotOddsTool initial={{ pot: 100, bet: 100, equity: 19.6 }} />
+</Live>
+
+## When implied odds are real
+
+The extra money has to come from somewhere. Four things decide whether it will.
+
+1. **Stack depth.** You cannot win what is not there. With little behind, implied odds are close to zero. When either player is all-in they are exactly zero.
+2. **How hidden your hand is.** A flush is obvious when the third suited card arrives. A set, or a straight made with a gutshot, is not. Hidden hands get paid.
+3. **How strong your made hand is.** You want to be drawing to the nuts, so that when big money goes in you are the one ahead.
+4. **The opponent.** Someone who cannot fold top pair pays draws off. Someone careful does not.
+
+<Example title="Calling a raise with a small pair">
+
+You hold a small pocket pair and face a raise to 3 big blinds. The pot is 5.5bb including the raise. A pair flops a set or better {pct(pSet)} of the time, which is {num(oddsAgainst(pSet), 1)} to 1 against.
+
+When you miss you will usually have to give up. Treating the hand as set or nothing, the extra you need when you hit is 3 × {num(1 - pSet, 3)} / {num(pSet, 3)} − 5.5 = {num(setNeed, 1)}bb.
+
+That sounds small, but it is an average over every time you flop a set, including the times the raiser has nothing and folds, and the times your set loses. This is why players use a margin: a common guideline is to want effective stacks of at least 15 times the raise before calling only to hit a set. The guideline is a rule of thumb, not a derived number. The break-even figure above is the derived number, and the gap between them is your allowance for not getting paid.
+
+</Example>
+
+A gutshot facing a half-pot bet on the flop needs {num(gutNeed, 0)} extra per 50 called, more than twice the pot. Gutshots are rarely worth calling for their own sake.
+
+## Reverse implied odds
+
+Sometimes the future money flows the other way. **Reverse implied odds** are what you stand to lose later when you make your hand and it is second best.
+
+Typical cases:
+
+- **Dominated top pair.** You hold K-9, the flop comes king-high, and you pay three streets to K-Q.
+- **Non-nut flush draws.** You make a small flush and run into a bigger one.
+- **The low end of a straight.**
+- **Drawing on a paired board**, where a flush or straight can already be losing to a full house.
+
+In each case the hand has decent equity on paper and still loses money, because it wins small pots and loses big ones. When you estimate a call, subtract for these. A draw to the nuts and a draw to the third-best hand may have the same number of outs and very different values.
+
+<Remember>
+
+- Implied odds add future winnings to the pot. Reverse implied odds subtract future losses
+- Extra needed = call × (1 − equity) / equity − pot
+- Implied odds need deep stacks, a hidden hand, a strong made hand and an opponent who pays
+- When someone is all-in, implied odds are zero
+- A pocket pair flops a set or better {pct(pSet)} of the time
+- Draws to the nuts are worth far more than draws to second best
+
+</Remember>
+
+<Mistakes>
+
+- Using implied odds as an excuse for any call
+- Assuming the opponent will pay off an obvious flush
+- Set mining with short stacks
+- Ignoring reverse implied odds with weak top pairs and small flush draws
+
+</Mistakes>

@@ -1,0 +1,156 @@
+import { potOdds, evCall } from '@/engine/ev';
+import { outsOdds } from '@/engine/combinatorics';
+import { pct, num, signed } from '@/lib/format';
+
+export const half = potOdds(150, 50);
+export const full = potOdds(200, 100);
+export const third = potOdds(133, 33);
+export const two = potOdds(300, 200);
+export const fd = outsOdds(9);
+
+export const quiz = [
+  {
+    q: 'The pot is 100 and your opponent bets 50. What equity do you need to call?',
+    numeric: Math.round(half * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: 'You risk 50 to win the 150 already out there. 50 / (150 + 50) = 25%.',
+  },
+  {
+    q: 'The pot is 100 and your opponent bets 100. What equity do you need to call?',
+    numeric: Math.round(full * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: '100 / (200 + 100) = 33.3%. A pot-sized bet always asks for one third.',
+  },
+  {
+    q: 'In the formula call / (pot + call), what does pot include?',
+    choices: ['Only the chips in the middle before the bet', 'The chips in the middle plus the bet you are facing', 'Your remaining stack', 'Only the bet you are facing'],
+    answer: 1,
+    why: 'The pot you can win includes your opponent\'s bet. Leaving it out is the most common pot odds error and makes every call look worse than it is.',
+  },
+  {
+    q: 'On the turn the pot is 100 and your opponent bets 100. You have a flush draw with 9 clean outs and nothing else. With no more betting possible, should you call?',
+    choices: ['Yes, a flush draw is always worth a call', 'No. You need 33.3% and have about 19.6%', 'Yes, because the rule of 4 gives 36%', 'It makes no difference'],
+    answer: 1,
+    why: `With one card to come you hit ${(fd.nextCardFromTurn * 100).toFixed(1)}% of the time. The price demands 33.3%. Calling loses ${Math.abs(evCall(200, 100, fd.nextCardFromTurn)).toFixed(1)} chips on average.`,
+  },
+  {
+    q: 'Which bet size gives the caller the best price?',
+    choices: ['A third of the pot', 'Half the pot', 'The full pot', 'Twice the pot'],
+    answer: 0,
+    why: `Smaller bets need less equity. A third-pot bet needs about ${(third * 100).toFixed(0)}%, a pot-sized bet 33%, and a double-pot bet ${(two * 100).toFixed(0)}%.`,
+  },
+  {
+    q: 'You are getting 3 to 1 on a call. What is the break-even equity?',
+    numeric: 25,
+    tolerance: 0.5,
+    unit: '%',
+    why: 'Odds of 3 to 1 mean you lose once for every three wins needed to break even: 1 / (3 + 1) = 25%.',
+  },
+];
+
+<Objectives>
+
+- Compute the equity a call needs from the pot and the bet
+- Convert between odds and percentages
+- Know the required equity for common bet sizes by heart
+- Combine outs and pot odds into a call or fold decision
+
+</Objectives>
+
+## The price of a call
+
+When you face a bet, you are being offered a wager. You put in the amount of the bet. If you win, you collect everything in the pot. **Pot odds** are the terms of that wager, and they tell you how often you need to win for calling to break even.
+
+<Formula name="break-even equity">equity needed = call / (pot + call)</Formula>
+
+Here **pot** means everything you can win: the chips that were in the middle plus the bet you are facing. **Call** is what you must put in.
+
+The reasoning behind it: after you call, the final pot is pot + call. Your call is a share of that final pot. If you win more often than your share, you profit.
+
+<Live title="Drag the bet">
+  <PotOddsStrip />
+</Live>
+
+## Equity
+
+**Equity** is your share of the pot on average, if the remaining cards were dealt with no more betting. If you would win 35 times in 100, your equity is 35%. For a drawing hand it is close to the probability of hitting, which is why the last two lessons came first.
+
+The decision rule is one comparison:
+
+- Equity above the break-even figure: calling makes money.
+- Equity below it: calling loses money.
+
+<Example title="A half-pot bet">
+
+The pot is 100. Your opponent bets 50.
+
+<Working steps={[
+  { label: 'Pot you can win', expr: '100 + 50', result: 150 },
+  { label: 'Your call', expr: '50', result: 50 },
+  { label: 'Equity needed', expr: '50 / (150 + 50)', result: pct(half) },
+  { label: 'EV of calling with 30% equity', expr: '0.30 × 150 − 0.70 × 50', result: signed(evCall(150, 50, 0.3)) },
+  { label: 'EV of calling with 20% equity', expr: '0.20 × 150 − 0.80 × 50', result: signed(evCall(150, 50, 0.2)) },
+]} />
+
+</Example>
+
+## Odds and percentages
+
+Players often state the price as a ratio. Pot 150, call 50 is **3 to 1**: you win three units for each one you risk. To turn a ratio into the equity needed:
+
+<Formula>x to 1 → 1 / (x + 1)</Formula>
+
+So 3 to 1 needs 25%, 2 to 1 needs 33.3%, and 4 to 1 needs 20%.
+
+## Common sizes
+
+Bet sizes are usually thought of as fractions of the pot, and each fraction has a fixed break-even equity. These are worth memorizing.
+
+| Bet size | Odds you get | Equity needed |
+|---|---|---|
+| One third of the pot | 4 to 1 | {pct(potOdds(4, 1))} |
+| Half the pot | 3 to 1 | {pct(potOdds(3, 1))} |
+| Two thirds of the pot | 2.5 to 1 | {pct(potOdds(2.5, 1))} |
+| The pot | 2 to 1 | {pct(potOdds(2, 1))} |
+| Twice the pot | 1.5 to 1 | {pct(potOdds(1.5, 1))} |
+
+The required equity never reaches 50%, however large the bet. A bet has to be infinitely large before the caller needs to be a favorite.
+
+## Putting it together
+
+On the turn, the pot is 100 and your opponent bets 100. You hold a flush draw with nine clean outs and no other way to win.
+
+1. Outs to probability: 9 / 46 = {pct(fd.nextCardFromTurn)}.
+2. Price: 100 / (200 + 100) = {pct(full)}.
+3. Compare: {pct(fd.nextCardFromTurn)} is well short of {pct(full)}. Fold.
+
+If the bet were 25 instead, you would need 25 / (125 + 25) = {pct(potOdds(125, 25))}, and the same draw becomes a profitable call. The cards did not change. The price did.
+
+The full calculator handles any numbers and shows the working:
+
+<Live title="Pot odds and EV calculator">
+  <PotOddsTool />
+</Live>
+
+This comparison assumes no more money goes in after the call. When more betting can follow, the answer shifts, and that is the next lesson.
+
+<Remember>
+
+- Equity needed = call / (pot + call), where the pot includes their bet
+- Third pot needs 20%, half pot 25%, two thirds 28.6%, full pot 33.3%
+- x to 1 odds need 1 / (x + 1)
+- Call when your equity beats the price. Fold when it does not
+- Pot odds alone assume no further betting
+
+</Remember>
+
+<Mistakes>
+
+- Leaving the opponent's bet out of the pot
+- Comparing a price with the two-card probability when you are only buying one card
+- Calling because the bet is small in chips rather than checking it against the pot
+- Folding hands with plenty of equity to small bets
+
+</Mistakes>

@@ -1,0 +1,122 @@
+import { EQUITY_VS_RANDOM, HAND_ORDER_META } from '@/generated/handOrder';
+import { classByName } from '@/engine/ranges';
+import { pct, num, int } from '@/lib/format';
+
+export const ev = (name) => EQUITY_VS_RANDOM[classByName(name).index];
+export const hands = ['A2o', 'K4o', 'Q7o', '76s', '54s', '22', 'JTs', 'K9o'];
+
+export const quiz = [
+  {
+    q: 'What does raw equity assume?',
+    choices: ['That you always bet', 'That all remaining cards are dealt with no further betting', 'That your opponent folds', 'That you are in position'],
+    answer: 1,
+    why: 'Raw equity is the share of the pot you would win if the hand were checked down to the river. Real hands have betting, and betting can make you fold before you get there.',
+  },
+  {
+    q: 'What is equity realization?',
+    choices: ['The moment your draw completes', 'The fraction of your raw equity you actually capture once betting is included', 'Your equity on the river', 'The rake taken from your winnings'],
+    answer: 1,
+    why: 'A hand with 40% equity that captures 30% of the pot on average is realizing 75% of its equity.',
+  },
+  {
+    q: 'Which factor most improves how much equity a hand realizes?',
+    choices: ['Being out of position', 'Being in position', 'Having an offsuit hand', 'Having a low kicker'],
+    answer: 1,
+    why: 'Acting last lets you take free cards, control the pot size and avoid being bluffed. In-position hands regularly capture more than their raw share.',
+  },
+  {
+    q: 'Which hand has more raw equity against a random hand: A-2 offsuit or 7-6 suited?',
+    choices: ['7-6 suited', 'A-2 offsuit', 'They are equal', 'It depends on position'],
+    answer: 1,
+    why: `A-2 offsuit has ${(ev('A2o') * 100).toFixed(1)}% and 7-6 suited has ${(ev('76s') * 100).toFixed(1)}%. The ace wins a lot of showdowns unimproved. But that is not the same as being the better hand to play.`,
+  },
+  {
+    q: 'Why does 7-6 suited usually play better than A-2 offsuit despite less raw equity?',
+    choices: ['It is prettier', 'It makes strong, clear hands and draws that can bet and call, so it realizes more of its equity', 'It always flops a draw', 'It blocks aces'],
+    answer: 1,
+    why: 'A-2 offsuit mostly makes a weak pair of aces or ace high: hands that cannot stand pressure. 7-6 suited makes straights, flushes and draws that know where they stand.',
+  },
+  {
+    q: 'You have 30% raw equity out of position against an aggressive player with a hand that has no draw. What should you expect?',
+    choices: ['To capture about 30% of the pot', 'To capture clearly less than 30%', 'To capture more than 30%', 'Exactly zero'],
+    answer: 1,
+    why: 'You will be bet off the hand on many boards before showdown. Out of position, without a draw, a hand under-realizes.',
+  },
+];
+
+<Objectives>
+
+- Distinguish raw equity from the share of the pot a hand really captures
+- List what makes a hand realize more or less than its equity
+- Explain why suited connectors outperform their raw equity and weak offsuit aces underperform
+
+</Objectives>
+
+## Equity assumes a free ride
+
+**Equity** is your share of the pot if all the remaining cards are dealt and nobody bets again. Calculators report it, and pot odds are compared against it. But in a real hand there are three more rounds of betting, and betting changes who gets to showdown.
+
+If you have 30% equity and your opponent bets on every street, you will fold on some of them. The hands you fold never get to collect their 30%. On the other side, if you are the one betting and they fold a hand that had 30%, you just collected a share that was not yours.
+
+**Equity realization** is the fraction of raw equity a hand captures once that betting is accounted for.
+
+<Formula name="realization">realized share of pot = raw equity × realization factor</Formula>
+
+A factor of 1 means you capture your equity exactly. Below 1 you **under-realize**. Above 1 you **over-realize**. The factor is not a constant you can look up. It depends on the hand, the positions, the stacks and the players. Solvers compute it as a byproduct. At the table you estimate its direction.
+
+## What moves the factor
+
+**Position.** The player who acts last can check behind to see a free card, bet when checked to, and call knowing the price. In-position hands commonly capture more than their raw share and out-of-position hands less. This is the single largest effect.
+
+**Playability.** Hands that make clear strong hands or clear draws realize well, because they can continue against bets for good reason. Hands that make weak pairs realize badly: they are ahead often enough to have equity and behind often enough that they cannot call three streets.
+
+**Suitedness and connectedness.** A suited hand has only a few points more raw equity than its offsuit twin. Its real advantage is that it flops flush draws and backdoor draws, which give it profitable reasons to keep betting or calling. Connected cards do the same with straights.
+
+**Having the initiative.** The player who raised last can win by betting when both players miss. The caller has to make a hand or make a stand.
+
+**Stack depth.** Deep stacks reward hands that can make the nuts. Short stacks reward raw equity, because once the money is all-in there is no more betting and every hand realizes exactly 100%.
+
+## Raw equity can mislead
+
+The engine's all-in equity against one random hand, for a few hands that are often compared:
+
+<DataTable
+  head={['Hand', 'Equity vs a random hand']}
+  rows={hands.sort((a, b) => ev(b) - ev(a)).map((h) => [h, pct(ev(h))])}
+  caption={`${HAND_ORDER_META.method}, ${int(HAND_ORDER_META.trials)} trials per hand, seed ${HAND_ORDER_META.seed} plus the hand's index. Standard error at most ${pct(HAND_ORDER_META.maxStandardError, 2)}.`}
+/>
+
+By this measure A-2 offsuit ({pct(ev('A2o'))}) is well ahead of 7-6 suited ({pct(ev('76s'))}). Yet strong players open 7-6 suited from more seats than A-2 offsuit, and call raises with it far more readily.
+
+The reason is realization. A-2 offsuit gets its equity from winning unimproved with ace high and from pairing the ace with no kicker. Neither can call a big bet comfortably. When it puts a lot of money in, it is usually behind. 7-6 suited gets its equity from straights, flushes, two pair and strong draws. Those are hands that can put money in confidently, or draws with a known price. One hand leaks equity on every street and the other keeps it.
+
+The all-in number is still the right one when the hand will be all-in. With ten big blinds in a tournament, A-2 offsuit is the better hand to shove. Context decides which measure applies.
+
+## See it for yourself
+
+Run a matchup preflop, then give it a flop and watch the equities move. Notice how often the hand that is behind would be facing a bet it cannot call.
+
+<Live title="Equity calculator">
+  <EquityTool initial={{ hands: ['Ah2c', '7s6s'] }} />
+</Live>
+
+Try the flop Q-9-3 with one spade (type Qs9d3h). Ace high is a clear favorite in raw equity, <Eq a="Ah2c" b="7s6s" board="Qs9d3h" />, and yet it cannot call a bet with any confidence, because anything that bets into it is either ahead or drawing live. That gap between the number and what the hand can do with it is under-realization.
+
+<Remember>
+
+- Raw equity assumes no more betting. Real hands have betting
+- Realization is the share of raw equity a hand actually captures
+- In position, suited, connected, and with the betting lead: realize more
+- Out of position with weak pairs and no draws: realize less
+- All-in, every hand realizes exactly its equity
+
+</Remember>
+
+<Mistakes>
+
+- Choosing hands to play by raw equity alone
+- Calling out of position with hands that cannot continue on most flops
+- Overvaluing weak offsuit aces and kings because they are ahead of a random hand
+- Undervaluing position when comparing two close options
+
+</Mistakes>

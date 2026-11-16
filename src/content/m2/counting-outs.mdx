@@ -1,0 +1,134 @@
+import { findOuts, outsVersus } from '@/engine/outs';
+import { parseCards } from '@/engine/cards';
+
+export const o = (hole, board) => findOuts(parseCards(hole), parseCards(board));
+export const strong = (hole, board) => o(hole, board).outs.filter((x) => x.category >= 4).length;
+export const flushDraw = strong('Ah7h', 'Kh9h2c');
+export const oesd = strong('9s8d', '7h6c2s');
+export const gutshot = strong('9s8d', '6h5c2s');
+export const overcards = o('AsKd', 'Qh7c2s').outs.length;
+export const setOuts = o('7s7d', 'Qh7c2s').outs.length;
+export const pairOuts = o('AsQd', 'Qh7c2s').outs.length;
+export const combo = strong('9h8h', '7h6h2c');
+export const vsSet = outsVersus(parseCards('Ah7h'), parseCards('KsKd'), parseCards('Kh9h2c'));
+
+export const quiz = [
+  {
+    q: 'You hold two hearts and the flop has two hearts. How many outs do you have to a flush?',
+    numeric: flushDraw,
+    tolerance: 0,
+    why: 'There are 13 hearts. You can see four of them, so nine remain unseen.',
+  },
+  {
+    q: 'You hold 9-8 and the flop is 7-6-2 in mixed suits. How many cards complete your straight?',
+    numeric: oesd,
+    tolerance: 0,
+    why: 'Any ten or any five completes it. Four of each is eight outs. This is an open-ended straight draw.',
+  },
+  {
+    q: 'You hold 9-8 and the flop is 6-5-2. How many cards complete your straight?',
+    numeric: gutshot,
+    tolerance: 0,
+    why: 'Only a seven fills the gap. Four sevens is four outs. This is a gutshot, half as strong as the open-ended draw.',
+  },
+  {
+    q: 'You hold 9-8 of hearts on a flop of 7-6 of hearts and the 2 of clubs. How many cards make a straight or a flush?',
+    numeric: combo,
+    tolerance: 0,
+    why: 'Nine hearts plus eight straight cards is 17, but the ten of hearts and five of hearts were counted twice. 9 + 8 - 2 = 15.',
+  },
+  {
+    q: 'You hold the nut flush draw on K-9-2 with two hearts. Your opponent has three kings. How many of your nine flush cards actually win?',
+    numeric: vsSet.outs.length,
+    tolerance: 0,
+    why: 'The two of hearts pairs the board and gives the set a full house. That out is tainted. Eight clean outs remain on the turn.',
+  },
+  {
+    q: 'What is a discounted out?',
+    choices: ['An out that costs less to chase', 'An out you count as less than one full card because it may not win', 'An out that has already been dealt', 'An out for a split pot'],
+    answer: 1,
+    why: 'If a card improves you but sometimes still loses, count it as a fraction. An overcard that is good perhaps half the time counts as half an out.',
+  },
+];
+
+<Objectives>
+
+- Define an out and count outs for the standard draws
+- Avoid counting the same card twice in a combined draw
+- Recognize tainted outs and discount doubtful ones
+
+</Objectives>
+
+## What an out is
+
+An **out** is an unseen card that turns your hand into the likely winner. If you hold four hearts and need a fifth, every heart you cannot see is an out.
+
+Counting outs is the first step of almost every decision with a drawing hand. The count becomes a probability, the probability is compared with the price of calling, and that comparison is the decision. The next two lessons do those steps. This one is only about getting the count right.
+
+## The standard draws
+
+These come up constantly, so the counts are worth knowing cold. Each number here is produced by the engine checking all unseen cards.
+
+| Draw | Example | Outs |
+|---|---|---|
+| Flush draw | A-7 of hearts on K-9-2 with two hearts | {flushDraw} |
+| Open-ended straight draw | 9-8 on 7-6-2 | {oesd} |
+| Gutshot straight draw | 9-8 on 6-5-2 | {gutshot} |
+| Two overcards to a pair | A-K on Q-7-2 | {overcards} |
+| One pair to two pair or trips | A-Q on Q-7-2 | {pairOuts} |
+| Set to a full house or quads | 7-7 on Q-7-2 | {setOuts} |
+| Flush draw plus open-ended straight draw | 9-8 of hearts on 7-6 of hearts, 2 | {combo} |
+
+The method is always the same: name the ranks or the suit you need, count how many of those cards exist, and subtract the ones you can already see.
+
+<Live title="Find the outs in any spot">
+  <OutsTool />
+</Live>
+
+## Do not count a card twice
+
+With a flush draw and an open-ended straight draw together, the naive count is 9 + 8 = 17. Two of the straight cards are also hearts, and each card can only arrive once. The real count is {combo}.
+
+Whenever you add two draws, look for cards that belong to both.
+
+## Tainted outs
+
+An out is only worth counting if it wins. A card that completes your draw while giving your opponent something better is a **tainted out**.
+
+<Scene hands={['Ah7h', 'KsKd']} board="Kh9h2c" />
+
+You hold the nut flush draw: nine hearts. But your opponent has three kings, and the two of hearts pairs the board. That card makes your flush and their full house at the same moment. Against this hand you have {vsSet.outs.length} clean outs, not nine. And even after you hit, the board can still pair on the river.
+
+You will rarely know the opponent's exact hand. What you can do is notice when some of your outs are doubtful:
+
+- Flush outs that pair the board, when a set or two pair is likely.
+- Straight outs that also put three of a suit on the board.
+- Overcard outs, when the opponent could already have two pair or better.
+- The low end of a straight, when a higher straight is possible.
+
+## Discounting
+
+When an out might not win, count it as part of an out. This is called **discounting**. It is an estimate, not a calculation, but a rough discount is far better than counting every out at full value.
+
+A common example: you hold A-K on Q-7-2 and face a bet. You have {overcards} cards that make top pair. If you think your opponent has a hand like Q-J most of the time, those are good outs. If they often have a set or two pair, an ace or king still loses. Counting the six as three or four reflects that.
+
+Good outs go to the nuts. Bad outs make a second-best hand that pays off a bigger one. The lesson on implied odds returns to this, because the cost of hitting a bad out is often larger than the cost of missing.
+
+<Remember>
+
+- Flush draw: 9 outs. Open-ended straight draw: 8. Gutshot: 4
+- Two overcards: 6. Pair to two pair or trips: 5. Set to full house or better: 7
+- Flush draw plus open-ender is 15, not 17. Never count a card twice
+- An out that also improves your opponent is tainted. Do not count it
+- Discount outs that may not be good, and prefer draws to the nuts
+
+</Remember>
+
+<Mistakes>
+
+- Adding draws together without removing shared cards
+- Counting overcards as six full outs against a range that has you crushed
+- Counting flush cards that pair the board when the opponent is showing great strength
+- Drawing to the low end of a straight or to a small flush and treating it like a draw to the nuts
+
+</Mistakes>

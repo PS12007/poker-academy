@@ -1,0 +1,140 @@
+import { outsOdds, probHitOuts, runnerRunner } from '@/engine/combinatorics';
+import { pct, num } from '@/lib/format';
+
+export const fd = outsOdds(9);
+export const big = outsOdds(15);
+export const gut = outsOdds(4);
+export const bdFlush = runnerRunner(10, 9);
+
+export const quiz = [
+  {
+    q: 'On the flop you can see five cards. How many are unseen?',
+    numeric: 47,
+    tolerance: 0,
+    why: '52 minus your two hole cards and the three on the flop. On the turn it is 46.',
+  },
+  {
+    q: 'You have 9 outs on the flop. What is the exact chance of hitting on the turn card alone?',
+    numeric: Math.round(fd.nextCardFromFlop * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: '9 / 47 = 19.1%. The rule of 2 gives 18%, close enough to use at the table.',
+  },
+  {
+    q: 'You have 9 outs on the flop and will see both the turn and the river. What is the exact chance of hitting at least once?',
+    numeric: Math.round(fd.byRiverFromFlop * 1000) / 10,
+    tolerance: 1.1,
+    unit: '%',
+    why: 'Miss twice: (38/47) x (37/46) = 65.0%. So you hit 35.0% of the time. The rule of 4 gives 36%.',
+  },
+  {
+    q: 'With 15 outs on the flop, the rule of 4 says 60%. What is the exact figure to the nearest percent?',
+    numeric: Math.round(big.byRiverFromFlop * 100),
+    tolerance: 1,
+    unit: '%',
+    why: 'The rule of 4 overcounts big draws because it adds the two chances instead of combining them. Exact: 54.1%. The corrected rule, 4 x 15 - (15 - 8) = 53, is much closer.',
+  },
+  {
+    q: 'When should you use the rule of 2 on the flop instead of the rule of 4?',
+    choices: ['Never', 'When you expect to face another bet on the turn', 'When you have more than 8 outs', 'When the pot is small'],
+    answer: 1,
+    why: 'The rule of 4 assumes you see two cards for one price. If calling the flop only buys you the turn card, the one-card probability is the right one to compare with the price.',
+  },
+  {
+    q: 'You have three hearts on the flop including your two. Roughly how often do the turn and river both come hearts?',
+    choices: ['About 1%', 'About 4%', 'About 10%', 'About 19%'],
+    answer: 1,
+    why: `10/47 x 9/46 = ${(bdFlush * 100).toFixed(1)}%. A backdoor flush draw is worth about one extra out.`,
+  },
+];
+
+<Objectives>
+
+- Turn a number of outs into an exact probability for one card or two
+- Use the rule of 2 and 4 and know where it breaks
+- Apply the correction for big draws
+- Value a backdoor draw
+
+</Objectives>
+
+## One card to come
+
+On the flop you can see five cards, so 47 are unseen. On the turn you can see six, so 46 are unseen. Any unseen card is equally likely to come next, which makes the one-card probability a plain fraction.
+
+<Formula name="one card">P(hit) = outs / unseen cards</Formula>
+
+With a flush draw on the flop that is 9 / 47 = {pct(fd.nextCardFromFlop)}. If you miss, it is 9 / 46 = {pct(fd.nextCardFromTurn)} on the river.
+
+## Two cards to come
+
+To find the chance of hitting at least once in two cards, do not add the two fractions. Work out the chance of missing both and subtract from one.
+
+<Formula name="flop to river">P(hit) = 1 − (47 − outs)/47 × (46 − outs)/46</Formula>
+
+<Example title="A flush draw from the flop">
+
+With 9 outs, 38 of the 47 unseen cards miss on the turn. If the turn misses, 37 of the remaining 46 miss on the river.
+
+<Working steps={[
+  { label: 'Miss the turn', expr: '38 / 47', result: pct(38 / 47, 2) },
+  { label: 'Then miss the river', expr: '37 / 46', result: pct(37 / 46, 2) },
+  { label: 'Miss both', expr: '(38/47) × (37/46)', result: pct(1 - fd.byRiverFromFlop, 2) },
+  { label: 'Hit at least once', expr: `1 − ${num(1 - fd.byRiverFromFlop, 4)}`, result: pct(fd.byRiverFromFlop, 2) },
+]} />
+
+</Example>
+
+Adding the fractions would give 19.1% + 19.6% = 38.7%, which is too high. It double-counts the runouts where both cards hit.
+
+## The rule of 2 and 4
+
+Nobody does that multiplication at the table. The shortcut:
+
+- **One card to come:** outs × 2 is roughly the percentage.
+- **Two cards to come:** outs × 4 is roughly the percentage.
+
+It works because each out is worth a little more than 2% per card (1/47 = 2.13%). The table compares the shortcut with the exact values.
+
+<Live title="Exact against the shortcut">
+  <OutsTable />
+</Live>
+
+Up to about eight outs the rule of 4 is within a point or two. Beyond that it drifts upward, because multiplying by four is the same as adding the turn and river chances, and the overlap between them grows with the number of outs. At 15 outs it says {pct(big.rule4, 0)} when the truth is {pct(big.byRiverFromFlop)}.
+
+**The correction for big draws.** With more than eight outs, subtract the number of outs above eight:
+
+<Formula name="corrected rule, more than 8 outs">4 × outs − (outs − 8)</Formula>
+
+For 15 outs: 60 − 7 = {pct(big.rule4Corrected, 0)}. That is within a point of exact.
+
+## Which number to use
+
+The rule of 4 answers a specific question: how often will I get there if I see both cards? That is only the right question if you get to see both cards for the price you are paying now. It applies when you or your opponent is all-in on the flop.
+
+Much more often, calling a flop bet buys one card. If you miss the turn, you will probably face another bet. In that case compare the price with the **one-card** number. Using the rule of 4 to justify a flop call, then folding the turn, is one of the most expensive habits in the game.
+
+## Backdoor draws
+
+A draw that needs both the turn and the river is called **backdoor** or runner-runner. With three hearts on the flop, you need a heart on the turn (10 of 47) and another on the river (9 of 46): {pct(bdFlush)}.
+
+That is about what one normal out is worth over two cards ({pct(probHitOuts(1, 47, 2))}). A backdoor flush draw is a small bonus, roughly one extra out. It can tip a close decision and should not drive a big one.
+
+<Remember>
+
+- 47 unseen cards on the flop, 46 on the turn
+- One card: outs / unseen. Two cards: one minus the chance of missing twice
+- Rule of 2 for one card, rule of 4 for two
+- Above 8 outs the rule of 4 is too high. Use 4 × outs − (outs − 8)
+- If a call only buys one card, use the one-card number
+- A backdoor flush draw is worth about one out
+
+</Remember>
+
+<Mistakes>
+
+- Using the rule of 4 on the flop when you will face a turn bet
+- Adding the turn and river probabilities
+- Trusting the rule of 4 for combination draws without the correction
+- Treating a backdoor draw as a real draw
+
+</Mistakes>

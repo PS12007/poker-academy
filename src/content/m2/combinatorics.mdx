@@ -1,0 +1,152 @@
+import { parseRange, countCombos, classByName, classCombosRemaining } from '@/engine/ranges';
+import { parseCards } from '@/engine/cards';
+import { holdemStartingHandFacts } from '@/engine/combinatorics';
+import { pct, num, int } from '@/lib/format';
+
+export const facts = holdemStartingHandFacts();
+export const left = (name, dead) => classCombosRemaining(classByName(name).index, parseCards(dead));
+export const range = parseRange('QQ+, AK');
+export const full = countCombos(range);
+export const blocked = countCombos(range, parseCards('AsKd'));
+export const vAll = countCombos(parseRange('JJ+'), parseCards('AhKh'));
+export const bAll = countCombos(parseRange('AKs, AKo'), parseCards('AhKh'));
+// River spot: board Ks 9d 4c 7h 2s, villain value range KK, 99, 44, AK, KQ.
+export const board = 'Ks9d4c7h2s';
+export const sets = countCombos(parseRange('KK, 99, 44'), parseCards(board));
+export const topPair = countCombos(parseRange('AK, KQ'), parseCards(board));
+
+export const quiz = [
+  {
+    q: 'How many combinations of a specific pocket pair are there, such as Q-Q?',
+    numeric: 6,
+    tolerance: 0,
+    why: 'Choose 2 suits from 4: 4 x 3 / 2 = 6.',
+  },
+  {
+    q: 'How many combinations of ace-king are there in total?',
+    numeric: 16,
+    tolerance: 0,
+    why: 'Four aces times four kings is 16: 4 of them suited and 12 offsuit.',
+  },
+  {
+    q: 'You hold A-K. How many combinations of A-A can your opponent have?',
+    numeric: left('AA', 'AsKd'),
+    tolerance: 0,
+    why: 'You hold one ace, leaving three. Choose 2 from 3: 3 combinations instead of 6. Your ace blocks half of their aces.',
+  },
+  {
+    q: 'The flop is K-9-4. How many combinations of pocket kings remain?',
+    numeric: left('KK', 'Ks9d4c'),
+    tolerance: 0,
+    why: 'One king is on the board, so three remain and they make 3 combinations. Sets are always rare: at most 3 combos each.',
+  },
+  {
+    q: 'Before the flop, which is your opponent more likely to hold: pocket aces or ace-king?',
+    choices: ['Pocket aces', 'Ace-king, by 16 combos to 6', 'They are equally likely', 'It cannot be known'],
+    answer: 1,
+    why: 'Unpaired hands have 16 combinations and pairs have 6. Any specific unpaired hand is dealt 2.7 times as often as any specific pair.',
+  },
+  {
+    q: 'What is a blocker?',
+    choices: ['A bet that stops a raise', 'A card you hold that reduces the number of combinations of certain hands your opponent can have', 'A card on the board that completes a draw', 'A player who folds often'],
+    answer: 1,
+    why: 'Cards in your hand cannot be in theirs. Holding an ace makes every ace-containing hand in their range less likely.',
+  },
+  {
+    q: `Your opponent's range is QQ+ and AK, ${full} combos. You hold A-K offsuit. How many combos remain?`,
+    numeric: blocked,
+    tolerance: 0,
+    why: 'QQ keeps 6. KK and AA drop to 3 each. AK drops from 16 to 9 (three aces times three kings). 6 + 3 + 3 + 9 = 21.',
+  },
+];
+
+<Objectives>
+
+- Count the combinations of any starting hand
+- Recount after removing cards you can see
+- Turn a range into a number of combos and compare parts of it
+- Explain what a blocker does
+
+</Objectives>
+
+## Hands are not equally likely
+
+There are {int(facts.totalCombos)} different two-card holdings in a 52-card deck. Many are the same hand for practical purposes: the ace of spades with the king of spades plays the same before the flop as the ace of hearts with the king of hearts. Grouping those together leaves {facts.distinctHands} distinct starting hands.
+
+Those {facts.distinctHands} are not equally likely, and that fact is the foundation of hand reading. A specific two-card holding is called a **combination**, or combo.
+
+| Hand type | Example | Combos | How |
+|---|---|---|---|
+| Pocket pair | Q-Q | 6 | Choose 2 of the 4 suits |
+| Suited | A-K suited | 4 | One per suit |
+| Offsuit | A-K offsuit | 12 | 4 × 3 |
+| Unpaired, any suits | A-K | 16 | 4 × 4 |
+
+The 13 pairs, 78 suited hands and 78 offsuit hands add up correctly: 13 × 6 + 78 × 4 + 78 × 12 = {int(facts.totalCombos)}.
+
+Two consequences follow at once. You are dealt a pocket pair {pct(facts.pPair)} of the time, which is 1 hand in 17. You are dealt aces {pct(facts.pAces, 2)} of the time, 1 hand in 221. And when an opponent raises, ace-king is far more likely than aces: 16 combos against 6.
+
+## Card removal
+
+Every card you can see is a card your opponent does not hold. Counting combos after removing the visible cards is called **card removal**, and a card that removes combos from an opponent's range is a **blocker**.
+
+Suppose you hold the ace of spades and the king of diamonds.
+
+- Pocket aces: three aces remain, so 3 combos instead of 6.
+- Pocket kings: 3 combos instead of 6.
+- Ace-king: three aces times three kings is 9 combos instead of 16.
+- Pocket queens: untouched, still 6.
+
+The board removes cards the same way. On a king-high flop, one king is gone, and there are only 3 combos of pocket kings. This is why sets are always a small part of anyone's range.
+
+<Live title="Any hand, any visible cards">
+  <ComboCounter start="AK" dead="AsKd" />
+</Live>
+
+## Counting a range
+
+A **range** is the full set of hands a player can hold in a situation. Counting its combos tells you how its parts compare.
+
+Say an opponent only re-raises all-in with queens or better and ace-king. That range has {full} combos: 18 pairs and 16 ace-kings. So nearly half of it is ace-king, a hand that has not made a pair yet.
+
+Now give yourself ace-king. The range shrinks to {blocked} combos: queens 6, kings 3, aces 3, ace-king 9. If instead you held queens, you would face 1 combo of queens, 6 kings, 6 aces and 16 ace-kings.
+
+<Example title="Value or bluff on the river">
+
+The board is K-9-4-7-2 with no flush possible. Your opponent bets, and you believe their value hands are sets and top pair with a good kicker: K-K, 9-9, 4-4, A-K and K-Q.
+
+Count them with the board removed. Each set has 3 combos, so the sets total {sets}. A-K and K-Q each have 3 kings times 4 side cards, so 12 each, {topPair} together. Their value range is {sets + topPair} combos, and {pct(topPair / (sets + topPair), 0)} of it is one pair.
+
+If you hold two pair, you beat {topPair} of those {sets + topPair} combos (a few less of each once your own two cards are removed). Counting turned a vague fear of a set into a number: sets are {pct(sets / (sets + topPair), 0)} of the hands they bet for value.
+
+</Example>
+
+## Why blockers matter
+
+Blockers shift the odds a little before the flop and a great deal on later streets, when ranges are narrow and a few combos are a large share of them.
+
+- **Calling.** If you hold a card that blocks their value hands, more of their betting range is bluffs.
+- **Bluffing.** If you hold a card that blocks the hands they would call with, your bluff works more often. Holding the ace of a suit on a three-flush board is the classic case: they cannot have the nut flush.
+- **Unblocking.** The reverse also matters. You want not to hold the cards that make up their folding range.
+
+Module 4 has a full lesson on choosing bluffs and calls by blockers. For now the skill is counting.
+
+<Remember>
+
+- Pair: 6 combos. Suited: 4. Offsuit: 12. Any unpaired hand: 16
+- There are 1,326 combos and 169 distinct starting hands
+- You are dealt a pair 1 time in 17, and aces 1 time in 221
+- Each card you see removes combos. One card of a rank leaves 3 pair combos
+- A set never has more than 3 combos
+- Count the combos in a range before deciding how afraid to be
+
+</Remember>
+
+<Mistakes>
+
+- Treating every hand in a range as equally likely
+- Fearing sets and pocket aces out of proportion to their combo counts
+- Forgetting to remove board cards and your own cards before counting
+- Ignoring that unpaired hands outnumber pairs
+
+</Mistakes>

@@ -1,0 +1,141 @@
+import { evCall, evBluff, evShove } from '@/engine/ev';
+import { pct, num, signed } from '@/lib/format';
+
+export const coin = 0.5 * 11 - 0.5 * 10;
+export const callEv = evCall(150, 50, 0.3);
+export const shove = evShove(0.4, 15, 0.33, 215, 100);
+export const shoveNoFold = evShove(0, 15, 0.33, 215, 100);
+
+export const quiz = [
+  {
+    q: 'A bet wins 30 with probability 40% and loses 10 otherwise. What is its expected value?',
+    numeric: 0.4 * 30 - 0.6 * 10,
+    tolerance: 0.05,
+    why: '0.4 x 30 - 0.6 x 10 = 12 - 6 = +6 per bet on average.',
+  },
+  {
+    q: 'What is the expected value of folding?',
+    choices: ['Minus what you already put in the pot', 'Zero', 'It depends on the cards', 'Minus the big blind'],
+    answer: 1,
+    why: 'Chips already in the pot are gone whatever you do. EV measures the difference your next action makes, so folding is the zero point everything else is compared with.',
+  },
+  {
+    q: 'The pot is 150 including a 50 bet. You have 30% equity and no more betting will follow. What is the EV of calling?',
+    numeric: callEv,
+    tolerance: 0.6,
+    why: '0.30 x 150 - 0.70 x 50 = 45 - 35 = +10.',
+  },
+  {
+    q: 'You go all-in as a semi-bluff. What are the two sources of value?',
+    choices: ['Position and stack size', 'The chance they fold, and your equity when they call', 'Pot odds and implied odds', 'The blinds and the ante'],
+    answer: 1,
+    why: 'EV of a shove = fold equity x pot + (1 - fold equity) x (equity x final pot - risk). Either term alone can be negative while the total is positive.',
+  },
+  {
+    q: 'You have put 40 into a 200 pot and now face a bet you would fold to on its merits. Should the 40 change your decision?',
+    choices: ['Yes, you are invested', 'No. That money belongs to the pot now', 'Yes, if it is more than 10% of your stack', 'Only on the river'],
+    answer: 1,
+    why: 'This is the sunk cost error. The 40 is part of the pot you could win, and it is already counted there. It is not a reason to add more.',
+  },
+  {
+    q: 'A play has an EV of +5 chips. You make it once and lose 100. What does that tell you?',
+    choices: ['The EV estimate was wrong', 'Nothing about the play. EV is an average over many trials', 'You should stop making the play', 'You were unlucky and are now due a win'],
+    answer: 1,
+    why: 'A single result is one draw from the distribution. Nor are you due anything: each hand is independent of the last.',
+  },
+];
+
+<Objectives>
+
+- Compute the expected value of a decision from its outcomes and probabilities
+- Explain why folding has an EV of zero
+- Write the EV of a call, a bluff and a semi-bluff shove
+- Avoid the sunk cost error
+
+</Objectives>
+
+## An average over everything that can happen
+
+**Expected value**, or EV, is the average result of a decision if you could repeat it a very large number of times. To compute it, list every outcome, multiply each by its probability, and add.
+
+<Formula name="expected value">EV = Σ probability × result</Formula>
+
+A coin is flipped. Heads you win 11, tails you lose 10. The EV is 0.5 × 11 − 0.5 × 10 = {signed(coin)}. You will never win 0.50 on a flip. You will win 11 or lose 10. But take the bet a thousand times and you will be ahead by about 500.
+
+Poker is a long series of bets like that one, with harder probabilities. A winning player is someone who keeps choosing the option with the highest EV and accepts whatever each individual result turns out to be.
+
+## The zero point
+
+EV is measured from the moment of the decision. Chips you put in earlier are no longer yours. They are in the pot, and the pot is what you are playing for.
+
+This makes the EV of **folding** exactly zero. You win nothing more and lose nothing more. Every other option is judged against that. A call with positive EV is better than folding, and a call with negative EV is worse.
+
+The same idea disposes of a common error. Having already invested in a pot is not a reason to continue. The money is counted once, as part of the pot you can win. Counting it again as something to protect is the **sunk cost** mistake.
+
+## EV of a call
+
+With no further betting, a call has two outcomes.
+
+<Formula name="calling">EV = equity × pot − (1 − equity) × call</Formula>
+
+The pot is 150 including a 50 bet, and you have 30% equity: 0.30 × 150 − 0.70 × 50 = {signed(callEv)}. Setting this formula to zero and solving for equity gives the pot odds formula from the earlier lesson. Pot odds are the break-even case of an EV calculation.
+
+## EV of a bluff
+
+A pure bluff has no chance of winning at showdown. It wins the pot when the opponent folds and loses the bet when they call.
+
+<Formula name="pure bluff">EV = fold% × pot − (1 − fold%) × bet</Formula>
+
+<Live title="Move the sliders">
+  <BluffEV />
+</Live>
+
+Find the point where the EV crosses zero. For a bet of 75 into 100 it is at {pct(75 / 175)}. That break-even frequency, bet / (pot + bet), becomes important later under the name alpha.
+
+## EV as a decision tree
+
+Most real decisions have branches. A **semi-bluff** is a bet with a hand that is probably behind but can improve. It has three outcomes: they fold, they call and you win, they call and you lose.
+
+<Formula name="shoving">EV = fold% × pot + (1 − fold%) × (equity × final pot − risk)</Formula>
+
+<Example title="Shoving a draw">
+
+The pot is 15. You move all-in for 100 with a draw. If called, the final pot is 215 and you have 33% equity. You estimate they fold 40% of the time.
+
+<Working steps={[
+  { label: 'Branch 1: they fold, you win the pot', expr: '40% × +15', result: signed(0.4 * 15) },
+  { label: 'Branch 2: called. Your share of the final pot minus what you risked', expr: '0.33 × 215 − 100', result: signed(shove.whenCalled) },
+  { label: 'Weight branch 2 by how often it happens', expr: `60% × ${num(shove.whenCalled)}`, result: signed(0.6 * shove.whenCalled) },
+  { label: 'EV of the shove', expr: `${num(0.4 * 15)} + ${num(0.6 * shove.whenCalled)}`, result: signed(shove.ev) },
+  { label: 'Fold equity needed to break even', expr: 'solve EV = 0', result: pct(shove.breakEvenFoldEquity) },
+]} />
+
+</Example>
+
+This particular shove loses money. Being called costs {num(Math.abs(shove.whenCalled))} on average, and winning a pot of 15 on the folds cannot pay for it unless they fold {pct(shove.breakEvenFoldEquity)} of the time. The lesson in the numbers: risking 100 to win 15 needs either a great deal of fold equity or a hand that does well when called. The same shove into a pot of 60 would be a different story, and you can check that with the formula.
+
+## Comparing options
+
+EV only means something as a comparison. At each decision, estimate the EV of every option available and pick the largest. Sometimes the best option still has negative EV, such as paying the small blind, and sometimes two options are both positive and you are choosing the better one.
+
+You will rarely know the probabilities exactly. That does not make the method useless. A rough estimate fed through the right formula beats a guess with no structure, and the formulas show which input matters most. In the shove above, the answer depends heavily on fold equity and hardly at all on a few points of card equity.
+
+<Remember>
+
+- EV is the sum of each result times its probability
+- Folding has an EV of zero. Money already in the pot is not yours
+- Call: equity × pot − (1 − equity) × call
+- Bluff: fold% × pot − (1 − fold%) × bet
+- Shove: fold% × pot + (1 − fold%) × (equity × final pot − risk)
+- Pick the highest EV option and ignore single results
+
+</Remember>
+
+<Mistakes>
+
+- Continuing because of chips already invested
+- Judging a play by one outcome
+- Forgetting the fold branch when evaluating a bet with a drawing hand
+- Risking a large amount to win a small pot without enough fold equity
+
+</Mistakes>
