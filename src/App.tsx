@@ -8,6 +8,11 @@ const Course = lazy(() => import('./pages/Course'));
 const Lesson = lazy(() => import('./pages/Lesson'));
 const Tools = lazy(() => import('./pages/Tools'));
 const ToolPage = lazy(() => import('./pages/ToolPage'));
+const Drills = lazy(() => import('./pages/Drills'));
+const DrillPage = lazy(() => import('./pages/Drills').then((m) => ({ default: m.DrillPage })));
+const Reference = lazy(() => import('./pages/Reference'));
+const Review = lazy(() => import('./pages/Review'));
+const Placement = lazy(() => import('./pages/Placement'));
 const Settings = lazy(() => import('./pages/Settings'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
@@ -44,6 +49,12 @@ export function App() {
           <Route path="/learn/:moduleId/:lessonId" element={<Lesson />} />
           <Route path="/tools" element={<Tools />} />
           <Route path="/tools/:toolId" element={<ToolPage />} />
+          <Route path="/drills" element={<Drills />} />
+          <Route path="/drills/:drillId" element={<DrillPage />} />
+          <Route path="/reference" element={<Reference />} />
+          <Route path="/reference/:section" element={<Reference />} />
+          <Route path="/review" element={<Review />} />
+          <Route path="/placement" element={<Placement />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

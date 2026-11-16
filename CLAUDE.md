@@ -33,4 +33,4 @@ No rounded cards with drop shadows, no gradient buttons, no glass. Tokens live i
 
 ## Current phase
 
-Phase 3: app shell and core tools.
+Phase 5: Modules 3 and 4 (preflop, postflop), heatmap tool, more drills. Phases 1 to 4 are done and deployed to GitHub Pages on every push to main.
