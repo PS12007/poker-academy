@@ -1,4 +1,4 @@
-import { type ComponentType, type LazyExoticComponent } from 'react';
+import { lazy, type ComponentType, type LazyExoticComponent } from 'react';
 
 export interface DrillMeta {
   id: string;
@@ -10,9 +10,9 @@ export interface DrillMeta {
 }
 
 export const DRILLS: DrillMeta[] = [
-  { id: 'hand-ranking', serial: 'D-01', title: 'Which hand wins', track: "Hold'em", blurb: 'Two hands and a board. Kickers, counterfeits and boards that play.' },
-  { id: 'outs', serial: 'D-02', title: 'Count the outs', track: "Hold'em", blurb: 'Ten seconds to count every card that improves you.' },
-  { id: 'pot-odds', serial: 'D-03', title: 'Call or fold', track: 'All games', blurb: 'Pot, bet and your equity. Decide, then see the arithmetic.' },
+  { id: 'hand-ranking', serial: 'D-01', title: 'Which hand wins', track: "Hold'em", blurb: 'Two hands and a board. Kickers, counterfeits and boards that play.', component: lazy(() => import('./HandRankingDrill')) },
+  { id: 'outs', serial: 'D-02', title: 'Count the outs', track: "Hold'em", blurb: 'Ten seconds to count every card that makes a straight or better.', component: lazy(() => import('./OutsDrill')) },
+  { id: 'pot-odds', serial: 'D-03', title: 'Call or fold', track: 'All games', blurb: 'Pot, bet and your equity. Decide, then see the arithmetic.', component: lazy(() => import('./PotOddsDrill')) },
   { id: 'equity', serial: 'D-04', title: 'Estimate the equity', track: "Hold'em", blurb: 'Guess hand against hand or range. Scored by how far off you are.' },
   { id: 'combos', serial: 'D-05', title: 'Count the combos', track: "Hold'em", blurb: 'How many combinations remain given the board and your cards.' },
   { id: 'preflop', serial: 'D-06', title: 'Preflop decisions', track: "Hold'em", blurb: 'Position and action in, fold, call or raise out.' },
