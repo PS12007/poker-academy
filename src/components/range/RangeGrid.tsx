@@ -60,7 +60,7 @@ export const RangeGrid = memo(function RangeGrid({
 
   return (
     <div
-      role="grid"
+      role="group"
       aria-label={label ?? 'Starting hand range'}
       className={cx('grid select-none border-l border-t border-bone/20', onChange && 'touch-none')}
       style={{ gridTemplateColumns: 'repeat(13, minmax(0, 1fr))' }}
@@ -91,9 +91,9 @@ export const RangeGrid = memo(function RangeGrid({
         return (
           <div
             key={h.index}
-            role="gridcell"
+            role={onChange ? 'checkbox' : 'img'}
             data-cell={h.index}
-            aria-selected={on}
+            aria-checked={onChange ? on : undefined}
             tabIndex={onChange ? 0 : -1}
             aria-label={`${h.name}${on ? `, weight ${Math.round(w * 100)}%` : ''}`}
             onKeyDown={(e) => {

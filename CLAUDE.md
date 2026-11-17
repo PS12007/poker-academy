@@ -40,7 +40,7 @@ typecheck, lint, tests and deploys via .github/workflows/deploy.yml).
 Done: all nine modules (61 lessons), all 11 tools, all 10 drills, reference pages, review queue, placement quiz,
 global search (/ or Ctrl+K), offline service worker (public/sw.js), Playwright smoke tests (e2e/, run in CI before deploy).
 
-Possible next steps: accessibility and Lighthouse pass, README screenshots, more original replayer hands, more
+Possible next steps: Lighthouse performance pass, README screenshots, more original replayer hands, more
 glossary terms for Omaha and tournaments, deeper PLO tools (range input for Omaha).
 
 ## How to add things
@@ -55,6 +55,7 @@ glossary terms for Omaha and tournaments, deeper PLO tools (range input for Omah
 - Lazy imports: always use lazyRetry from src/lib/lazy.ts, never React.lazy. It reloads once when a chunk from an old
   deploy is missing (the cause of blank pages after a deploy). Routes are wrapped in ErrorBoundary.
 - Full page sweep: node scripts/clicktest.mjs http://localhost:4173/ (visits every lesson, tool and drill).
+- Accessibility scan: node scripts/a11y.mjs http://localhost:4173/ (axe, WCAG A and AA, both themes). Currently zero violations.
 - Heavy computation: add a method to src/workers/engine.worker.ts and call it through useJob or useCached (src/lib/engine.ts).
 - Visual check: npm run build, npx vite preview --port 4173, then node scripts/shot.mjs <outDir> <route[@mobile][@full]>.
   Pass routes without a leading slash (Git Bash rewrites them), e.g. tools/equity or home.
