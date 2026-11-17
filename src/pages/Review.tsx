@@ -103,6 +103,8 @@ export default function Review() {
   const lessons = useStore((s) => s.lessons);
   const trainers = useStore((s) => s.trainers);
   const days = useStore((s) => s.days);
+  const notes = useStore((s) => s.notes);
+  const noted = ALL_LESSONS.filter((l) => (notes[l.key] ?? '').trim());
   const srs = useStore((s) => s.srs);
   const available = ALL_LESSONS.filter((l) => l.available);
   const done = available.filter((l) => lessons[l.key]?.done);
@@ -176,6 +178,23 @@ export default function Review() {
                   <Link to={lessonPath(l)} className="min-w-0 flex-1 truncate text-[14px] hover:text-madder">{l.title}</Link>
                   <span className="label">{l.module.title}</span>
                   <span className="num w-12 text-right text-[13px] text-madder">{pct(lessons[l.key].quizBest, 0)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Plate>
+      </div>
+      <div className="mt-6">
+        <Plate serial="NT" title="Your notes" right={noted.length ? `${noted.length} lessons` : undefined} pad={false}>
+          {noted.length === 0 ? (
+            <p className="p-5 text-[14px] text-dim">No notes yet. Each lesson has a notes box, saved in this browser as you type.</p>
+          ) : (
+            <ul>
+              {noted.map((l) => (
+                <li key={l.key} className="border-b border-bone/10 px-4 py-3 last:border-0 sm:px-5">
+                  <Link to={lessonPath(l)} className="text-[14px] font-medium hover:text-madder">{l.title}</Link>
+                  <span className="label ml-3">{l.module.title}</span>
+                  <p className="mt-1 whitespace-pre-wrap text-[13.5px] leading-relaxed text-dim">{notes[l.key]}</p>
                 </li>
               ))}
             </ul>
