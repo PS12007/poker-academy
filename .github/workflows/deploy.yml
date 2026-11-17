@@ -27,6 +27,12 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm test
+      # Smoke tests run against a root-based build, then the real build is made for the Pages subpath.
+      - run: npx vite build
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test
+        env:
+          CI: '1'
       - run: npx vite build
         env:
           BASE_PATH: /${{ github.event.repository.name }}/

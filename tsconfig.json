@@ -18,5 +18,5 @@
     "types": ["vite/client", "node", "mdx"],
     "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src", "tests", "scripts", "vite.config.ts", "tailwind.config.ts"]
+  "include": ["src", "tests", "e2e", "playwright.config.ts", "scripts", "vite.config.ts", "tailwind.config.ts"]
 }

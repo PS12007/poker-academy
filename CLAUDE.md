@@ -9,6 +9,7 @@ Static React app that teaches poker with a tested engine behind every number. Se
 - `npm run typecheck`, `npm run lint`, `npm run build`
 - `npm run bench` evaluator and equity throughput
 - `npm run lint:content` fails if a lesson lacks objectives, a Remember box or a quiz
+- `npm run test:e2e` Playwright smoke tests against the production build (run npx vite build first)
 - `npm run gen` regenerates engine-computed data in `src/generated/`
 
 Run typecheck, lint, test and build before every commit that ends a phase.
@@ -36,14 +37,11 @@ No rounded cards with drop shadows, no gradient buttons, no glass. Tokens live i
 Phase 6 (game theory) is in progress. Live site: https://ps12007.github.io/poker-academy/ (every push to main runs
 typecheck, lint, tests and deploys via .github/workflows/deploy.yml).
 
-Done: engine, all tools except pot-limit, Modules 1 to 6 and the bankroll module (m8) complete, drills D-01 to D-09,
-reference pages, review queue, placement quiz, global search (press / or Ctrl+K).
+Done: all nine modules (61 lessons), all 11 tools, all 10 drills, reference pages, review queue, placement quiz,
+global search (/ or Ctrl+K), offline service worker (public/sw.js), Playwright smoke tests (e2e/, run in CI before deploy).
 
-Next, in order:
-1. PLO: pot-limit calculator (src/engine/potLimit.ts, tool T-11), Omaha mode in the equity calculator, Module 7 lessons
-   (folder src/content/m7, shown as module 8 in the UI), PLO drill (D-10).
-2. Module 9 overview lessons (src/content/m9).
-3. Playwright smoke tests in CI, offline service worker, accessibility and Lighthouse pass, README screenshots.
+Possible next steps: accessibility and Lighthouse pass, README screenshots, more original replayer hands, more
+glossary terms for Omaha and tournaments, deeper PLO tools (range input for Omaha).
 
 ## How to add things
 

@@ -12,7 +12,8 @@
     "test": "vitest run",
     "bench": "tsx scripts/bench.ts",
     "gen": "tsx scripts/gen-data.ts",
-    "lint:content": "tsx scripts/lint-content.ts"
+    "lint:content": "tsx scripts/lint-content.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@fontsource-variable/bodoni-moda": "^5.3.0",
