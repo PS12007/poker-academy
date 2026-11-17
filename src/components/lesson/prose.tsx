@@ -23,6 +23,7 @@ const PotOddsTool = embed(() => import('../../tools/PotOddsCalculator'));
 const EquityTool = embed(() => import('../../tools/EquityCalculator'));
 const SidePotTool = embed(() => import('../../tools/SidePotCalculator'));
 const VarianceTool = embed(() => import('../../tools/VarianceSimulator'));
+const IcmTool = embed(() => import('../../tools/IcmCalculator'));
 const PushFoldTool = embed(() => import('../../tools/PushFoldSolver'));
 const RiverToyGame = lazy(() => import('../../tools/ToyGameLab').then((m) => ({ default: m.RiverToyGame })));
 const KuhnLab = lazy(() => import('../../tools/ToyGameLab').then((m) => ({ default: m.KuhnLab })));
@@ -69,7 +70,7 @@ export const MDX_COMPONENTS = {
   Objectives, Remember, Example, Mistakes, Formula, Live, Cards, Scene, Eq, Term, LessonLink, DataTable, Figure, Working, C,
   BluffEV, BoardReader, ComboCounter, DealDemo, HandNamer, MinRaiseCalc, Num, OutsTable, PotOddsStrip, RankingTable, StartingChart, TableDiagram,
   OutsTool, PotOddsTool, EquityTool, SidePotTool, VarianceTool, HeatmapTool, RangeTool,
-  BetSizeTheory, GeometricSizing, VsOpenChart, RvR, VsRandom, PushFoldTool,
+  BetSizeTheory, GeometricSizing, VsOpenChart, RvR, VsRandom, PushFoldTool, IcmTool,
   RiverToyGame: () => <Suspense fallback={null}><RiverToyGame /></Suspense>,
   KuhnLab: () => <Suspense fallback={null}><KuhnLab /></Suspense>,
 };
