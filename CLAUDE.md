@@ -62,4 +62,4 @@ glossary terms for Omaha and tournaments, deeper PLO tools (range input for Omah
 - Visual check: npm run build, npx vite preview --port 4173, then node scripts/shot.mjs <outDir> <route[@mobile][@full]>.
   Pass routes without a leading slash (Git Bash rewrites them), e.g. tools/equity or home.
 - Generated data: npm run gen (hand order), npx tsx scripts/gen-equity169.ts (push/fold equity table, about two minutes),
-  npx tsx scripts/gen-pushfold.ts (precomputed push/fold charts used by drill D-11; rerun after changing the solver or table).
+  npx tsx scripts/gen-pushfold.ts (precomputed push/fold charts used by drill D-09; rerun after changing the solver or table).
