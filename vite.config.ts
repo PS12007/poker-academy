@@ -2,12 +2,13 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import mdx from '@mdx-js/rollup';
 import remarkGfm from 'remark-gfm';
+import { remarkGlossary } from './src/lib/remarkGlossary';
 import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
   base: process.env.BASE_PATH ?? '/',
   plugins: [
-    { enforce: 'pre', ...mdx({ remarkPlugins: [remarkGfm], providerImportSource: '@mdx-js/react' }) },
+    { enforce: 'pre', ...mdx({ remarkPlugins: [remarkGfm, remarkGlossary], providerImportSource: '@mdx-js/react' }) },
     react(),
   ],
   resolve: { alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) } },
