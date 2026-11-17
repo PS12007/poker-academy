@@ -1,0 +1,98 @@
+import { int } from '@/lib/format';
+
+export const counts = { total: 270725, distinct: 16432 };
+
+export const quiz = [
+  {
+    q: 'How many different four-card starting hands are there in Omaha?',
+    numeric: counts.total,
+    tolerance: 0,
+    why: 'C(52, 4) = 270,725. After treating hands that differ only by suit names as the same, 16,432 remain.',
+  },
+  {
+    q: 'What does "double suited" mean?',
+    choices: ['All four cards one suit', 'Two cards of one suit and two of another', 'Two pairs', 'Any two suited cards'],
+    answer: 1,
+    why: 'For example A♠K♠ and Q♥J♥. It gives two different flush draws.',
+  },
+  {
+    q: 'Why is holding four cards of the same suit bad?',
+    choices: ['It is not', 'You can only use two of them, and the other two block your own flush outs', 'It is illegal', 'It cannot make a straight'],
+    answer: 1,
+    why: 'Two of the suited cards are wasted for the flush and they remove two of the cards you would need to hit it.',
+  },
+  {
+    q: 'What is a dangler?',
+    choices: ['A card that does not work with the other three', 'A pair', 'The highest card', 'A suited card'],
+    answer: 0,
+    why: 'In A-K-Q-4, the four is a dangler: it adds no straight or flush chances to the other cards.',
+  },
+  {
+    q: 'Why is A-A-x-x in Omaha much weaker than A-A in Hold\'em?',
+    choices: ['It is not', 'Opponents have far more ways to make strong hands, so one pair of aces rarely holds up', 'Aces are lower in Omaha', 'It is always a fold'],
+    answer: 1,
+    why: 'Against four-card hands, an unimproved pair of aces is often beaten by the river. Its value comes from the other two cards and from making the nut flush or top set.',
+  },
+];
+
+<Objectives>
+
+- Describe what makes an Omaha starting hand strong
+- Use the words rundown, double suited, single suited and dangler
+- Explain why aces are less dominant than in Hold'em
+
+</Objectives>
+
+## So many hands
+
+There are {int(counts.total)} possible four-card starting hands. Treating hands that only differ by which suit is which as the same still leaves {int(counts.distinct)}. Nobody memorizes a chart of that. Instead, you judge a hand by a few features.
+
+## What makes a hand good
+
+A good Omaha hand has **all four cards working together**. Each of your six two-card pairs should be useful.
+
+**1. Connected.** Cards close in rank make straights. A **rundown** like 9-8-7-6 or J-T-9-8 can make many straights and the big "wrap" draws you will meet later.
+
+**2. Suited, ideally double suited.** One suited pair gives you a flush draw. Two suited pairs (**double suited**, like A♠K♠Q♥J♥) give you two. Flushes made with an ace are the most valuable, because they are the nuts.
+
+**3. High.** When two players make the same kind of hand, the higher one wins. High cards make the top straight and the top set.
+
+**4. No danglers.** A **dangler** is a card that does not connect with the others, like the 4 in A-K-Q-4. It wastes one quarter of your hand.
+
+The best hands have all four: A♠A♥K♠Q♥ is high, double suited, and every card connects.
+
+## Hands that look good but are not
+
+- **Four of one suit** (K♠Q♠8♠5♠). You can only use two spades, so you have one flush draw, and you are holding two of your own outs.
+- **Three of a rank** (8-8-8-3). You can only use two eights, and the third one kills your own set outs.
+- **Pairs with nothing else** (Q-Q-7-2 rainbow). Top set sometimes, but often second best.
+
+## Aces are not king here
+
+In Hold'em, A-A is a huge favorite against anything. In Omaha it is much less so. Your opponent has six two-card pairs, so they make two pair, straights and flushes far more often. An **unimproved pair of aces** is usually beaten by the river in a big pot.
+
+Aces are still the best pair to hold, because they make top set and block the opponent's best hands. But A-A-x-x is only as good as its other two cards. A♠A♥K♠Q♥ is excellent. A♠A♥7♦2♣ is a much weaker hand that often wins only a small pot.
+
+Read any hand with the reader below. Try A♠A♥7♦2♣ and then A♠A♥K♠Q♥ on the same board.
+
+<Live title="See which pairs of cards play">
+  <OmahaReader hole="AsAhKsQh" board="Ks9s4d2c7h" />
+</Live>
+
+<Remember>
+
+- All four cards should work together
+- Connected, suited (double suited is best) and high
+- Avoid danglers, four of a suit, and three of a rank
+- A-A-x-x is only as good as its other two cards
+
+</Remember>
+
+<Mistakes>
+
+- Playing any hand with an ace in it
+- Overvaluing four cards of one suit
+- Treating aces as you would in Hold'em
+- Playing low rundowns that make the bottom end of straights
+
+</Mistakes>

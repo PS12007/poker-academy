@@ -269,3 +269,22 @@ export function VsRandom({ hand, opponents }: { hand: string; opponents: number 
     </span>
   );
 }
+
+
+/** Inline Omaha equity of hand a against hand b, exact on a flop or later, Monte Carlo preflop. */
+export function PloEq({ a, b, board = '', of = 0 }: { a: string; b: string; board?: string; of?: 0 | 1 }) {
+  const { data } = useCached(`plo|${a}|${b}|${board}`, (api) =>
+    api.equity({ game: 'omaha', players: [{ hands: [parseCards(a)] }, { hands: [parseCards(b)] }], board: parseCards(board), mode: board ? 'exact' : 'mc', iterations: 300_000, seed: 1 }),
+  );
+  if (!data) return <span className="num pending">··.·%</span>;
+  return (
+    <span className="whitespace-nowrap">
+      <span className="num font-medium text-bone">{pct(data.players[of].equity, 1)}</span>
+      <How>
+        {data.method === 'exact'
+          ? <>Exact, {int(data.boards)} runouts, best hand under the two-plus-three rule on each.</>
+          : <>Monte Carlo, {int(data.samples)} trials, seed {data.seed}. 95% interval {pct(data.players[of].ci![0], 1)} to {pct(data.players[of].ci![1], 1)}.</>}
+      </How>
+    </span>
+  );
+}

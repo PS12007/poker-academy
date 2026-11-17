@@ -1,0 +1,96 @@
+export const quiz = [
+  {
+    q: 'In Hold\'em, aces against kings are about 82% favorites. In Omaha, A♠A♥7♦2♣ against K♠K♦8♥3♣ is roughly:',
+    choices: ['95%', 'About 75%', 'About 50%', 'About 30%'],
+    answer: 1,
+    why: 'Still a favorite, but less so: each player has six two-card pairs, so the underdog has many more ways to catch up.',
+  },
+  {
+    q: 'Which matters more in Omaha preflop matchups?',
+    choices: ['Having the highest pair', 'How well all four cards work together: suits and connections', 'The kicker', 'Position only'],
+    answer: 1,
+    why: 'A well-connected, double-suited rundown can beat a bare pair of aces almost half the time.',
+  },
+  {
+    q: 'Why do equities run closer in Omaha?',
+    choices: ['The deck is smaller', 'Each player has six two-card combinations, so the underdog has many more ways to improve', 'The pot limit', 'There are more streets'],
+    answer: 1,
+    why: 'More combinations means more ways to make straights, flushes and two pair, which pulls equities toward each other.',
+  },
+  {
+    q: 'What does close equity mean for preflop strategy?',
+    choices: ['Raise everything all-in', 'Big preflop all-ins have less edge, so most of the skill is in postflop play', 'Never raise', 'Only play aces'],
+    answer: 1,
+    why: 'If even good hands are rarely more than 60% favorites, getting all-in before the flop wins less than in Hold\'em.',
+  },
+  {
+    q: 'A double-suited hand against the same hand with no suits. Roughly how much do the suits add?',
+    choices: ['Nothing', 'A few points of equity, mostly through nut flushes', 'Half the pot', 'They reduce equity'],
+    answer: 1,
+    why: 'Suits add real equity, especially with an ace of the suit. They also make your hand easier to play postflop.',
+  },
+];
+
+<Objectives>
+
+- See with real numbers how close Omaha equities are
+- Explain why four cards pull equities together
+- Draw the strategy lesson: the edge is mostly after the flop
+
+</Objectives>
+
+## Favorites are smaller
+
+In Hold'em, a pair of aces beats a pair of kings about <Eq a="AsAh" b="KsKh" /> of the time. Big edges like that are normal.
+
+In Omaha, edges shrink. These numbers come from the engine, not a book.
+
+<DataTable
+  head={['Matchup', 'First hand wins']}
+  rows={[
+    [<span key="a">A♠A♥7♦2♣ against K♠K♦8♥3♣. Aces against kings, no suits</span>, <PloEq key="1" a="AsAh7d2c" b="KsKd8h3c" />],
+    [<span key="b">A♠K♠A♥K♥ against 9♦8♦7♣6♣. Best hand against a good rundown</span>, <PloEq key="2" a="AsKsAhKh" b="9d8d7c6c" />],
+    [<span key="c">A♠A♥7♦2♣ against K♦Q♦J♣T♣. Bare aces against a double-suited rundown</span>, <PloEq key="3" a="AsAh7d2c" b="KdQdJcTc" />],
+    [<span key="d">J♦T♦9♣8♣ against A♠A♥7♠2♥. A rundown against aces with suits</span>, <PloEq key="4" a="JdTd9c8c" b="AsAh7s2h" />],
+  ]}
+  caption="Preflop, all-in. Monte Carlo, 300,000 trials each, seed 1. Tap a dagger for the confidence interval."
+/>
+
+The best possible starting hand, double-suited aces and kings, is only about a 60% favorite against a good rundown. Bare aces against a strong double-suited rundown is close to a coin flip.
+
+## Why
+
+Each Omaha hand is really **six two-card hands**. The underdog does not need one lucky card. It has six different pairs looking for a straight, a flush or two pair, so it gets there far more often.
+
+The more connected and suited a hand is, the more of its six pairs are live. That is why rundowns do so well against aces.
+
+## What this means for strategy
+
+- **Preflop all-ins win little.** Even your best hands are rarely huge favorites. Getting all-in before the flop gains much less than in Hold'em.
+- **Postflop is where the money is.** After the flop, hands separate sharply: someone has the nuts and someone is drawing dead. Good players keep pots smaller preflop and win them after the flop.
+- **Position matters even more.** With so much play after the flop, acting last is worth a lot.
+
+On a flop the numbers spread out. Try the same two hands on different flops in the calculator below (switch the game to Omaha).
+
+<Live title="Omaha equity calculator">
+  <EquityTool initial={{ game: 'plo', hands: ['AsKsAhKh', '9d8d7c6c'] }} />
+</Live>
+
+Try flops like Ts 7d 2h (good for the rundown) and Kd 5s 2c (good for the aces).
+
+<Remember>
+
+- Omaha equities run much closer than Hold'em
+- The best hand is only about a 60% favorite against a good rundown
+- Each hand is six two-card hands, so underdogs have many outs
+- Preflop edges are small. Postflop play decides most of the money
+
+</Remember>
+
+<Mistakes>
+
+- Getting all-in preflop with A-A-x-x and expecting Hold'em odds
+- Underrating rundowns and double-suited hands
+- Bloating pots preflop out of position
+
+</Mistakes>

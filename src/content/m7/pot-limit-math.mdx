@@ -1,0 +1,104 @@
+import { maxRaiseTo } from '@/engine/potLimit';
+
+export const quiz = [
+  {
+    q: 'Nobody has bet and the pot is 50. What is the most you can bet?',
+    numeric: 50,
+    tolerance: 0,
+    why: 'With nothing to call, the maximum bet is the size of the pot.',
+  },
+  {
+    q: 'The pot was 50 and your opponent bets 50. What is the most you can raise to?',
+    numeric: maxRaiseTo(100, 50, 0),
+    tolerance: 0,
+    why: 'Call 50 first: the pot becomes 150. Then raise 150 more. Your total is 50 + 150 = 200.',
+  },
+  {
+    q: 'Blinds are 1 and 2. You are first to act. What is the largest opening raise?',
+    numeric: maxRaiseTo(3, 2, 0),
+    tolerance: 0,
+    why: 'Call 2 first: pot 1 + 2 + 2 = 5. Raise 5 more. Total 2 + 5 = 7, which is 3.5 big blinds.',
+  },
+  {
+    q: 'Why do stacks still get all-in in PLO even though bets are limited?',
+    choices: ['They do not', 'Because the pot grows quickly with each pot-sized raise', 'Because the last bet is unlimited', 'Because of the antes'],
+    answer: 1,
+    why: 'Each pot-sized raise roughly triples the pot. Three or four raises are enough to put 100 big blinds in.',
+  },
+  {
+    q: 'What is the quick rule for a pot-sized raise?',
+    choices: ['Twice the bet', 'Three times the bet plus whatever was in the pot before the bet', 'The pot plus one big blind', 'Four times the bet'],
+    answer: 1,
+    why: 'Facing a bet B into a pot P, the max raise is to 3B + P. With P = 50 and B = 50: 150 + 50 = 200.',
+  },
+];
+
+<Objectives>
+
+- Work out the largest legal bet in a pot-limit game
+- Use the quick rule: raise to three times the bet plus the old pot
+- See how fast pot-sized raises grow the pot
+
+</Objectives>
+
+## The pot is the limit
+
+In pot-limit games you can bet any amount from the minimum up to **the size of the pot**. That is the whole idea. The only tricky part is raising, because the pot changes when you call.
+
+## The rule for raising
+
+When you face a bet, the maximum raise works in two steps.
+
+1. **Pretend to call.** Add your call to the pot.
+2. **Raise the size of that new pot.**
+
+<Example title="Facing a pot-sized bet">
+
+The pot is 50 and your opponent bets 50.
+
+<Working steps={[
+  { label: 'Pot now, including their bet', expr: '50 + 50', result: '100' },
+  { label: 'Step 1: pretend to call', expr: '100 + 50', result: '150' },
+  { label: 'Step 2: raise that much more', expr: '50 (call) + 150 (raise)', result: 'to 200' },
+]} />
+
+</Example>
+
+**Quick rule:** facing a bet B into a pot P, the max raise is to **3 × B + P**. Here: 3 × 50 + 50 = 200. It works every time there is a single bet in front of you.
+
+## Preflop
+
+The blinds count as bets. With blinds of 1 and 2, the first player to act can raise to at most {maxRaiseTo(3, 2, 0)}: call 2 (pot becomes 5), then raise 5 more. That is 3.5 big blinds, which is why "raise pot" preflop is so common in PLO.
+
+Step through any sequence here. Each button press adds an action, and the calculator always shows the legal range for the next player.
+
+<Live title="Pot-limit calculator">
+  <PotLimitTool />
+</Live>
+
+## The pot grows fast
+
+Limits do not keep pots small for long. A pot-sized bet and call **triples** the pot. A pot-sized raise is bigger still.
+
+Starting from a pot of 10, one pot bet and call makes 30, then 90, then 270. Three streets of pot bets get 130 from each player into the middle. So with 100 big blind stacks, PLO pots regularly end all-in, just a street or two later than in no-limit.
+
+You also cannot bluff someone off a hand with an enormous overbet. The most you can put in is the pot, so big draws often have the right price to continue.
+
+<Remember>
+
+- You can bet up to the size of the pot
+- To raise the max: call first, then raise the new pot
+- Facing bet B into pot P: max raise is to 3B + P
+- Preflop pot raise with blinds 1 and 2 is to 7
+- Each pot bet and call triples the pot, so stacks still go in
+
+</Remember>
+
+<Mistakes>
+
+- Forgetting to add your call before raising the pot
+- Leaving the opponent's bet out of the pot
+- Thinking limits mean small pots
+- Saying "pot" in a live game without knowing the number. Work it out or ask the dealer
+
+</Mistakes>

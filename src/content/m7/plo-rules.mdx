@@ -1,0 +1,94 @@
+export const quiz = [
+  {
+    q: 'How many hole cards does each player get in Pot-Limit Omaha?',
+    numeric: 4,
+    tolerance: 0,
+    why: 'Four. In PLO5 it is five. Everything else about the deal is the same as Hold\'em.',
+  },
+  {
+    q: 'How many of your hole cards must you use to make a hand?',
+    choices: ['Any number', 'At least one', 'Exactly two', 'Exactly three'],
+    answer: 2,
+    why: 'Exactly two from your hand and exactly three from the board. Never more, never fewer.',
+  },
+  {
+    q: 'The board has four spades. You hold one spade, the ace. Do you have a flush?',
+    choices: ['Yes, the nut flush', 'No. You need two spades in your hand', 'Only if the river is a spade', 'Yes, a small flush'],
+    answer: 1,
+    why: 'You can only use three board cards, so you need two spades of your own to make five.',
+  },
+  {
+    q: 'The board is 7-7-7-7-K. You hold A-A-2-3. What is your hand?',
+    choices: ['Four sevens with an ace', 'A full house, sevens full of aces', 'Three sevens', 'Two pair'],
+    answer: 1,
+    why: 'You must use exactly three board cards, so you play 7-7-7 with your A-A. Four of a kind is not possible because only three sevens can play.',
+  },
+  {
+    q: 'The board is 5-6-7-8 in four suits plus a king. You hold a single 9 and three blanks. Do you have a straight?',
+    choices: ['Yes, nine high', 'No. One hole card is not enough', 'Yes, eight high', 'Only in Hold\'em'],
+    answer: 1,
+    why: 'A straight here needs two of your cards, such as 9-4 or 9-T. One card can only combine with three board cards to make four cards of the straight.',
+  },
+];
+
+<Objectives>
+
+- Deal and play a hand of Pot-Limit Omaha
+- Apply the two-plus-three rule to find your real hand
+- Spot the board patterns where Hold'em instincts lie
+
+</Objectives>
+
+## Same game, four cards
+
+Pot-Limit Omaha, or PLO, is played just like Hold'em: same blinds, same four betting rounds, same five community cards. Two things change.
+
+1. **You get four hole cards instead of two.**
+2. **You must use exactly two of them, and exactly three board cards.**
+
+There is also a betting difference: you can only bet up to the size of the pot. That gets its own lesson next.
+
+## The two-plus-three rule
+
+This rule is the whole game. Every hand is made of **two cards from your hand and three from the board**. Not one from your hand. Not three. Two.
+
+That sounds simple, and it still catches everyone at first. Here are the three classic traps.
+
+**A four-flush board.** The board has four hearts. In Hold'em, any heart in your hand makes a flush. In Omaha you can only use three board hearts, so you need **two** hearts in your hand.
+
+**Four of a kind on board.** The board is 7-7-7-7-K. In Hold'em everyone has quads. In Omaha you can only use three of the sevens, so the best anyone can do is a full house.
+
+**A four-straight board.** The board is 5-6-7-8-K. In Hold'em a single 9 or 4 makes a straight. In Omaha you need two cards that fit, like 9-T or 9-4.
+
+Try it. Enter any hand and board, and the reader frames the five cards that really play.
+
+<Live title="The two-plus-three rule, live">
+  <OmahaReader />
+</Live>
+
+The default board has three spades, and the hand holds only one spade, the ace. No flush. Now type AsKsQhJc into the hole cards, giving the hand two spades, and watch the flush appear.
+
+## Reading your hand quickly
+
+A good habit: before thinking about anything else, look at your four cards as **six two-card pairs**. A hand like A-K-Q-J contains A-K, A-Q, A-J, K-Q, K-J and Q-J. Each pair is a possible "Hold'em hand", and you get to use the best one with the best three board cards.
+
+That is why PLO hands hit the board so often: you have six chances instead of one. It is also why big hands are common and the nuts matter so much, as later lessons show.
+
+<Remember>
+
+- Four hole cards. Use exactly two of them and exactly three board cards
+- A flush needs two of the suit in your hand
+- Four of a kind on board does not play. Three of them do
+- A straight needs two hole cards that fit
+- Your four cards are six two-card hands at once
+
+</Remember>
+
+<Mistakes>
+
+- Counting a single suited card as a flush
+- Thinking a board straight or board quads plays for you
+- Reading four hole cards as if all four could be used
+- Forgetting a card you hold blocks the same card for everyone else
+
+</Mistakes>

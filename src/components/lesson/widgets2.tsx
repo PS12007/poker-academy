@@ -1,4 +1,9 @@
 import { useMemo, useState } from 'react';
+import { parseCards } from '../../engine/cards';
+import { bestOmaha, omahaOuts } from '../../engine/omaha';
+import { describeHand, describeRank } from '../../engine/describe';
+import { CardField } from '../cards/CardField';
+import { Hand } from '../cards/PlayingCard';
 import { countCombos, parseRange, rangeFraction } from '../../engine/ranges';
 import { VS_OPEN } from '../../engine/teachingRanges';
 import { geometricFraction, geometricPlan, mdf, alpha, bluffFraction } from '../../engine/theory';
@@ -107,6 +112,66 @@ export function BetSizeTheory({ start = 75 }: { start?: number }) {
           ]}
         />
       </div>
+    </Plate>
+  );
+}
+
+/* ---------------------------------------------------------- Omaha reader */
+export function OmahaReader({ hole = 'AsKdQhJc', board = '9s8s7s2d2c' }: { hole?: string; board?: string }) {
+  const [h, setH] = useState<number[]>(() => parseCards(hole));
+  const [b, setB] = useState<number[]>(() => parseCards(board));
+  const ok = h.length >= 4 && b.length >= 3;
+  const best = ok ? bestOmaha(h, b) : null;
+  const holdem = ok ? describeHand([...h, ...b].slice(0, 7)) : null;
+  return (
+    <Plate serial="LAB" title="Which cards actually play">
+      <div className="space-y-5">
+        <CardField label="Hole cards" hint="4 or 5" max={5} value={h} onChange={setH} blocked={b} marked={best ? best.hole : undefined} />
+        <CardField label="Board" hint="3 to 5" max={5} value={b} onChange={setB} blocked={h} marked={best ? best.board : undefined} />
+      </div>
+      {best && holdem && (
+        <div className="mt-5 grid gap-5 border-t border-bone/15 pt-4 sm:grid-cols-2">
+          <div>
+            <div className="label text-madder">Omaha: exactly two plus three</div>
+            <div className="display-i mt-1 text-[28px] leading-tight">{describeRank(best.rank)}</div>
+            <p className="mt-2 text-[13px] text-dim">The framed cards: two from the hand, three from the board.</p>
+          </div>
+          <div>
+            <div className="label">If it were Hold'em (any five of seven)</div>
+            <div className="display-i mt-1 text-[28px] leading-tight text-dim">{h.length === 4 && b.length === 5 ? 'n/a with nine cards' : holdem.name}</div>
+            <p className="mt-2 text-[13px] text-dim">Shown to make the difference visible. Hold'em would use two hole cards at most anyway.</p>
+          </div>
+        </div>
+      )}
+    </Plate>
+  );
+}
+
+/* ---------------------------------------------------------- wrap counter */
+export function WrapCounter({ hole = 'JsTd7c6h', flop = '9h8d2s' }: { hole?: string; flop?: string }) {
+  const [h, setH] = useState<number[]>(() => parseCards(hole));
+  const [b, setB] = useState<number[]>(() => parseCards(flop));
+  const ok = h.length >= 4 && (b.length === 3 || b.length === 4);
+  const outs = ok ? omahaOuts(h, b, 4) : [];
+  const unseen = 52 - h.length - b.length;
+  const byRiver = b.length === 3 ? 1 - ((unseen - outs.length) / unseen) * ((unseen - 1 - outs.length) / (unseen - 1)) : outs.length / unseen;
+  return (
+    <Plate serial="LAB" title="Count the wrap">
+      <div className="space-y-5">
+        <CardField label="Hole cards" hint="4 or 5" max={5} value={h} onChange={setH} blocked={b} />
+        <CardField label="Flop or turn" max={4} value={b} onChange={setB} blocked={h} />
+      </div>
+      {ok && (
+        <div className="mt-5 border-t border-bone/15 pt-4">
+          <div className="grid grid-cols-3 gap-4">
+            <Figure size="lg" tone="madder" value={outs.length} caption="cards make a straight or better" />
+            <Figure size="md" value={pct(outs.length / unseen)} caption="next card" />
+            <Figure size="md" value={pct(byRiver)} caption={b.length === 3 ? 'by the river' : 'on the river'} />
+          </div>
+          <div className="mt-4"><Hand cards={[...outs].sort((x, y) => y - x)} size="xs" className="flex-wrap" /></div>
+          <p className="mt-3 text-[12.5px] text-dim">Found by dealing every unseen card and checking the best hand under the two-plus-three rule. Unseen cards: {unseen}.</p>
+        </div>
+      )}
     </Plate>
   );
 }
