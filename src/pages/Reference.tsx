@@ -5,6 +5,9 @@ import { FORMULAS } from '../content/formulas';
 import { ALL_LESSONS, lessonPath } from '../content/curriculum';
 import { holdemStartingHandFacts, probFlopFlush, probFlopPairOrBetterUnpaired, probFlopSetOrBetter, probFlushByRiver } from '../engine/combinatorics';
 import { potOdds } from '../engine/ev';
+import { omahaOuts } from '../engine/omaha';
+import { maxRaiseTo } from '../engine/potLimit';
+import { parseCards } from '../engine/cards';
 import { alpha, bluffFraction, mdf } from '../engine/theory';
 import { PageHeader, Plate } from '../components/ui/primitives';
 import { Eq } from '../components/lesson/blocks';
@@ -55,6 +58,15 @@ function Glossary() {
 }
 
 const SIZES: [number, string][] = [[0.25, '¼ pot'], [0.33, '⅓ pot'], [0.5, '½ pot'], [0.66, '⅔ pot'], [0.75, '¾ pot'], [1, 'pot'], [1.5, '1.5× pot'], [2, '2× pot']];
+const WRAPS: [string, string][] = [
+  ['JsTd4c3h', 'Open-ended, two cards'],
+  ['QsJdTc6h', 'Three cards above the board'],
+  ['JsTd6c3h', 'Two above, one below'],
+  ['JsTd7c3h', 'Two above, one in the gap'],
+  ['QsJdTc7h', 'Three above, one below'],
+  ['JsTd7c6h', 'The full wrap'],
+];
+
 const MATCHUPS: [string, string, string][] = [
   ['AsAh', 'KsKh', 'Pair over pair'],
   ['AsKs', 'QhQd', 'Two overcards (suited) against a pair'],
@@ -128,6 +140,25 @@ function CheatSheets() {
             ])}
           />
           <p className="mt-3 text-[12px] text-dim">Exact: all 1,712,304 boards enumerated for each matchup.</p>
+        </Plate>
+      </div>
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Plate serial="CS-5" title="Omaha straight draws on a 9-8-2 rainbow flop">
+          <Table
+            head={['Hole cards', 'Shape', 'Outs', 'By the river']}
+            rows={WRAPS.map(([h, label]) => {
+              const n = omahaOuts(parseCards(h), parseCards('9h8d2s'), 4).length;
+              return [<C key="h" c={h} />, label, n, pct(1 - ((45 - n) / 45) * ((44 - n) / 44))];
+            })}
+          />
+          <p className="mt-3 text-[12px] text-dim">Counted by dealing every unseen card under the two-plus-three rule. 45 unseen cards on an Omaha flop.</p>
+        </Plate>
+        <Plate serial="CS-6" title="Pot-limit: the largest raise">
+          <Table
+            head={['Pot before the bet', 'Bet you face', 'Max raise to', 'Pot if the raise is called']}
+            rows={[[10, 5], [10, 10], [30, 10], [100, 50], [100, 100], [1, 2]].map(([pot, bet]) => { const to = maxRaiseTo(pot + bet, bet, 0); return [String(pot), String(bet), String(to), String(pot + 2 * to)]; })}
+          />
+          <p className="mt-3 text-[12px] text-dim">Facing a bet B into a pot P, the maximum raise is to 3B + P. The last row is preflop with blinds of 1 and 2: the small blind is the pot and the big blind is the bet, so the first raise can go to 7.</p>
         </Plate>
       </div>
       <RankingTable />
