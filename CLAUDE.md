@@ -50,12 +50,12 @@ Next, in order:
 ## How to add things
 
 - Lesson: create src/content/<moduleId>/<lessonId>.mdx (ids are in src/content/curriculum.ts). It becomes available automatically.
-  It must export  (5 to 10 questions) and contain <Objectives>, <Remember> (3 to 6 items), <Mistakes> and at least one <Live>.
+  It must export `quiz` (5 to 10 questions) and contain <Objectives>, <Remember> (3 to 6 items), <Mistakes> and at least one <Live>.
   tests/content/lessons.test.tsx renders every lesson and enforces this. Components usable without import are listed in
   src/components/lesson/prose.tsx (MDX_COMPONENTS).
 - MDX gotchas: a block of exports must not start with a // comment (it becomes prose). Braces inside backticks are literal.
   Avoid the less-than sign in prose. No em or en dashes.
-- Tool: add a component in src/tools and set  in src/tools/registry.ts. Drill: same in src/trainers/registry.ts, built on DrillShell.
+- Tool: add a component in src/tools and set `component` in src/tools/registry.ts. Drill: same in src/trainers/registry.ts, built on DrillShell.
 - Heavy computation: add a method to src/workers/engine.worker.ts and call it through useJob or useCached (src/lib/engine.ts).
 - Visual check: npm run build, npx vite preview --port 4173, then node scripts/shot.mjs <outDir> <route[@mobile][@full]>.
   Pass routes without a leading slash (Git Bash rewrites them), e.g. tools/equity or home.
