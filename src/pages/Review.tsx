@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
+import { lazyRetry } from '../lib/lazy';
+
+const Flashcards = lazyRetry(() => import('./Flashcards'));
 import { Link } from 'react-router-dom';
 import { ALL_LESSONS, LESSON_FILES, lessonPath, MODULES } from '../content/curriculum';
 import { DRILLS } from '../trainers/registry';
@@ -21,7 +24,7 @@ function Queue() {
   const srs = useStore((s) => s.srs);
   const setSrs = useStore((s) => s.setSrs);
   // Freeze the session's queue when the page opens so grading does not reshuffle it.
-  const [queue] = useState(() => Object.keys(srs).filter((id) => isDue(srs[id])).sort((a, b) => srs[a].due - srs[b].due));
+  const [queue] = useState(() => Object.keys(srs).filter((id) => id.includes('#') && isDue(srs[id])).sort((a, b) => srs[a].due - srs[b].due));
   const [i, setI] = useState(0);
   const [q, setQ] = useState<Question | null>(null);
   const [answered, setAnswered] = useState(false);
@@ -39,8 +42,9 @@ function Queue() {
     };
   }, [id]);
 
-  const total = Object.keys(srs).length;
-  const upcoming = Object.values(srs).filter((s) => !isDue(s)).sort((a, b) => a.due - b.due)[0];
+  const quizIds = Object.keys(srs).filter((k) => k.includes('#'));
+  const total = quizIds.length;
+  const upcoming = quizIds.map((k) => srs[k]).filter((s) => !isDue(s)).sort((a, b) => a.due - b.due)[0];
 
   if (total === 0)
     return (
@@ -108,9 +112,14 @@ export default function Review() {
 
   return (
     <div>
-      <PageHeader serial="04" kicker="Review" title={<>Keep what <span className="italic text-madder">you learned.</span></>} lede="Quiz questions return on a spaced schedule: one day, six days, then longer each time you get them right. Below the queue is your record so far." />
+      <PageHeader serial="04" kicker="Review" title={<>Keep what <span className="italic text-madder">you learned.</span></>} lede="Quiz questions and flashcards return on a spaced schedule: one day, six days, then longer each time you get them right. Your record so far is alongside." />
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
-        <Queue />
+        <div className="space-y-6">
+          <Queue />
+          <Suspense fallback={null}>
+            <Flashcards />
+          </Suspense>
+        </div>
         <div className="space-y-6">
           <Plate serial="LOG" title="So far">
             <div className="grid grid-cols-2 gap-5">
