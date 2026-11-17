@@ -31,6 +31,12 @@ const QUESTIONS: PQ[] = [
   { module: 'm5', q: 'Facing a pot-sized bet, what is the minimum defense frequency?', choices: ['33%', p(mdf(1, 1)), '67%', '75%'], answer: 1, why: 'pot / (pot + bet) = 1/2.' },
   { module: 'm5', q: 'In a Nash equilibrium:', choices: ['Both players win', 'No player can gain by changing only their own strategy', 'The better player always wins', 'Nobody bluffs'], answer: 1, why: 'That mutual best-response property is the definition.' },
   { module: 'm5', q: 'On the river a polarized range bets the pot. What share of the betting range should be bluffs to make a bluff catcher indifferent?', choices: ['25%', '33%', '50%', '67%'], answer: 1, why: 'bet / (pot + 2 × bet) = 1/3, the caller’s pot odds.' },
+  { module: 'm6', q: 'In a tournament, why is doubling your stack usually worth less than double your prize equity?', choices: ['It is not', 'Payouts are spread over many places, so extra chips add less and busting costs a lot', 'Blinds go up', 'Antes'], answer: 1, why: 'That is the core of ICM: chips won are worth less than chips lost.' },
+  { module: 'm6', q: 'With 8 big blinds on the button and everyone folding to you, what is the usual play with a hand worth playing?', choices: ['Raise to 2bb', 'Move all-in', 'Limp', 'Always fold'], answer: 1, why: 'At short stacks push or fold beats small raises: maximum fold equity and no tough postflop spots.' },
+  { module: 'm6', q: 'On the bubble, a medium stack faces an all-in from the chip leader. Compared with chip pot odds, the call needs:', choices: ['Less equity', 'More equity', 'The same', 'No equity'], answer: 1, why: 'The bubble factor is above 1, so the equity needed rises above the chip price.' },
+  { module: 'm7', q: 'In Omaha, how many of your hole cards must you use?', choices: ['Any number', 'At least one', 'Exactly two', 'All four'], answer: 2, why: 'Exactly two from your hand and exactly three from the board.' },
+  { module: 'm7', q: 'Pot is 100 and your opponent bets 50 in pot-limit. What is the most you can raise to?', choices: ['150', '200', '250', '300'], answer: 2, why: 'Raise to 3 × bet + old pot = 150 + 100 = 250.' },
+  { module: 'm7', q: 'Why do Omaha preflop equities run closer than Hold’em?', choices: ['Smaller deck', 'Each hand has six two-card combinations, so underdogs catch up more often', 'Pot limit', 'More players'], answer: 1, why: 'More combinations means more ways to make strong hands for both players.' },
 ];
 
 export default function Placement() {
@@ -43,6 +49,10 @@ export default function Placement() {
     const idx = QUESTIONS.map((q, k) => (q.module === m ? k : -1)).filter((k) => k >= 0);
     return { m, right: idx.filter((k) => answers[k]).length, total: idx.length };
   });
+  const tracks = ['m6', 'm7'].map((m) => {
+    const idx = QUESTIONS.map((q, k) => (q.module === m ? k : -1)).filter((k) => k >= 0);
+    return { m, right: idx.filter((k) => answers[k]).length, total: idx.length };
+  });
   // Start at the first module where fewer than two of three were right.
   const start = byModule.find((b) => b.right < 2)?.m ?? 'm5';
   const mod = MODULES.find((m) => m.id === start)!;
@@ -50,7 +60,7 @@ export default function Placement() {
 
   return (
     <div>
-      <PageHeader serial="PQ" kicker="Placement" title={<>Where should <span className="italic text-madder">you start?</span></>} lede="Fifteen questions that get harder as they go. Guessing only hurts the result, so if you do not know, pick anything and move on." />
+      <PageHeader serial="PQ" kicker="Placement" title={<>Where should <span className="italic text-madder">you start?</span></>} lede="Fifteen Hold'em questions that get harder as they go, then three each on tournaments and Omaha. If you do not know, pick anything and move on: guessing only hurts the result." />
       <div className="mx-auto max-w-[760px]">
         {finished ? (
           <Plate serial="OUT" title="Suggested starting point">
@@ -58,7 +68,7 @@ export default function Placement() {
             <div className="display mt-1 text-[38px]">{mod.title}</div>
             <p className="mt-3 text-dim">{mod.blurb}</p>
             <ul className="mt-6 border-t border-bone/20">
-              {byModule.map((b) => {
+              {[...byModule, ...tracks].map((b) => {
                 const m = MODULES.find((x) => x.id === b.m)!;
                 return (
                   <li key={b.m} className="flex items-center gap-3 border-b border-bone/10 py-2.5">
@@ -69,6 +79,12 @@ export default function Placement() {
                 );
               })}
             </ul>
+            <p className="mt-5 text-[13.5px] leading-relaxed text-dim">
+              {tracks.map((t) => {
+                const m = MODULES.find((x) => x.id === t.m)!;
+                return t.right >= 2 ? `${m.title}: you know the basics, so skim it when you get there. ` : `${m.title}: worth taking once the Hold'em modules feel solid. `;
+              })}
+            </p>
             <div className="mt-6 flex flex-wrap gap-3">
               {first && <Link to={first.module.id === start ? lessonPath(first) : `/course#${start}`} className="btn btn-primary">{first.module.id === start ? `Start: ${first.title}` : 'See the module'}</Link>}
               <button type="button" className="btn" onClick={() => { setI(0); setAnswers([]); }}>Take it again</button>
