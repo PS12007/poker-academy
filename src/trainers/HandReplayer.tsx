@@ -148,6 +148,62 @@ const HANDS: ReplayHand[] = [
     ],
     result: 'Folding aces feels wrong and is correct here. Hand strength is relative to the board and the action, and a bluff catcher is a bluff catcher whatever it looked like before the flop.',
   },
+  {
+    title: 'Short stack in a tournament',
+    setup: 'Tournament, well before the money. Blinds 500/1,000 with a 1,000 big-blind ante. You have 9,000 chips (9bb) on the button.',
+    hero: 'Ks9d',
+    steps: [
+      {
+        street: 'Preflop', board: '', pot: 2.5,
+        action: 'Everyone folds to you. There are 2.5bb in the pot: the blinds and the ante.',
+        prompt: 'King-nine offsuit with 9 big blinds. What is the best play?',
+        options: ['Fold and wait for a better hand', 'Raise to 2bb', 'Move all-in'],
+        answer: 2,
+        why: 'At 9bb, raising small commits a big part of your stack without the fold equity of a shove. King-nine is well inside a button jamming range at this depth: the push/fold solver jams far wider than this. Waiting costs 2.5bb every orbit.',
+      },
+      {
+        street: 'Preflop', board: '', pot: 11.5,
+        action: 'You shove 9bb. The small blind folds and the big blind calls with A♠J♣. The cards are turned over.',
+        prompt: 'You are behind. Was the shove a mistake?',
+        options: ['Yes, you got called by a better hand', 'No. Folds win the pot often, and you still have about a third of the equity when called', 'Only if you lose'],
+        answer: 1,
+        why: <>King-nine against ace-jack has about <Eq a="Ks9d" b="AsJc" /> equity. The shove earned most of its value from the times both blinds folded. One bad call-off does not change whether the decision was right.</>,
+      },
+    ],
+    result: 'Short-stack tournament play is mostly push or fold. Judge the decision by the whole range of outcomes, not by the one hand that got called.',
+  },
+  {
+    title: 'An overpair in a 3-bet pot',
+    setup: 'Six-handed cash game, 100bb stacks. The cutoff opens to 2.5bb and you 3-bet to 8bb from the button.',
+    hero: 'QhQc',
+    steps: [
+      {
+        street: 'Preflop', board: '', pot: 17.5,
+        action: 'The cutoff calls. The pot is 17.5bb with 92bb behind each, an SPR of about 5.',
+        prompt: 'Before the flop comes: with SPR 5 and queens, what is the plan?',
+        options: ['Be ready to fold to any bet', 'Be willing to get all-in on most boards without an ace or king', 'Only continue with a set'],
+        answer: 1,
+        why: 'At SPR 5, an overpair is near the top of the range and two good bets get stacks in. Plan to commit on safe boards and slow down on boards with an ace, a king, or heavy draws.',
+      },
+      {
+        street: 'Flop', board: 'Ts6d3c', pot: 17.5,
+        action: 'The flop is T-6-3 rainbow. The cutoff checks.',
+        prompt: 'A dry, low board. What do you do?',
+        options: ['Check behind', 'Bet about a third of the pot', 'Shove 92bb'],
+        answer: 1,
+        why: 'Your range, full of big pairs, owns this board. A small bet keeps worse pairs and overcards in, and sets up a bigger turn bet. Shoving folds out every hand you beat.',
+      },
+      {
+        street: 'Turn', board: 'Ts6d3c8h', pot: 29.5,
+        action: 'They call. The turn is the 8 of hearts. They check again.',
+        prompt: 'The pot is 29.5bb with 86bb behind.',
+        options: ['Check to control the pot', 'Bet about two thirds of the pot, planning to shove the river', 'Fold'],
+        answer: 1,
+        why: 'Queens are still ahead of nearly every hand that called the flop. A two-thirds bet now and a river shove gets the stacks in over two streets, which is exactly what SPR planning said.',
+      },
+    ],
+    result: 'Planning from the SPR before the flop makes the later streets simple. With a strong hand at a low SPR, size your bets so the stacks can go in by the river.',
+  },
 ];
 
 export default function HandReplayer() {
