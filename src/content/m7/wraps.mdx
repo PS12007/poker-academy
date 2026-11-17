@@ -1,0 +1,120 @@
+import { omahaOuts } from '@/engine/omaha';
+import { parseCards } from '@/engine/cards';
+import { pct } from '@/lib/format';
+
+export const outs = (h, b) => omahaOuts(parseCards(h), parseCards(b), 4).length;
+export const byRiver = (n) => 1 - ((45 - n) / 45) * ((44 - n) / 44);
+export const W = [
+  ['J T, two cards around the board', 'JsTd4c3h', 8],
+  ['Q J T, three cards above', 'QsJdTc6h', 13],
+  ['J T 7, one gap filled', 'JsTd7c3h', 17],
+  ['J T 7 6, the full wrap', 'JsTd7c6h', 20],
+];
+
+export const quiz = [
+  {
+    q: 'What is a wrap?',
+    choices: ['A flush draw', 'A straight draw using three or four hole cards that wrap around the board, with more than 8 outs', 'A full house', 'A preflop raise'],
+    answer: 1,
+    why: 'With four hole cards you can have cards both above and below the board, which creates straight draws far bigger than Hold\'em allows.',
+  },
+  {
+    q: 'You hold J-T-7-6 and the flop is 9-8-2 rainbow. How many cards make you a straight?',
+    numeric: outs('JsTd7c6h', '9h8d2s'),
+    tolerance: 0,
+    why: 'Any Q, J, T, 7, 6 or 5 that is still unseen: four queens, three jacks, three tens, three sevens, three sixes and four fives. That is the famous 20-out wrap.',
+  },
+  {
+    q: 'How many unseen cards are there on an Omaha flop?',
+    numeric: 45,
+    tolerance: 0,
+    why: '52 minus your four hole cards and three board cards. On the turn it is 44.',
+  },
+  {
+    q: 'With 20 outs on the flop and both cards to come, about how often do you make a straight?',
+    numeric: Math.round(byRiver(20) * 100),
+    tolerance: 2,
+    unit: '%',
+    why: '1 − (25/45) × (24/44) = 69.7%. A big wrap is often the favorite even against a set.',
+  },
+  {
+    q: 'Why are some straight outs worse than others?',
+    choices: ['They are not', 'Some complete a lower straight that loses to a higher one, or come with a flush on board', 'Low cards are bad luck', 'Only the river matters'],
+    answer: 1,
+    why: 'Drawing to the bottom end of a straight, or to a straight on a board where a flush is possible, often makes a second-best hand.',
+  },
+];
+
+<Objectives>
+
+- Explain what a wrap is and why Omaha has them
+- Count wrap outs: 8, 13, 17 and 20
+- Tell nut outs from outs that make second-best hands
+
+</Objectives>
+
+## Straight draws on steroids
+
+In Hold'em the biggest pure straight draw has 8 outs. In Omaha, because you hold four cards, you can have cards **below and above** the board at the same time. A straight draw that uses three or four of your cards this way is called a **wrap**, and it can have up to 20 outs.
+
+## Counting them
+
+All four hands below are on the same rainbow flop: 9-8-2.
+
+<DataTable
+  head={['Your hand', 'Cards', 'Outs', 'By the river']}
+  rows={W.map(([label, h]) => [label, h.match(/../g).map((c) => c[0]).join('-'), outs(h, '9h8d2s'), pct(byRiver(outs(h, '9h8d2s')))])}
+  caption="Counted by the engine: every unseen card dealt, best hand checked under the two-plus-three rule."
+/>
+
+How to count by hand: list every rank that makes a straight with two of your cards, then subtract the cards of those ranks you can already see.
+
+<Example title="The 20-out wrap">
+
+Hand J-T-7-6, flop 9-8-2.
+
+- **Q** makes Q-J-T-9-8, using your J-T.
+- **J** makes J-T-9-8-7, using your T-7.
+- **T** makes T-9-8-7-6, using your 7-6.
+- **7** makes T-9-8-7-6, using your T-6.
+- **6** makes T-9-8-7-6, using your T-7.
+- **5** makes 9-8-7-6-5, using your 7-6.
+
+That is six ranks: Q, J, T, 7, 6, 5. Four of each is 24 cards. You hold one J, one T, one 7 and one 6, so 24 − 4 = **20 outs**.
+
+</Example>
+
+Try your own. Change the hand or the flop and the counter recounts.
+
+<Live title="Wrap counter">
+  <WrapCounter />
+</Live>
+
+## Not every out is equal
+
+**Nut outs** give you the best possible hand. **Non-nut outs** make a straight that can lose.
+
+- **The low end.** On 9-8-2, a 5 gives J-T-7-6 the 9-to-5 straight. Anyone holding T-7 or J-T has a higher straight. Low-end outs are worth less.
+- **Flush boards.** If the board has two of a suit and the turn or river brings a third, your straight may already be beaten by a flush.
+- **Paired boards.** If the board pairs, full houses are possible and straights shrink in value.
+
+When you count, ask: "if this card comes, am I likely to have the best hand?" Drawing hard to second-best hands is the biggest money leak in PLO.
+
+<Remember>
+
+- Wraps use three or four hole cards around the board
+- On 9-8-2: J-T has 8 outs, Q-J-T 13, J-T-7 17, J-T-7-6 20
+- 45 unseen cards on the flop, 44 on the turn
+- A 20-out wrap makes a straight about 70% of the time by the river
+- Prefer nut outs. Low-end and flush-board outs are weaker
+
+</Remember>
+
+<Mistakes>
+
+- Counting Hold'em style and missing half the outs
+- Forgetting to remove the cards in your own hand
+- Treating every straight out as a winning card
+- Drawing to the low end on boards with flush draws
+
+</Mistakes>

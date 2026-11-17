@@ -1,0 +1,93 @@
+export const quiz = [
+  {
+    q: 'The board has three spades. You hold the A♠ and no other spade. What do you know?',
+    choices: ['You have the nut flush', 'Nobody can have the nut flush', 'You have a flush draw', 'Nothing'],
+    answer: 1,
+    why: 'The best flush needs the A♠, and you have it. This is the strongest blocker in Omaha.',
+  },
+  {
+    q: 'Why do blockers matter more in Omaha than in Hold\'em?',
+    choices: ['They do not', 'You hold four cards, so you block more of the opponent\'s hands, and the nuts are made so often that blocking them is valuable', 'Because of the pot limit', 'Because there are more players'],
+    answer: 1,
+    why: 'With four cards each and strong hands common, knowing an opponent cannot hold the nuts changes a lot.',
+  },
+  {
+    q: 'You hold K-K-x-x on a K-high flop and an opponent bets big. What does your hand tell you?',
+    choices: ['They likely have top set', 'They cannot have top set, because you hold two of the three remaining kings', 'Nothing', 'They are bluffing'],
+    answer: 1,
+    why: 'Only one king is left, and you have top set yourself. Your pair blocks the strongest set.',
+  },
+  {
+    q: 'Which is usually the better river bluff on a board with three hearts?',
+    choices: ['A hand with no hearts', 'A hand holding the A♥ alone', 'A hand with two small hearts', 'Any hand'],
+    answer: 1,
+    why: 'Holding the A♥ means they cannot have the nut flush, so a big bet tells a story they cannot fully disbelieve.',
+  },
+  {
+    q: 'Is a blocker alone a reason to bet big?',
+    choices: ['Yes, always', 'No. It helps choose the right hands, but the opponent can still hold strong non-nut hands', 'Only preflop', 'Only with aces'],
+    answer: 1,
+    why: 'Blocking the nuts does not block the second-best flush or a full house. Use blockers to break close decisions.',
+  },
+];
+
+<Objectives>
+
+- Use the ace of a suit as a blocker on flush boards
+- Use your pairs as set blockers
+- Choose bluffs that make the nuts impossible for the opponent
+
+</Objectives>
+
+## Four cards, four blockers
+
+A **blocker** is a card in your hand that the opponent cannot have. In Hold'em you hold two, so blockers are a small edge. In Omaha you hold four, and strong hands are made so often that knowing what your opponent **cannot** have is worth a lot.
+
+## The ace of the suit
+
+The most important blocker in Omaha is the **ace of the flush suit**.
+
+<Scene hands={['AsJd8c4h']} board="Ks9s3s" labels={['You hold one spade, the ace']} />
+
+The board has three spades. You do not have a flush, because you need two spades. But **nobody** can have the nut flush, because it needs the ace of spades, and you are holding it.
+
+That makes the bare ace a powerful bluffing card. If you bet big, your opponent knows you might have the nut flush, and they can never be sure their flush is good. If they hold a smaller flush, they face a hard decision.
+
+<Live title="Check who can have what">
+  <OmahaReader hole="AsJd8c4h" board="Ks9s3sTd2c" />
+</Live>
+
+## Set blockers
+
+Pairs in your hand block sets. Hold K-K-x-x on a king-high flop and only one king is left in the deck. The opponent cannot have top set, and you have it. Hold 9-9 on a board with a nine and the opponent has at most one combination of nine-nine left.
+
+The flip side: if you hold a hand that **wants** the opponent to have something, do not block it. When bluff catching, you would rather hold cards that block their value hands than cards that block their busted draws.
+
+## Using blockers
+
+Blockers are best for choosing **between** similar hands, not for making big decisions by themselves.
+
+- **Bluff** with hands that block the nuts, such as the bare ace of the flush suit.
+- **Call** more readily when you block the opponent's best hands.
+- **Fold** more readily when you block their bluffs, for example when you hold the cards of the straight draw they would have missed.
+
+Remember: blocking the nut flush does not block the second-nut flush, a full house, or a straight. A careful opponent can still call.
+
+<Remember>
+
+- You hold four cards, so you block more than in Hold'em
+- The ace of the flush suit means nobody else has the nut flush
+- Your pairs block sets of the same rank
+- Bluff with nut blockers. Call when you block their value hands
+- Blockers break close decisions. They do not override the board
+
+</Remember>
+
+<Mistakes>
+
+- Bluffing a three-flush board with no ace of the suit
+- Forgetting that your own pair makes their top set unlikely
+- Calling with hands that block the bluffs you hope to catch
+- Thinking a blocker means the opponent has nothing
+
+</Mistakes>

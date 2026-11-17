@@ -1,0 +1,101 @@
+import { nCr } from '@/engine/combinatorics';
+import { int } from '@/lib/format';
+
+export const plo5 = nCr(52, 5);
+export const pairs5 = nCr(5, 2);
+
+export const quiz = [
+  {
+    q: 'How many hole cards does each player get in PLO5?',
+    numeric: 5,
+    tolerance: 0,
+    why: 'Five. You still use exactly two of them with exactly three board cards.',
+  },
+  {
+    q: 'How many two-card combinations are in a five-card PLO5 hand?',
+    numeric: pairs5,
+    tolerance: 0,
+    why: 'C(5,2) = 10, against 6 in four-card Omaha. That is why PLO5 hands hit even more often.',
+  },
+  {
+    q: 'In Omaha hi-lo, what is the usual qualifier for the low half of the pot?',
+    choices: ['Any five cards', 'Five different cards of rank 8 or lower', 'A pair', 'A straight'],
+    answer: 1,
+    why: 'It is called eight-or-better. Straights and flushes do not count against a low hand, and aces count as low.',
+  },
+  {
+    q: 'What is "quartered" in hi-lo?',
+    choices: ['Losing a quarter of your stack', 'Splitting the low half with another player, so you win only a quarter of the pot', 'Four players in a hand', 'A quarter-pot bet'],
+    answer: 1,
+    why: 'If two players tie for low, they each get a quarter of the pot. Quartering can make a call lose money.',
+  },
+  {
+    q: 'What is the goal in hi-lo?',
+    choices: ['Always win the high', 'Scoop: win both the high and the low', 'Always win the low', 'Split as often as possible'],
+    answer: 1,
+    why: 'Winning only half the pot often returns little more than you put in. Hands that can win both halves make the money.',
+  },
+];
+
+<Objectives>
+
+- Explain what changes in five-card Omaha
+- State the hi-lo rules: eight-or-better, split pots, scooping, quartering
+- Know which hands do well in each game
+
+</Objectives>
+
+## Five-card Omaha
+
+**PLO5** gives each player five hole cards instead of four. The two-plus-three rule does not change: exactly two from your hand, three from the board.
+
+Five cards make {pairs5} two-card combinations instead of 6. There are {int(plo5)} possible starting hands. More combinations means:
+
+- **Even bigger hands.** Straights, flushes and full houses are made more often, so the nuts matters even more.
+- **Even closer equities.** Preflop favorites are smaller still.
+- **More blockers.** Five cards block more of the opponent's hands.
+
+Play it like four-card Omaha, only stricter: draw to the nuts, and treat sets and non-nut flushes with more caution.
+
+Switch the game to Omaha 5 in the calculator and compare a hand with its four-card version.
+
+<Live title="Omaha 5 equity">
+  <EquityTool initial={{ game: 'plo5', hands: ['AsKsQhJh9d', 'Td9c8d7c6s'] }} />
+</Live>
+
+## Omaha hi-lo
+
+In **Omaha hi-lo** (also called Omaha eight-or-better), the pot is split in half.
+
+- **High half:** the best normal poker hand, as usual.
+- **Low half:** the lowest five-card hand made of **five different cards of rank 8 or lower**. Aces count as low. Straights and flushes do not hurt a low hand. The best low is A-2-3-4-5, called the wheel.
+
+The two-plus-three rule applies separately to each half: you can use two hole cards for the high and a different two for the low.
+
+If no player has a qualifying low, the high hand wins the whole pot.
+
+### Scooping and quartering
+
+- **Scoop:** winning both halves. This is the goal. Winning half a pot you built with two other players often just returns your money.
+- **Quartered:** sharing the low half with another player who has the same low. You get a quarter of the pot, which can turn a call into a loss.
+
+The best starting hands in hi-lo contain an **ace with a deuce** (for the nut low), and are also suited or high enough to win the high. A-A-2-3 double suited is the dream.
+
+<Remember>
+
+- PLO5: five hole cards, still exactly two used, ten two-card combinations
+- PLO5 hands run even closer, and the nuts matters even more
+- Hi-lo splits the pot: best high and best eight-or-better low
+- Aces are low for the low, straights and flushes do not count against it
+- Aim to scoop. Beware being quartered
+
+</Remember>
+
+<Mistakes>
+
+- Using three hole cards in PLO5
+- Overvaluing non-nut hands because you have five cards
+- Playing hi-lo hands that can only win half the pot
+- Calling big bets for a low that is likely to be quartered
+
+</Mistakes>

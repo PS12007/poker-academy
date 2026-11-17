@@ -1,0 +1,105 @@
+import { spr } from '@/engine/theory';
+import { num } from '@/lib/format';
+
+export const quiz = [
+  {
+    q: 'What does "playing for the nuts" mean in PLO?',
+    choices: ['Bluffing often', 'Putting your stack in mainly with the best possible hand or a draw to it', 'Playing only aces', 'Always checking'],
+    answer: 1,
+    why: 'Strong hands are common in Omaha, so second-best hands lose big pots. The nuts, or a draw to them, is what wins stacks.',
+  },
+  {
+    q: 'What is a freeroll?',
+    choices: ['A free tournament', 'When you and your opponent have the same hand but you also have a draw to beat them', 'A check-raise', 'A preflop limp'],
+    answer: 1,
+    why: 'For example both of you have the nut straight, but you also have a flush draw. You cannot lose and might win the whole pot.',
+  },
+  {
+    q: 'You flop top set on a board with a straight draw and a flush draw. How should you play?',
+    choices: ['Slowplay it', 'Bet or raise to charge the draws, accepting that big wraps can be favorites', 'Fold', 'Check and call'],
+    answer: 1,
+    why: 'Sets are strong but not the nuts against wraps with flush draws. Getting money in now, while you are often ahead, is usually best.',
+  },
+  {
+    q: 'The pot on the flop is 20 and stacks are 100. What is the SPR?',
+    numeric: spr(100, 20),
+    tolerance: 0,
+    why: '100 / 20 = 5. In PLO a pot bet on the flop and turn would put about 80 in, so stacks are close to committed.',
+  },
+  {
+    q: 'Which hand is the weakest to play a big pot with on K♠9♠2♥?',
+    choices: ['Top set K-K', 'A♠Q♠ nut flush draw with two overcards', 'K-9 two pair with nothing else', 'Q-J-T with a backdoor flush'],
+    answer: 2,
+    why: 'Bare two pair is the classic PLO trap: it is beaten by any set and is a big underdog to many draws.',
+  },
+];
+
+<Objectives>
+
+- Play for the nuts and avoid second-best hands
+- Recognize freerolls and use them
+- Plan with SPR in pot-limit pots
+
+</Objectives>
+
+## Big hands everywhere
+
+Each player has six two-card combinations, so by the river someone often has a straight, a flush or a full house. The result: **hands that are strong in Hold'em are weak in Omaha.**
+
+- **Top pair** is usually a small hand. Check, call small bets, fold to aggression.
+- **Two pair** looks strong but is beaten by every set and is behind many big draws. It is the classic PLO trap.
+- **Sets** are strong. Top set is very strong. They still lose to wraps that hit.
+- **The nuts** is what wins big pots.
+
+## Play for the nuts
+
+The rule that keeps PLO players out of trouble: **put your stack in with the nuts or a strong draw to the nuts.**
+
+- A flush draw with the ace is worth much more than one with the king.
+- A straight draw to the top straight is worth more than one to the bottom.
+- A set of kings is better than a set of fives on the same board.
+
+When you are not drawing to the nuts, keep the pot small and be ready to fold.
+
+## Freerolls
+
+Sometimes two players hold the same made hand, such as the nut straight. If one of them also has a flush draw, that player is **freerolling**: they cannot lose, since the worst case is a split pot, and they win the whole pot if the flush comes.
+
+Freerolls are common in Omaha because hands carry so many extra draws. When you have the nuts, look for the extras in your other two cards. When you have the nuts and nothing else, be a little careful about raising against an opponent who might hold the same hand plus a draw.
+
+## Sets against wraps
+
+Top set against a big wrap is one of the most common big pots in PLO. Check the numbers in the calculator. On K♥9♣6♦, top set K-K-Q-3 against the wrap J-T-8-7 is about a coin flip.
+
+<Live title="Set against wrap">
+  <EquityTool initial={{ game: 'plo', hands: ['KsKdQh3c', 'JsTd8c7h'], board: [46, 28, 17] }} />
+</Live>
+
+Add a flush draw to the wrap (make it J♥T♥ and turn the 9 into the 9♥) and the wrap becomes the favorite. This is why sets should bet and raise: they want the money in while they are ahead, before the draws come in.
+
+## Planning with SPR
+
+Pot-limit makes it easy to plan. A pot bet and call triples the pot.
+
+- With an SPR around 1 to 2, one pot bet is all-in. Commit with any strong hand or big draw.
+- With an SPR around {num(spr(100, 20), 0)}, a pot bet on the flop and one on the turn get stacks in. Your flop decision is effectively a decision about the whole stack.
+- With a high SPR, keep the pot small with hands that are not the nuts, and save big pots for big hands.
+
+<Remember>
+
+- Top pair is weak, two pair is a trap, sets are strong, the nuts wins
+- Play big pots with the nuts or draws to the nuts
+- Look for freerolls in your extra cards
+- Top set against a big wrap is close to a coin flip
+- A pot bet and call triples the pot. Plan the stack from the flop
+
+</Remember>
+
+<Mistakes>
+
+- Stacking off with two pair
+- Drawing to non-nut flushes in big pots
+- Slowplaying sets on draw-heavy boards
+- Ignoring freerolls on both sides
+
+</Mistakes>
