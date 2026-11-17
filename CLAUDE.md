@@ -37,7 +37,7 @@ No rounded cards with drop shadows, no gradient buttons, no glass. Tokens live i
 Phase 6 (game theory) is in progress. Live site: https://ps12007.github.io/poker-academy/ (every push to main runs
 typecheck, lint, tests and deploys via .github/workflows/deploy.yml).
 
-Done: all nine modules (61 lessons, the 15 hardest open with an In plain words box), 11 tools, 11 drills,
+Done: all nine modules (61 lessons, 36 of the harder ones open with an In plain words box), 11 tools, 11 drills,
 reference pages (glossary, cheat sheets incl. Omaha wraps and pot-limit, formulas, engine notes), review queue,
 flashcards (terms, formulas, key numbers), all notes on the Review page, placement quiz with tournament and Omaha
 tracks, global search (/ or Ctrl+K), automatic glossary links in lessons (src/lib/remarkGlossary.ts), offline
@@ -45,7 +45,7 @@ service worker (public/sw.js), Playwright smoke tests in CI. Engine line coverag
 sideways scrolling at 390px.
 
 Possible next steps: more original replayer hands, Omaha ranges in the equity calculator, more drills for
-postflop decisions, translating more of Modules 3 and 4 into plainer language.
+postflop decisions.
 
 ## How to add things
 
