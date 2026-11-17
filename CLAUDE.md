@@ -40,7 +40,7 @@ typecheck, lint, tests and deploys via .github/workflows/deploy.yml).
 Done: all nine modules (61 lessons), all 11 tools, all 10 drills, reference pages, review queue, placement quiz,
 global search (/ or Ctrl+K), offline service worker (public/sw.js), Playwright smoke tests (e2e/, run in CI before deploy).
 
-Possible next steps: Lighthouse performance pass, README screenshots, more original replayer hands, more
+Possible next steps: more original replayer hands, more
 glossary terms for Omaha and tournaments, deeper PLO tools (range input for Omaha).
 
 ## How to add things

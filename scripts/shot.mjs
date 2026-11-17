@@ -1,5 +1,5 @@
 // Dev helper: screenshots of routes for visual review.
-// usage: node scripts/shot.mjs <outDir> <route[@mobile][@light][@full]> ...
+// usage: node scripts/shot.mjs <outDir> <route[@mobile][@light][@full]> ...   (set SHOT_JPEG=1 for jpeg output)
 import { chromium } from '@playwright/test';
 import { mkdirSync } from 'node:fs';
 
@@ -29,7 +29,8 @@ for (const spec of routes) {
     await page.waitForTimeout(2500);
   }
   const name = (route.replace(/\//g, '_') || '_home') + (flags.length ? '-' + flags.join('-').replace(/[^a-z0-9-]/gi, '') : '');
-  await page.screenshot({ path: `${outDir}/${name}.png`, fullPage: flags.includes('full') });
+  const jpeg = !!process.env.SHOT_JPEG;
+  await page.screenshot({ path: `${outDir}/${name}.${jpeg ? 'jpg' : 'png'}`, fullPage: flags.includes('full'), ...(jpeg ? { type: 'jpeg', quality: 78 } : {}) });
   console.log(name, errors.length ? `ERRORS: ${errors.join(' | ')}` : 'ok');
   await ctx.close();
 }
