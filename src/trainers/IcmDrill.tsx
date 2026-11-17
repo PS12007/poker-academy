@@ -1,32 +1,13 @@
 import { useState } from 'react';
 import type { Rng } from '../engine/rng';
 import { callDecision, type CallDecision } from '../engine/icm';
-import { loadEquity169 } from '../generated/equity169';
 import { HAND_ORDER } from '../generated/handOrder';
+import { equityVsTop } from '../lib/classEquity';
 import { HAND_CLASSES } from '../engine/ranges';
-import { PAIR_WEIGHTS } from '../engine/pushFold';
 import { Hand } from '../components/cards/PlayingCard';
 import { Working } from '../components/ui/primitives';
 import { int, num, pct } from '../lib/format';
 import { Choices, DrillShell } from './Shell';
-
-let E: Float32Array | null = null;
-
-/** Equity of one hand class against the top `frac` of hands (by HAND_ORDER), with card removal. */
-function equityVsTop(cls: number, frac: number): number {
-  E ??= loadEquity169();
-  let need = frac * 1326, sum = 0, den = 0;
-  for (const v of HAND_ORDER) {
-    if (need <= 0) break;
-    const n = HAND_CLASSES[v].combos.length;
-    const w = Math.min(1, need / n);
-    need -= n;
-    const pw = PAIR_WEIGHTS[cls * 169 + v] * w;
-    sum += pw * E[cls * 169 + v];
-    den += pw;
-  }
-  return den ? sum / den : 0.5;
-}
 
 interface Round {
   names: string[];

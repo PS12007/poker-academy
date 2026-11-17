@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { Rng } from '../engine/rng';
 import { cardsToString } from '../engine/cards';
 import { handVsHand } from '../engine/equity';
+import { classOfCards } from '../engine/ranges';
+import { equityVsTop } from '../lib/classEquity';
 import { Hand } from '../components/cards/PlayingCard';
 import { Slider } from '../components/ui/primitives';
 import { int, pct } from '../lib/format';
@@ -13,6 +15,8 @@ interface Round {
   board: number[];
   equity: number;
   boards: number;
+  /** Set when the opponent is a range: the top fraction of hands. */
+  range?: number;
 }
 
 const TOLERANCE = 5;
@@ -23,6 +27,10 @@ function deal(rng: Rng): Round {
   const pick = (a: number[], b: number[]) => (a[0] + a[1] > b[0] + b[1] ? a : b);
   const hero = pick(deck.slice(0, 2), deck.slice(2, 4)).sort((x, y) => y - x);
   const villain = pick(deck.slice(4, 6), deck.slice(6, 8)).sort((x, y) => y - x);
+  if (rng.float() < 0.4) {
+    const range = rng.pick([0.05, 0.1, 0.15, 0.25, 0.4]);
+    return { hero, villain: [], board: [], equity: equityVsTop(classOfCards(hero[0], hero[1]), range), boards: 0, range };
+  }
   const board = rng.float() < 0.5 ? [] : deck.slice(8, 11);
   const r = handVsHand([cardsToString(hero), cardsToString(villain)], cardsToString(board));
   return { hero, villain, board, equity: r.players[0].equity, boards: r.boards };
@@ -35,7 +43,11 @@ function Entry({ round, answered, answer }: Pick<RoundApi<Round>, 'round' | 'ans
     <div>
       <div className="flex flex-wrap items-end gap-x-10 gap-y-5">
         <div><div className="label mb-2">You</div><Hand cards={round.hero} size="lg" /></div>
-        <div><div className="label mb-2">Opponent</div><Hand cards={round.villain} size="lg" /></div>
+        {round.range ? (
+          <div><div className="label mb-2">Opponent</div><div className="display-i pb-3 text-[30px] leading-tight">Top {Math.round(round.range * 100)}% of hands</div></div>
+        ) : (
+          <div><div className="label mb-2">Opponent</div><Hand cards={round.villain} size="lg" /></div>
+        )}
         <div><div className="label mb-2">{round.board.length ? 'Flop' : 'Before the flop'}</div><Hand cards={round.board} size="md" slots={round.board.length ? 3 : 0} /></div>
       </div>
       <div className="mt-7 max-w-md">
@@ -44,7 +56,7 @@ function Entry({ round, answered, answer }: Pick<RoundApi<Round>, 'round' | 'ans
       {!answered && <button type="button" className="btn mt-3" onClick={() => answer(Math.abs(guess - truth) <= TOLERANCE, Math.abs(guess - truth))}>Lock in</button>}
       {answered && (
         <div className="mt-6 flex flex-wrap items-end gap-x-8 gap-y-2 border-t border-bone/15 pt-4">
-          <div><div className="figure text-[52px] text-madder">{pct(round.equity)}</div><div className="label mt-1">exact · {int(round.boards)} runouts</div></div>
+          <div><div className="figure text-[52px] text-madder">{pct(round.equity)}</div><div className="label mt-1">{round.range ? 'from the 169 by 169 preflop table, card removal included' : `exact · ${int(round.boards)} runouts`}</div></div>
           <div className="num pb-1 text-[12px] leading-relaxed text-dim">
             <div>you said {guess}% · off by {Math.abs(guess - truth).toFixed(1)}</div>
             <div>within {TOLERANCE} points counts as correct</div>
