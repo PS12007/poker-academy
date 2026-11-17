@@ -21,7 +21,7 @@ export function Plate({
             {serial && <span className="label shrink-0 text-madder">{serial}</span>}
             {title && <h3 className="label truncate text-bone">{title}</h3>}
           </div>
-          {right && <div className="label shrink-0">{right}</div>}
+          {right && <div className="label min-w-0">{right}</div>}
         </header>
       )}
       <div className={pad ? 'p-4 sm:p-5' : undefined}>{children}</div>

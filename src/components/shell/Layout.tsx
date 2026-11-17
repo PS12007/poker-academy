@@ -24,7 +24,7 @@ function Wordmark() {
       <span className="translate-y-[-2px] text-madder">
         <SuitGlyph suit={3} size={9} />
       </span>
-      <span className="font-mono text-[9.5px] uppercase tracking-[0.34em] text-dim">Academy</span>
+      <span className="hidden font-mono text-[9.5px] uppercase tracking-[0.34em] text-dim xs:inline">Academy</span>
     </Link>
   );
 }

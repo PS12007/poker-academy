@@ -110,7 +110,7 @@ export function CardField({
       <div className="flex flex-wrap items-end gap-x-4 gap-y-3">
         <button
           type="button"
-          className="flex items-center gap-1.5"
+          className="flex flex-wrap items-center gap-1.5"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
           aria-label={`${label}: ${value.length ? value.map(cardLabel).join(', ') : 'empty'}. Open card picker`}

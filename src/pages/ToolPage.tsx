@@ -18,10 +18,10 @@ export default function ToolPage() {
       <Suspense fallback={<Loading />}>
         <Tool />
       </Suspense>
-      <nav className="mt-16 flex items-center justify-between border-t border-bone/20 pt-5" aria-label="Other instruments">
-        {i > 0 ? <Link className="btn btn-sm" to={`/tools/${ready[i - 1].id}`}>← {ready[i - 1].title}</Link> : <span />}
-        <Link className="btn btn-ghost btn-sm" to="/tools">All instruments</Link>
-        {i < ready.length - 1 ? <Link className="btn btn-sm" to={`/tools/${ready[i + 1].id}`}>{ready[i + 1].title} →</Link> : <span />}
+      <nav className="mt-16 flex items-center justify-between gap-3 border-t border-bone/20 pt-5" aria-label="Other instruments">
+        {i > 0 ? <Link className="btn btn-sm min-w-0 max-w-[45%]" to={`/tools/${ready[i - 1].id}`}><span className="truncate">← {ready[i - 1].title}</span></Link> : <span />}
+        <Link className="btn btn-ghost btn-sm hidden sm:inline-flex" to="/tools">All instruments</Link>
+        {i < ready.length - 1 ? <Link className="btn btn-sm min-w-0 max-w-[45%]" to={`/tools/${ready[i + 1].id}`}><span className="truncate">{ready[i + 1].title} →</span></Link> : <span />}
       </nav>
     </div>
   );

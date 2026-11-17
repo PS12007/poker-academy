@@ -55,6 +55,7 @@ glossary terms for Omaha and tournaments, deeper PLO tools (range input for Omah
 - Lazy imports: always use lazyRetry from src/lib/lazy.ts, never React.lazy. It reloads once when a chunk from an old
   deploy is missing (the cause of blank pages after a deploy). Routes are wrapped in ErrorBoundary.
 - Full page sweep: node scripts/clicktest.mjs http://localhost:4173/ (visits every lesson, tool and drill).
+- Phone-width check: node scripts/mobile-check.mjs http://localhost:4173/ (every page at 390px, reports sideways overflow). Currently zero.
 - Accessibility scan: node scripts/a11y.mjs http://localhost:4173/ (axe, WCAG A and AA, both themes). Currently zero violations.
 - Heavy computation: add a method to src/workers/engine.worker.ts and call it through useJob or useCached (src/lib/engine.ts).
 - Visual check: npm run build, npx vite preview --port 4173, then node scripts/shot.mjs <outDir> <route[@mobile][@full]>.

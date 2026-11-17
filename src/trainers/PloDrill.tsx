@@ -41,7 +41,7 @@ function ReadRound({ round, answered, answer }: { round: Extract<Round, { kind: 
       <p className="mt-6 text-[17px]">What is this player's best Omaha hand?</p>
       <div className="mt-3">
         <Choices
-          options={round.options.map((o) => ({ value: o, label: <span className="normal-case tracking-normal">{o}</span> }))}
+          options={round.options.map((o) => ({ value: o, label: <span className="whitespace-normal normal-case tracking-normal">{o}</span> }))}
           disabled={answered}
           picked={picked}
           correctValue={round.truth}

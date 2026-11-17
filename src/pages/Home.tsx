@@ -54,7 +54,7 @@ function Specimen() {
         {[0, 1].map((p) => (
           <div key={p} className="p-4 sm:p-5">
             <Hand cards={hands[p]} size="lg" key={cardsToString(hands[p])} />
-            <div className={`figure mt-5 text-[46px] sm:text-[64px] ${res ? '' : 'pending'}`}>
+            <div className={`figure mt-5 text-[36px] xs:text-[46px] sm:text-[64px] ${res ? '' : 'pending'}`}>
               {eq ? (eq[p] * 100).toFixed(2) : '··.··'}
               <span className="text-[0.45em] text-dim">%</span>
               {p === 0 && res && (
@@ -206,7 +206,7 @@ export default function Home() {
 
       {/* ----------------------------------------------------- instruments */}
       <section className="mt-20 lg:mt-28">
-        <div className="mb-8 flex items-end justify-between gap-6">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div>
             <div className="label text-madder">Part two</div>
             <h2 className="display mt-2 text-[40px]">Instruments</h2>
