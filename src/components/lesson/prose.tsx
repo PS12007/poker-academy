@@ -1,4 +1,5 @@
-import { lazy, Suspense, type ComponentProps, type ComponentType, type ReactNode } from 'react';
+import { lazyRetry } from '../../lib/lazy';
+import { Suspense, type ComponentProps, type ComponentType, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { C } from '../cards/PlayingCard';
 import { Figure, Working } from '../ui/primitives';
@@ -9,7 +10,7 @@ import { BetSizeTheory, GeometricSizing, VsOpenChart } from './widgets2';
 
 /** Full tools embedded in lessons load on demand so the lesson shell stays small. */
 function embed<P extends { embedded?: boolean }>(load: () => Promise<{ default: ComponentType<P> }>) {
-  const Inner = lazy(load) as unknown as ComponentType<P>;
+  const Inner = lazyRetry(load) as unknown as ComponentType<P>;
   return function Embedded(props: Omit<P, 'embedded'>) {
     return (
       <Suspense fallback={<div className="label pending py-10">Loading instrument</div>}>
@@ -25,8 +26,8 @@ const SidePotTool = embed(() => import('../../tools/SidePotCalculator'));
 const VarianceTool = embed(() => import('../../tools/VarianceSimulator'));
 const IcmTool = embed(() => import('../../tools/IcmCalculator'));
 const PushFoldTool = embed(() => import('../../tools/PushFoldSolver'));
-const RiverToyGame = lazy(() => import('../../tools/ToyGameLab').then((m) => ({ default: m.RiverToyGame })));
-const KuhnLab = lazy(() => import('../../tools/ToyGameLab').then((m) => ({ default: m.KuhnLab })));
+const RiverToyGame = lazyRetry(() => import('../../tools/ToyGameLab').then((m) => ({ default: m.RiverToyGame })));
+const KuhnLab = lazyRetry(() => import('../../tools/ToyGameLab').then((m) => ({ default: m.KuhnLab })));
 const HeatmapTool = embed(() => import('../../tools/RangeHeatmap'));
 const RangeTool = embed<{ embedded?: boolean }>(() => import('../../tools/RangeBuilder'));
 

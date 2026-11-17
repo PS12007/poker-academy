@@ -8,6 +8,7 @@ import { useStore } from '../store';
 import { pad } from '../lib/format';
 import { Loading } from '../App';
 import NotFound from './NotFound';
+import { isChunkError, reloadForNewVersion } from '../lib/lazy';
 
 interface LessonModule {
   default: ComponentType;
@@ -50,7 +51,10 @@ export default function Lesson() {
     let live = true;
     load()
       .then((m) => live && setMod(m as LessonModule))
-      .catch(() => live && setFailed(true));
+      .catch((e: unknown) => {
+        if (isChunkError(e) && reloadForNewVersion()) return;
+        if (live) setFailed(true);
+      });
     visit(`${moduleId}/${lessonId}`);
     return () => {
       live = false;
@@ -63,7 +67,7 @@ export default function Lesson() {
   }, [mod]);
 
   if (!meta || !meta.available) return <NotFound />;
-  if (failed) return <p className="text-madder">This lesson failed to load. Check your connection and reload.</p>;
+  if (failed) return <p className="text-madder">This lesson failed to load. Check your connection, then reload the page.</p>;
   const { prev, next } = neighbors(meta.key);
   const Content = mod?.default;
 

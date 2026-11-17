@@ -1,20 +1,22 @@
-import { lazy, Suspense, useEffect } from 'react';
+import { lazyRetry } from './lib/lazy';
+import { Suspense, useEffect } from 'react';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/shell/Layout';
+import { ErrorBoundary } from './components/shell/ErrorBoundary';
 import { useStore } from './store';
 import Home from './pages/Home';
 
-const Course = lazy(() => import('./pages/Course'));
-const Lesson = lazy(() => import('./pages/Lesson'));
-const Tools = lazy(() => import('./pages/Tools'));
-const ToolPage = lazy(() => import('./pages/ToolPage'));
-const Drills = lazy(() => import('./pages/Drills'));
-const DrillPage = lazy(() => import('./pages/Drills').then((m) => ({ default: m.DrillPage })));
-const Reference = lazy(() => import('./pages/Reference'));
-const Review = lazy(() => import('./pages/Review'));
-const Placement = lazy(() => import('./pages/Placement'));
-const Settings = lazy(() => import('./pages/Settings'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const Course = lazyRetry(() => import('./pages/Course'));
+const Lesson = lazyRetry(() => import('./pages/Lesson'));
+const Tools = lazyRetry(() => import('./pages/Tools'));
+const ToolPage = lazyRetry(() => import('./pages/ToolPage'));
+const Drills = lazyRetry(() => import('./pages/Drills'));
+const DrillPage = lazyRetry(() => import('./pages/Drills').then((m) => ({ default: m.DrillPage })));
+const Reference = lazyRetry(() => import('./pages/Reference'));
+const Review = lazyRetry(() => import('./pages/Review'));
+const Placement = lazyRetry(() => import('./pages/Placement'));
+const Settings = lazyRetry(() => import('./pages/Settings'));
+const NotFound = lazyRetry(() => import('./pages/NotFound'));
 
 function ScrollReset() {
   const { pathname } = useLocation();
@@ -33,6 +35,7 @@ export function Loading() {
 }
 
 export function App() {
+  const { pathname } = useLocation();
   const theme = useStore((s) => s.settings.theme);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -42,6 +45,7 @@ export function App() {
   return (
     <Layout>
       <ScrollReset />
+      <ErrorBoundary resetKey={pathname}>
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -59,6 +63,7 @@ export function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </Layout>
   );
 }

@@ -1,10 +1,13 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { lazyRetry } from '../../lib/lazy';
+import { Suspense, useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { useStore } from '../../store';
 import { cx } from '../../lib/format';
 import { Microtext } from '../ui/primitives';
 import { Guilloche } from '../ui/Guilloche';
 import { SuitGlyph } from '../cards/PlayingCard';
+
+const SearchDialog = lazyRetry(() => import('./Search').then((m) => ({ default: m.SearchDialog })));
 
 export const NAV = [
   { to: '/course', label: 'Course', note: 'Nine modules, rules to game theory' },
@@ -117,8 +120,21 @@ function IndexOverlay({ onClose }: { onClose: () => void }) {
 
 export function Layout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const [searching, setSearching] = useState(false);
   const { pathname } = useLocation();
   useEffect(() => setOpen(false), [pathname]);
+  useEffect(() => {
+    const key = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      const typing = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable;
+      if ((e.key === '/' && !typing) || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k')) {
+        e.preventDefault();
+        setSearching(true);
+      }
+    };
+    window.addEventListener('keydown', key);
+    return () => window.removeEventListener('keydown', key);
+  }, []);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -155,6 +171,9 @@ export function Layout({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="flex items-center gap-1">
+            <button type="button" className="btn btn-ghost btn-sm" onClick={() => setSearching(true)} aria-label="Search the site" title="Search ( / )">
+              Find <span className="hidden text-faint xl:inline">/</span>
+            </button>
             <Toggles className="hidden sm:flex" />
             <Link to="/settings" className="btn btn-ghost btn-sm hidden lg:inline-flex">
               Data
@@ -168,6 +187,11 @@ export function Layout({ children }: { children: ReactNode }) {
       </header>
 
       {open && <IndexOverlay onClose={() => setOpen(false)} />}
+      {searching && (
+        <Suspense fallback={null}>
+          <SearchDialog onClose={() => setSearching(false)} />
+        </Suspense>
+      )}
 
       <main id="main" className="mx-auto w-full max-w-[1320px] flex-1 px-5 pb-24 pt-8 sm:pt-12 lg:px-10">
         {children}

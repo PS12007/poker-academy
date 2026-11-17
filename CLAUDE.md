@@ -36,16 +36,14 @@ No rounded cards with drop shadows, no gradient buttons, no glass. Tokens live i
 Phase 6 (game theory) is in progress. Live site: https://ps12007.github.io/poker-academy/ (every push to main runs
 typecheck, lint, tests and deploys via .github/workflows/deploy.yml).
 
-Done: engine, all tools except ICM and pot-limit, Modules 1 to 4 complete, Module 5 lessons 1 to 3
-(exploit-vs-gto, indifference, river-toy-game), drills D-01 to D-08, reference pages, review queue, placement quiz.
+Done: engine, all tools except pot-limit, Modules 1 to 6 and the bankroll module (m8) complete, drills D-01 to D-09,
+reference pages, review queue, placement quiz, global search (press / or Ctrl+K).
 
 Next, in order:
-1. Module 5 lessons 4 to 7: kuhn-poker (use <KuhnLab />), mixed-strategies (<PushFoldTool />), how-solvers-work, node-locking.
-2. Phase 7 tournaments: src/engine/icm.ts (Malmuth-Harville, bubble factor) with tests against hand-computed 3-player
-   examples, ICM calculator tool (T-09), Module 6 (folder src/content/m6), ICM drill (D-09).
-3. Phase 8: Module 8 lessons (folder src/content/m8, shown as module 7 in the UI), global search (minisearch is installed, unused).
-4. Phase 9 PLO: pot-limit calculator (src/engine/potLimit.ts, T-11), Omaha mode in the equity calculator, Module 7 (src/content/m7), PLO drill (D-10).
-5. Phase 10: Module 9, Playwright smoke tests, service worker for offline, accessibility and Lighthouse pass, README screenshots.
+1. PLO: pot-limit calculator (src/engine/potLimit.ts, tool T-11), Omaha mode in the equity calculator, Module 7 lessons
+   (folder src/content/m7, shown as module 8 in the UI), PLO drill (D-10).
+2. Module 9 overview lessons (src/content/m9).
+3. Playwright smoke tests in CI, offline service worker, accessibility and Lighthouse pass, README screenshots.
 
 ## How to add things
 
@@ -56,6 +54,9 @@ Next, in order:
 - MDX gotchas: a block of exports must not start with a // comment (it becomes prose). Braces inside backticks are literal.
   Avoid the less-than sign in prose. No em or en dashes.
 - Tool: add a component in src/tools and set `component` in src/tools/registry.ts. Drill: same in src/trainers/registry.ts, built on DrillShell.
+- Lazy imports: always use lazyRetry from src/lib/lazy.ts, never React.lazy. It reloads once when a chunk from an old
+  deploy is missing (the cause of blank pages after a deploy). Routes are wrapped in ErrorBoundary.
+- Full page sweep: node scripts/clicktest.mjs http://localhost:4173/ (visits every lesson, tool and drill).
 - Heavy computation: add a method to src/workers/engine.worker.ts and call it through useJob or useCached (src/lib/engine.ts).
 - Visual check: npm run build, npx vite preview --port 4173, then node scripts/shot.mjs <outDir> <route[@mobile][@full]>.
   Pass routes without a leading slash (Git Bash rewrites them), e.g. tools/equity or home.
