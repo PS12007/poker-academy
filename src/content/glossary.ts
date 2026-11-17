@@ -92,7 +92,7 @@ export const GLOSSARY: GlossaryEntry[] = [
   g('Indifference', 'When two options have the same expected value. Equilibrium strategies make the opponent indifferent.', 'm5/indifference'),
   g('Ladder', 'To move up the tournament payouts by outlasting other players rather than winning chips.', 'm6/final-table'),
   g('Mixed strategy', 'Taking different actions with the same hand in the same spot at set frequencies.', 'm5/mixed-strategies'),
-  g('Node locking', 'Fixing one player2019s strategy at a point in a solver tree and re-solving the rest, to find the best response to a known leak.', 'm5/node-locking'),
+  g('Node locking', "Fixing one player's strategy at a point in a solver tree and re-solving the rest, to find the best response to a known leak.", 'm5/node-locking'),
   g('Pot limit', 'A betting structure where the largest bet or raise is the size of the pot after calling.', 'm7/pot-limit-math', ['PLO']),
   g('Push or fold', 'Short-stack strategy of moving all-in or folding, with no smaller raises.', 'm6/push-fold', ['jam', 'shove']),
   g('Risk of ruin', 'The probability that a bankroll eventually hits zero.', 'm8/risk-of-ruin'),
