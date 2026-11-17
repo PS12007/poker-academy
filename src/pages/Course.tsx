@@ -36,6 +36,20 @@ export default function Course() {
         </div>
       </PageHeader>
 
+      <ol className="mb-14 grid gap-px border border-bone/20 bg-bone/20 sm:grid-cols-3" aria-label="How to use the course">
+        {[
+          ['Read a lesson', 'Short sections, one idea at a time. Dotted words have a definition: hover or tap them.'],
+          ['Play with the live tool', 'Every lesson has one. Change the cards or the numbers and watch the answer move.'],
+          ['Take the quiz, then drill', 'The quiz marks the lesson done and schedules review. Drills build speed at the table.'],
+        ].map(([t, d], i) => (
+          <li key={t} className="bg-ink p-5">
+            <div className="figure text-[40px] text-madder">{i + 1}</div>
+            <div className="mt-2 text-[16px] font-medium">{t}</div>
+            <p className="mt-1 text-[13.5px] leading-relaxed text-dim">{d}</p>
+          </li>
+        ))}
+      </ol>
+
       <div className="space-y-14">
         {MODULES.map((m) => {
           const mDone = m.lessons.filter((l) => lessons[`${m.id}/${l.id}`]?.done).length;
