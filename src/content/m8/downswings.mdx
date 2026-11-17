@@ -1,0 +1,102 @@
+import { simulateVariance } from '@/engine/variance';
+import { int, pct } from '@/lib/format';
+
+export const sim = (wr) => simulateVariance({ winrate: wr, stdDev: 90, hands: 100000, paths: 2000, bankroll: 1e9, seed: 7, resolution: 40 });
+export const s5 = sim(5), s2 = sim(2), s8 = sim(8);
+
+export const quiz = [
+  {
+    q: 'What is a downswing?',
+    choices: ['Any losing session', 'A drop from a previous high in the bankroll', 'A bad beat', 'Moving down in stakes'],
+    answer: 1,
+    why: 'Measured from the peak to the lowest point after it, before a new peak.',
+  },
+  {
+    q: `For a player at 5 bb/100 and sd 90 playing 100,000 hands, how deep is the median worst downswing in the simulation, to the nearest 100bb?`,
+    numeric: Math.round(s5.drawdown.median / 100) * 100,
+    tolerance: 150,
+    unit: 'bb',
+    why: `The simulation over 2,000 paths gives a median of ${Math.round(s5.drawdown.median)}bb: about ${Math.round(s5.drawdown.median / 100)} buy-ins, for a solid winner.`,
+  },
+  {
+    q: 'Which shortens downswings the most?',
+    choices: ['Playing faster', 'A higher winrate', 'Changing sites', 'Taking breaks'],
+    answer: 1,
+    why: 'A larger drift pulls the bankroll back to new highs sooner. Lowering variance also helps, but the winrate is the bigger lever.',
+  },
+  {
+    q: 'During a long downswing, what is the first useful check?',
+    choices: ['Whether the site is rigged', 'Whether your decisions have changed, by reviewing hands rather than results', 'Whether to move up', 'Nothing'],
+    answer: 1,
+    why: 'The downswing may be variance, a real decline in play, or tilt it has caused. Only a review of decisions separates them.',
+  },
+  {
+    q: 'How long can a winning player go without reaching a new high?',
+    choices: ['A few hundred hands at most', 'Tens of thousands of hands is common', 'Never more than a week', 'Only if they are losing players'],
+    answer: 1,
+    why: `In the simulation at 5 bb/100 the median longest stretch is ${Math.round(s5.breakeven.median).toLocaleString('en-US')} hands, and one player in twenty sees ${Math.round(s5.breakeven.p95).toLocaleString('en-US')}.`,
+  },
+];
+
+<Objectives>
+
+- Define a downswing and a break-even stretch
+- Read their typical and extreme sizes from simulation
+- Separate variance from a real decline in play
+- Prepare for downswings before they arrive
+
+</Objectives>
+
+## How bad normal gets
+
+A **downswing** is the drop from a high point in your results to the lowest point after it. A **break-even stretch** is the number of hands between one high and the next.
+
+Both are surprisingly large for winning players. The engine simulates 2,000 careers of 100,000 hands each at a standard deviation of 90 bb/100.
+
+<DataTable
+  head={['Winrate', 'Median worst downswing', '1 in 20 worst downswing', 'Median longest stretch without a new high', '1 in 20']}
+  rows={[[2, s2], [5, s5], [8, s8]].map(([w, s]) => [`${w} bb/100`, `${int(s.drawdown.median)} bb`, `${int(s.drawdown.p95)} bb`, `${int(s.breakeven.median)} hands`, `${int(s.breakeven.p95)} hands`])}
+  caption="Simulated in blocks of 100 hands, seed 7. The same seed reproduces the table."
+/>
+
+A player beating the game at 5 bb/100 should expect a worst downswing of about {int(s5.drawdown.median / 100)} buy-ins over that period, and one player in twenty will see {int(s5.drawdown.p95 / 100)}. These are players who are winning the whole time, in the sense that their true expectation is positive on every hand.
+
+<Live title="Simulate your own winrate">
+  <VarianceTool initial={{ winrate: 5, stdDev: 90, hands: 100000, bankroll: 5000 }} />
+</Live>
+
+## Variance or decline?
+
+A long losing stretch has three possible explanations, and they need different responses.
+
+1. **Variance.** Your play is unchanged and the cards have been cold. Response: keep playing well, follow your bankroll rules.
+2. **The games got harder, or you got worse.** Response: study, table selection, maybe lower stakes.
+3. **Tilt caused by the downswing.** Response: the next lesson.
+
+Results cannot tell these apart over any sample you are likely to have. Decisions can. Review a set of hands from the downswing and judge each decision on its merits, without looking at the outcome. Track a few measurable habits: how often you voluntarily put money in the pot, how often you raise, how often you fold to river bets. If those have shifted, the cause is you.
+
+## Before it happens
+
+- **Know the numbers.** Run the simulator for your own winrate and look at the one-in-twenty case. If that downswing would make you quit, your bankroll or expectations need adjusting now.
+- **Pre-commit.** Write down your move-down floor and your stop-loss for a single session.
+- **Keep a decision log.** Notes on hard spots let you check decisions later instead of relying on memory, which is biased by results.
+- **Expect it.** A downswing that arrives on schedule is much easier to handle than one that feels like a verdict.
+
+<Remember>
+
+- A downswing is a drop from a high. A break-even stretch is the time between highs
+- Over 100,000 hands, a solid winner's worst downswing is typically around {int(s5.drawdown.median / 100)} buy-ins and sometimes {int(s5.drawdown.p95 / 100)}
+- Stretches of tens of thousands of hands without a new high are normal
+- Higher winrates shorten both
+- Judge a downswing by reviewing decisions, never by results
+
+</Remember>
+
+<Mistakes>
+
+- Concluding you have become a losing player after one bad month
+- Changing a sound strategy because it has been losing
+- Moving up to win it back
+- Reviewing only the hands you lost
+
+</Mistakes>

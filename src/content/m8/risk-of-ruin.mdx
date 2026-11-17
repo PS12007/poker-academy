@@ -1,0 +1,108 @@
+import { riskOfRuin } from '@/engine/variance';
+import { pct, num } from '@/lib/format';
+
+export const r = (wr, sd, br) => riskOfRuin(wr, sd, br);
+
+export const quiz = [
+  {
+    q: 'What does risk of ruin measure?',
+    choices: ['The chance of losing one session', 'The chance that a bankroll eventually hits zero', 'The rake', 'Your opponent\'s risk'],
+    answer: 1,
+    why: 'It is the probability that, over an unlimited number of hands, the bankroll touches zero at some point.',
+  },
+  {
+    q: 'A player at 5 bb/100 with standard deviation 100 holds 2,000bb. What is the risk of ruin?',
+    numeric: Math.round(r(5, 100, 2000) * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: 'exp(−2 × 5 × 2,000 / 10,000) = exp(−2) = 13.5%.',
+  },
+  {
+    q: 'Doubling the bankroll does what to the risk of ruin?',
+    choices: ['Halves it', 'Squares it', 'Doubles it', 'Leaves it unchanged'],
+    answer: 1,
+    why: 'The bankroll sits in the exponent. exp(−2k) = (exp(−k))². A 10% risk becomes 1%.',
+  },
+  {
+    q: 'What is the risk of ruin for a player with a winrate of zero or below?',
+    choices: ['0%', '50%', '100%', 'It depends on the bankroll'],
+    answer: 2,
+    why: 'Without a positive edge, a random walk with no drift eventually reaches any lower level. Given enough time, ruin is certain.',
+  },
+  {
+    q: 'What is the main idea behind Kelly-style bankroll thinking?',
+    choices: ['Bet everything on your best edge', 'Size your risk as a fraction of your current bankroll, so stakes shrink after losses and grow after wins', 'Never gamble', 'Always play the highest stakes available'],
+    answer: 1,
+    why: 'Betting a fixed fraction rather than a fixed amount makes ruin nearly impossible and maximizes long-run growth. Moving down after losses is the poker version.',
+  },
+];
+
+<Objectives>
+
+- State the risk-of-ruin formula and its assumptions
+- Compute ruin probabilities and see how they scale with bankroll
+- Explain why a non-positive winrate always ends in ruin
+- Connect moving down in stakes to Kelly-style fractional betting
+
+</Objectives>
+
+## The formula
+
+Model the bankroll as a random walk that drifts upward at the winrate and wobbles by the standard deviation. The chance that such a walk, starting at B, ever touches zero is
+
+<Formula name="risk of ruin">RoR = exp(−2 × winrate × B / sd²)</Formula>
+
+with winrate and standard deviation per 100 hands and B in big blinds. It assumes a fixed stake forever, a constant winrate, and normally distributed results over blocks of hands. None is exactly true, but the formula captures the shape of the risk well.
+
+## How it scales
+
+Because the bankroll is in the exponent, adding bankroll cuts risk fast. Every additional amount sd² / (2 × winrate) multiplies the risk by about 0.37.
+
+<DataTable
+  head={['Bankroll', '2 bb/100', '5 bb/100', '10 bb/100']}
+  rows={[1000, 2000, 3000, 5000, 8000].map((b) => [`${b / 100} buy-ins`, pct(r(2, 90, b)), pct(r(5, 90, b)), pct(r(10, 90, b))])}
+  caption="Standard deviation 90 bb/100. Computed by the engine."
+/>
+
+Doubling the bankroll squares the risk. A 20% risk becomes 4%, and 4% becomes 0.16%.
+
+Winrate works the same way, which is uncomfortable: if your true winrate is half what you believe, your real risk is the square root of the risk you calculated. A comfortable 1% becomes 10%.
+
+## Zero edge means certain ruin
+
+Set the winrate to zero and the exponent is zero: RoR = 1. A walk with no drift wanders without limit in both directions and, given enough time, reaches any level below it. A losing player is in the same position, only faster. No bankroll is big enough to protect a player without an edge, and this includes a player whose edge is erased by rake.
+
+<Live title="Watch ruin happen in simulation">
+  <VarianceTool initial={{ winrate: 1, stdDev: 90, hands: 300000, bankroll: 1500 }} />
+</Live>
+
+Raise the winrate step by step and watch the share of broke paths fall. Then put it to zero.
+
+## Kelly-style thinking
+
+The formula assumes you never change stakes. Real players should, and a principle from betting theory explains why.
+
+The **Kelly criterion** says that to maximize long-run growth you should risk a fixed **fraction** of your current bankroll, not a fixed amount. After losses you bet less, after wins more. A bettor who follows it, in idealized conditions, can never reach exactly zero.
+
+Poker players cannot choose any stake they like, but moving down a level when the bankroll falls below a threshold does the same job. It converts a fixed-amount risk into something close to a fractional one. That is why a sensible move-down rule makes true ruin rare even with a modest bankroll. The cost is time spent at lower stakes, which is cheap compared with going broke.
+
+Full Kelly is aggressive and assumes you know your edge exactly. Most people who use Kelly-style sizing use a fraction of it, half or less, to allow for an uncertain winrate.
+
+<Remember>
+
+- RoR = exp(−2 × winrate × bankroll / sd²)
+- Doubling the bankroll squares the risk
+- Overestimating your winrate makes your real risk much larger
+- With no edge, ruin is certain eventually
+- Moving down after losses acts like fractional betting and makes ruin rare
+
+</Remember>
+
+<Mistakes>
+
+- Calculating risk with an optimistic winrate
+- Treating a low risk of ruin as zero
+- Believing a big enough bankroll protects a break-even player
+- Staying at a stake after the bankroll has fallen below the floor
+
+</Mistakes>

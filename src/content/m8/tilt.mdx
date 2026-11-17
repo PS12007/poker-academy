@@ -1,0 +1,108 @@
+import { evCall } from '@/engine/ev';
+import { pct, signed } from '@/lib/format';
+
+export const quiz = [
+  {
+    q: 'What is tilt?',
+    choices: ['A losing streak', 'Playing worse than you know how to because of emotion', 'A bad beat', 'A table that leans'],
+    answer: 1,
+    why: 'Tilt is about decisions, not results. It can follow wins as well as losses.',
+  },
+  {
+    q: 'You get all-in as an 80% favorite and lose. How should you judge your play?',
+    choices: ['It was a mistake', 'By the decision: getting all-in at 80% was very profitable regardless of the outcome', 'You were unlucky and should play differently', 'You should have folded'],
+    answer: 1,
+    why: 'The EV was positive and large. The result is one draw from a distribution that favored you.',
+  },
+  {
+    q: 'Which is a useful response when you notice tilt at the table?',
+    choices: ['Play more hands to get even', 'Stop or take a break, using a rule set in advance', 'Move up in stakes', 'Call more'],
+    answer: 1,
+    why: 'Judgment under tilt is unreliable, including the judgment of whether you are tilting. Rules set while calm do the work.',
+  },
+  {
+    q: 'What does results-oriented thinking mean?',
+    choices: ['Focusing on winning', 'Judging decisions by how they turned out instead of by their expected value', 'Tracking your results', 'Playing to win tournaments'],
+    answer: 1,
+    why: 'It leads to abandoning good plays that lost and repeating bad plays that won.',
+  },
+  {
+    q: 'In a session review, which hands are most worth studying?',
+    choices: ['Only the biggest losses', 'Hard decisions, whether won or lost', 'Only the biggest wins', 'Only bad beats'],
+    answer: 1,
+    why: 'Big pots are not necessarily hard decisions. Close, difficult spots are where improvement comes from.',
+  },
+];
+
+<Objectives>
+
+- Recognize tilt and its common forms
+- Separate the quality of a decision from its result
+- Use pre-set rules to limit the damage
+- Run a session review that improves decisions
+
+</Objectives>
+
+## Good decisions lose all the time
+
+Getting all-in before the flop with a pair of kings against a pair of queens is as good a decision as poker offers: kings have about <Eq a="KsKh" b="QdQc" /> equity. They also lose roughly one time in five. Over a career you will lose hundreds of these.
+
+Here is the same idea in numbers. Calling a pot-sized bet needs {pct(1 / 3, 0)} equity. With 40% equity the call earns {signed(evCall(2, 1, 0.4), 2)} pots on average, and it still loses 60% of the time.
+
+<Live title="A good call that usually loses">
+  <PotOddsTool initial={{ pot: 100, bet: 100, equity: 40 }} />
+</Live>
+
+Judging decisions by results makes you abandon good plays that lost and repeat bad plays that won. The name for this is **results-oriented thinking**, and it is the root of most tilt.
+
+## What tilt looks like
+
+**Tilt** is playing worse than you know how to because of emotion. It comes in several forms.
+
+- **Loss tilt:** chasing losses with looser calls and bigger bluffs to get even.
+- **Injustice tilt:** after a bad beat, feeling owed and playing as if the next hand should make up for it.
+- **Winner's tilt:** after a good run, playing loose and overconfident.
+- **Entitlement tilt:** anger at weaker players winning, and trying to punish them.
+- **Fatigue:** decisions decay late in long sessions without any single trigger.
+
+The early signs are physical and behavioral: faster decisions, replaying a hand in your head, thoughts about getting even, playing hands you normally fold.
+
+## Rules made when calm
+
+Willpower in the moment is unreliable, because tilt impairs the judgment you would use to notice it. Set rules beforehand.
+
+- **Stop-loss.** End the session after losing a fixed number of buy-ins.
+- **Time limit.** End after a fixed time, regardless of results.
+- **Trigger rule.** After a large pot lost, sit out for two orbits or take a walk.
+- **No moving up** in a session that started at another stake.
+
+## The session review
+
+After a session, review decisions rather than results.
+
+1. **Pick hands by difficulty**, not pot size. Mark close spots during play.
+2. **Hide the outcome** if your software allows. Decide what you would do before you look.
+3. **Use the tools.** Count combos, compute the price, run the equity. Most spots reduce to a pot odds or EV comparison you already know how to do.
+4. **Write down one change.** A single concrete adjustment is worth more than a page of feelings.
+5. **Log the emotional state**, briefly. Patterns in when you tilt are useful.
+
+A good review leaves you with the same verdict on a hand whether it won or lost.
+
+<Remember>
+
+- Tilt is emotion-driven play below your skill level, after wins or losses
+- Judge decisions by EV, not by outcome
+- Watch for speed, chasing, and playing hands you normally fold
+- Set stop-loss, time and trigger rules in advance
+- Review hard spots with the result hidden
+
+</Remember>
+
+<Mistakes>
+
+- Judging a call by whether it won
+- Playing on to get even
+- Reviewing only big pots
+- Relying on willpower instead of rules
+
+</Mistakes>

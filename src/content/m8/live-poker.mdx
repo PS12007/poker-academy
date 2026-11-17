@@ -1,0 +1,121 @@
+import { pct } from '@/lib/format';
+
+export const prior = 0.3;
+export const post = (p, likelihoodRatio) => (p * likelihoodRatio) / (p * likelihoodRatio + (1 - p));
+
+export const quiz = [
+  {
+    q: 'How much should a physical tell change your decision?',
+    choices: ['Completely', 'A little. Tells are weak evidence and should shift a close decision, not override the math', 'Not at all, ever', 'Only on the river'],
+    answer: 1,
+    why: 'Most tells are unreliable and vary by player. Treat them as a small adjustment to your range estimate.',
+  },
+  {
+    q: 'Your estimate that a river bet is a bluff is 30%. A tell twice as common among bluffs as among value bets appears. What is the updated estimate?',
+    numeric: Math.round(post(0.3, 2) * 1000) / 10,
+    tolerance: 1,
+    unit: '%',
+    why: 'Bayes: 0.3 × 2 / (0.3 × 2 + 0.7) = 46.2%. Even a fairly strong tell moves the number by about half.',
+  },
+  {
+    q: 'Which online information is most reliable?',
+    choices: ['Chat messages', 'Bet sizing patterns and long-run frequencies in a player\'s stats', 'Avatar choice', 'Time zone'],
+    answer: 1,
+    why: 'Sizing and frequencies are tied directly to the hands people play. Timing tells exist but are noisy.',
+  },
+  {
+    q: 'What is the single biggest factor in a live player\'s hourly win rate?',
+    choices: ['Reading tells', 'Choosing tables with weaker opponents', 'Dress', 'Seat position at the table'],
+    answer: 1,
+    why: 'Your edge is your skill minus theirs. Picking games where they are weaker raises it more than any in-hand technique.',
+  },
+  {
+    q: 'Why are live games played with fewer hands per hour than online?',
+    choices: ['Bigger blinds', 'Physical dealing, chip handling and one table at a time', 'Rules require it', 'They are not'],
+    answer: 1,
+    why: 'About 30 hands an hour live against 60 to 100 per table online. This makes live variance spread over far more hours.',
+  },
+];
+
+<Objectives>
+
+- Weigh physical and timing tells correctly with a Bayesian update
+- Know the common live-only conditions: speed, rake, players
+- Choose tables and seats deliberately
+- Behave in a way that gives little away
+
+</Objectives>
+
+## Tells are weak evidence
+
+Films make tells look decisive. In practice they are noisy: a player's hands may shake from adrenaline with a monster or from fear with a bluff, and the same gesture means different things for different people.
+
+The right way to use one is as a small update to your range estimate. Bayes' rule makes the size of the update explicit.
+
+<Formula name="updating on a tell">new probability = p × L / (p × L + (1 − p))</Formula>
+
+Here p is your estimate before the tell and L is how much more common the tell is when they bluff than when they have value.
+
+<DataTable
+  head={['How much more common among bluffs (L)', 'Bluff estimate before', 'After']}
+  rows={[[1.2, 0.3], [1.5, 0.3], [2, 0.3], [3, 0.3], [2, 0.1]].map(([L, p]) => [`${L} times`, pct(p, 0), pct(post(p, L), 1)])}
+  caption="Most real tells, for most players, sit at the top of this table: L of 1.5 or less."
+/>
+
+A tell twice as common among bluffs, which is strong for a physical tell, moves a 30% estimate to {pct(post(0.3, 2), 0)}. That is enough to flip a close call against a pot-sized bet. It is not enough to call a large bet with a weak hand against a player who rarely bluffs.
+
+<Live title="Price the call after updating">
+  <PotOddsTool initial={{ pot: 100, bet: 100, equity: 46 }} />
+</Live>
+
+### Common patterns, with caution
+
+- Players who are strong often act relaxed, talk, or look away. Players who are weak often go still and quiet.
+- Long pauses followed by a big bet are frequently strong in live games. Quick checks are often weak.
+- Glancing at chips after seeing the flop is often interest.
+- Reaching for chips before it is their turn can be an attempt to deter a bet.
+
+Each of these is a tendency, not a law, and baseline behavior for the individual matters most. Spend time watching how a player acts in hands that reach showdown.
+
+### Online
+
+There are no faces, but there is timing and, more reliably, sizing. Players who use one size for value and another for bluffs are the clearest exploit online. Timing tells are confused by players handling several tables.
+
+## What is different live
+
+- **Speed.** About 30 hands an hour, against 60 to 100 per table online. Variance spreads over many more hours.
+- **Rake and tips.** Live rake is often capped per pot but large relative to small stakes, and tipping adds to it. The next lesson computes the cost.
+- **Players.** Live games at low stakes are usually softer: more calling, less bluffing on the river.
+- **Information.** You see every hand shown down at the table. Remember them.
+
+## Table selection
+
+Your edge is your skill minus your opponents'. The most effective way to raise your win rate is to sit with weaker players.
+
+- Look for many players seeing the flop and large pots relative to the blinds.
+- Prefer seats with loose players to your right, so you act after them.
+- Leave tables where several players are clearly better than the rest.
+
+## Giving nothing away
+
+Act the same way every hand: same timing for routine decisions, same placement of chips, same words. Do not show cards voluntarily, and do not discuss hands in progress. The goal is not to be unreadable to experts but to stop leaking information to everyone else.
+
+<Remember>
+
+- A tell is weak evidence. Update by Bayes: p × L / (p × L + 1 − p)
+- Most tells have L of 1.5 or less. Use them to break close decisions
+- Sizing patterns are the most reliable information online
+- Live games are slower, often softer, and carry heavier rake
+- Table selection raises win rate more than any reading skill
+- Be consistent in your own actions
+
+</Remember>
+
+<Mistakes>
+
+- Calling large bets on a hunch from a single tell
+- Ignoring a player's baseline behavior
+- Sitting at the toughest table in the room
+- Changing your timing based on your hand strength
+
+</Mistakes>

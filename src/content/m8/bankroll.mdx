@@ -1,0 +1,116 @@
+import { riskOfRuin, bankrollForRisk } from '@/engine/variance';
+import { pct, int, num } from '@/lib/format';
+
+export const ror = (wr, sd, bi) => riskOfRuin(wr, sd, bi * 100);
+export const need = (wr, sd, r) => bankrollForRisk(wr, sd, r) / 100;
+
+export const quiz = [
+  {
+    q: 'What is a bankroll?',
+    choices: ['The chips on the table', 'Money set aside only for poker, separate from living expenses', 'Your total savings', 'Tournament winnings'],
+    answer: 1,
+    why: 'Keeping it separate is what lets you measure results and apply rules for moving stakes.',
+  },
+  {
+    q: 'A full buy-in in a no-limit cash game is usually how many big blinds?',
+    numeric: 100,
+    tolerance: 0,
+    why: 'Most games cap the buy-in at 100bb. Bankroll guidelines are counted in these buy-ins.',
+  },
+  {
+    q: 'A player wins 3 bb/100 with a standard deviation of 90. How many buy-ins keep their risk of ruin under 5%?',
+    numeric: Math.round(need(3, 90, 0.05)),
+    tolerance: 2,
+    unit: 'buy-ins',
+    why: 'Bankroll = −(sd² / (2 × winrate)) × ln(risk) = −(8,100 / 6) × ln(0.05) ≈ 4,044bb, about 40 buy-ins.',
+  },
+  {
+    q: 'Why do tournament players need far larger bankrolls than cash players?',
+    choices: ['Tournaments are rigged', 'Results are dominated by rare large scores, so variance is enormous', 'Buy-ins are larger', 'They do not'],
+    answer: 1,
+    why: 'Most tournaments end with nothing. Profit comes from occasional deep runs, which can be hundreds of entries apart.',
+  },
+  {
+    q: 'What is a sensible rule for moving down in stakes?',
+    choices: ['Never move down', 'Set a floor in buy-ins in advance and move down when you hit it', 'Move down after one losing session', 'Move down only if you feel bad'],
+    answer: 1,
+    why: 'Deciding in advance removes emotion. A floor of, say, 30 buy-ins for the current stake protects the bankroll from an ordinary downswing.',
+  },
+];
+
+<Objectives>
+
+- Define a bankroll and why it is kept separate
+- Derive a buy-in guideline from winrate, standard deviation and risk of ruin
+- Set rules for moving up and down in stakes
+- Explain why tournament bankrolls are larger
+
+</Objectives>
+
+## Money that can go to zero without ending your life
+
+A **bankroll** is money set aside only for poker. Rent, food and savings are not in it. Keeping it separate does two things: it lets you track your results honestly, and it lets you apply rules about which stakes you can afford.
+
+The variance lesson in Module 2 showed that a winning player regularly loses for tens of thousands of hands. The bankroll is what survives those stretches.
+
+## Where the guidelines come from
+
+Common advice says 20 to 40 buy-ins for cash games. That advice comes from the risk-of-ruin formula, and you can derive your own number instead of trusting a rule of thumb.
+
+<Formula name="bankroll for a target risk of ruin">bankroll = −(sd² / (2 × winrate)) × ln(risk)</Formula>
+
+All quantities are in big blinds and bb/100. Divide by 100 to get buy-ins.
+
+<DataTable
+  head={['Winrate, bb/100', 'sd 80, 5% risk', 'sd 100, 5% risk', 'sd 100, 1% risk']}
+  rows={[1, 2, 3, 5, 8].map((w) => [w, `${num(need(w, 80, 0.05), 0)} buy-ins`, `${num(need(w, 100, 0.05), 0)} buy-ins`, `${num(need(w, 100, 0.01), 0)} buy-ins`])}
+  caption="Computed from the risk-of-ruin formula. Assumes you never move down."
+/>
+
+Two things stand out. The winrate matters enormously: a marginal winner at 1 bb/100 needs several times the bankroll of a solid one. And nobody knows their true winrate precisely, as the variance lesson showed, so it is sensible to plug in a conservative estimate. That is why the common guidance lands at 30 or more buy-ins rather than 15.
+
+## Try your own numbers
+
+<Live title="Bankroll paths for a given winrate and bankroll">
+  <VarianceTool initial={{ winrate: 3, stdDev: 90, hands: 100000, bankroll: 3000 }} />
+</Live>
+
+Set the bankroll slider to the number from the table and confirm that the simulated share of broke paths sits near the formula's figure. The simulation runs for a fixed number of hands, so its figure is a little lower: some paths would go broke later.
+
+## Moving up and down
+
+Decide the rules before you need them.
+
+- **Move up** when you have the buy-ins for the next stake, by your own risk calculation, and your results at the current stake support a positive winrate over a meaningful sample.
+- **Take shots**: play a few sessions at the next stake with a small, fixed part of the bankroll. If you lose it, move back down without debate.
+- **Move down** at a floor fixed in advance. Moving down is not failure. It is the rule that makes the risk-of-ruin numbers true, because the formula assumes a stake you can afford.
+
+With a move-down rule in place, true ruin becomes very unlikely even with a smaller bankroll, because losses shrink as the stakes do.
+
+## Tournaments
+
+Tournament variance is of a different order. A typical winning player cashes perhaps 15% of the time and makes most of their profit from rare final tables. Losing streaks of 100 or more entries are routine. Guidelines of 100 to 200 buy-ins for multi-table tournaments, and more for very large fields, reflect that. Single-table events with flatter payouts need fewer.
+
+## Life roll and bankroll
+
+Professional players need living expenses kept apart from the bankroll, usually six months or more. Withdrawing from the bankroll to pay bills during a downswing is the most common way skilled players go broke.
+
+<Remember>
+
+- A bankroll is money for poker only
+- Bankroll for a target risk = −(sd² / (2 × winrate)) × ln(risk)
+- Use a conservative winrate. Most cash players need 30 or more buy-ins
+- Set move-up and move-down rules in advance
+- Tournaments need 100 or more buy-ins
+- Keep living expenses separate
+
+</Remember>
+
+<Mistakes>
+
+- Playing stakes the bankroll cannot support because you feel you are better than the game
+- Moving up after a short winning streak
+- Refusing to move down during a downswing
+- Paying living costs from the bankroll
+
+</Mistakes>

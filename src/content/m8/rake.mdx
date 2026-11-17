@@ -1,0 +1,110 @@
+import { pct, num } from '@/lib/format';
+
+export const rakePer100 = (potBB, rate, capBB, handsWithRake) => Math.min(potBB * rate, capBB) * handsWithRake;
+
+export const quiz = [
+  {
+    q: 'A game takes 5% of each pot that sees a flop, up to a cap of 3bb. The average raked pot is 20bb and 30% of hands see a flop. How much rake is paid per 100 hands?',
+    numeric: rakePer100(20, 0.05, 3, 30),
+    tolerance: 0.5,
+    unit: 'bb',
+    why: '5% of 20bb is 1bb per raked pot, below the cap. Thirty raked pots per 100 hands: 30bb per 100 hands, shared among the players.',
+  },
+  {
+    q: 'Why does rake hurt low stakes more than high stakes?',
+    choices: ['It does not', 'Caps are fixed in money, so at small blinds the cap is many big blinds and rarely binds', 'Low stakes players are worse', 'High stakes have no rake'],
+    answer: 1,
+    why: 'A cap of 3 in money is 30bb at blinds of 0.05/0.10 and 1.5bb at 1/2. The lower the stakes, the closer to the full percentage you pay.',
+  },
+  {
+    q: 'Which pots does rake hurt most, relative to their size?',
+    choices: ['Very large pots', 'Small pots that see a flop', 'Pots won preflop', 'Tournament pots'],
+    answer: 1,
+    why: 'Large pots hit the cap. Small flopped pots pay the full percentage. Under "no flop, no drop", pots won preflop pay nothing.',
+  },
+  {
+    q: 'How should rake change your preflop strategy?',
+    choices: ['Call more', 'Play fewer marginal calls and prefer raising or folding, since pots won preflop are often unraked', 'No change', 'Limp more'],
+    answer: 1,
+    why: 'Marginal calls lead to small flopped pots, which pay the most rake relative to size. Their small edge disappears.',
+  },
+  {
+    q: 'A player beats the game for 6 bb/100 before rake and pays 5 bb/100 in rake. What is their net winrate?',
+    numeric: 1,
+    tolerance: 0,
+    unit: 'bb/100',
+    why: 'Most of the edge went to the house. Rakeback deals and lower-rake games can matter more than many strategy improvements.',
+  },
+];
+
+<Objectives>
+
+- Compute the rake paid per 100 hands from the rate, cap and pot sizes
+- Explain why rake hits low stakes and small pots hardest
+- Adjust preflop strategy for rake
+- Compare games and rakeback deals by net winrate
+
+</Objectives>
+
+## The house's share
+
+Cash games make money for the venue through **rake**: a percentage of each pot, usually 2.5 to 10%, up to a **cap**. Many games use "no flop, no drop": pots won before the flop pay nothing. Tournaments charge a fee on the entry instead.
+
+Rake comes out of the pots, so it comes out of winners. It is the single largest reason most players lose in the long run.
+
+## Paying for it per 100 hands
+
+<Formula>rake per 100 hands = raked pots per 100 × min(rate × pot, cap)</Formula>
+
+<DataTable
+  head={['Game', 'Rate', 'Cap', 'Cap in big blinds', 'Rake per 100 hands']}
+  rows={[
+    ['0.05/0.10 online', '5%', '0.30', '3bb', `${num(rakePer100(14, 0.05, 3, 30), 1)}bb`],
+    ['0.50/1 online', '5%', '1.50', '1.5bb', `${num(rakePer100(14, 0.05, 1.5, 30), 1)}bb`],
+    ['1/2 live', '10%', '5', '2.5bb', `${num(rakePer100(14, 0.1, 2.5, 30), 1)}bb`],
+    ['5/10 live', '10%', '5', '0.5bb', `${num(rakePer100(14, 0.1, 0.5, 30), 1)}bb`],
+  ]}
+  caption="Assuming 30 raked pots per 100 hands with an average size of 14bb. Paid by the table as a whole, and shared out roughly by who wins pots."
+/>
+
+The percentage is the same and the cost differs by a factor of ten, because caps are fixed in money. At small stakes the cap is many big blinds and almost never binds. At higher stakes it binds on every sizeable pot.
+
+## Who pays
+
+The player who wins the pot pays its rake. Good players win more pots, so they pay more than average. A rough rule: a winning player pays something close to the table's average rake per player, sometimes more. If that is 5 bb/100 and your edge before rake is 6 bb/100, you net 1 bb/100.
+
+<Live title="See what a small net winrate means">
+  <VarianceTool initial={{ winrate: 1, stdDev: 90, hands: 100000, bankroll: 3000 }} />
+</Live>
+
+Compare the paths at 1 bb/100 with those at 6 and the cost of rake becomes visible.
+
+## Adjusting for rake
+
+- **Fewer marginal calls preflop.** Calls lead to small flopped pots, where rake takes its full percentage. Hands that are a tiny profit in an unraked game become a loss. Prefer raising, where many pots end preflop and are not raked.
+- **Tighter blind defense.** The big blind's widest defends are the most marginal hands of all.
+- **Bigger pots or none.** A small pot taken to the flop pays rake without much to win.
+- **Choose the game.** A table with lower rake or a better rakeback deal can be worth more than weeks of study.
+
+## Rakeback
+
+Many sites return part of the rake as **rakeback** or rewards. Treat it as part of your winrate: a player paying 5 bb/100 with 30% rakeback gets 1.5 bb/100 back. For marginal winners it can be the difference between winning and losing.
+
+<Remember>
+
+- Rake per 100 = raked pots × min(rate × pot, cap)
+- Caps are in money, so rake costs more big blinds at lower stakes
+- Small flopped pots pay the highest share. Pots won preflop are often free
+- Rake turns marginal calls into losses. Raise or fold more
+- Net winrate = winrate before rake − rake paid + rakeback
+
+</Remember>
+
+<Mistakes>
+
+- Ignoring rake when choosing stakes and games
+- Defending the big blind as widely in a raked game as in theory
+- Assuming a small edge survives a high-rake game
+- Forgetting rakeback when comparing sites
+
+</Mistakes>
