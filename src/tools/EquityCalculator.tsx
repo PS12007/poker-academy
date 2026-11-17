@@ -28,7 +28,7 @@ const seat = (cards: number[] = [], range = ''): Seat => ({ kind: range ? 'range
 
 export interface EquityCalculatorProps {
   /** Initial state, used when the calculator is embedded in a lesson. */
-  initial?: { hands?: string[]; ranges?: (string | null)[]; board?: number[] };
+  initial?: { hands?: string[]; ranges?: (string | null)[]; board?: number[]; game?: 'holdem' | 'plo' | 'plo5' };
   embedded?: boolean;
 }
 
@@ -48,6 +48,14 @@ export default function EquityCalculator({ initial, embedded }: EquityCalculator
   const [iterations, setIterations] = useState(400_000);
   const [seed, setSeed] = useState(1);
   const [showDead, setShowDead] = useState(false);
+  const [game, setGame] = useState<'holdem' | 'plo' | 'plo5'>(initial?.game ?? 'holdem');
+  const holeSize = game === 'holdem' ? 2 : game === 'plo' ? 4 : 5;
+  const omaha = game !== 'holdem';
+  const switchGame = (g: 'holdem' | 'plo' | 'plo5') => {
+    setGame(g);
+    const size = g === 'holdem' ? 2 : g === 'plo' ? 4 : 5;
+    setSeats((ss) => ss.map((x) => ({ ...x, kind: g === 'holdem' ? x.kind : 'hand', cards: x.cards.slice(0, size) })));
+  };
   const job = useJob<Output>();
 
   const usedBy = (skip: number) => [...board, ...dead, ...seats.flatMap((s, i) => (i !== skip && s.kind === 'hand' ? s.cards : []))];
@@ -57,11 +65,11 @@ export default function EquityCalculator({ initial, embedded }: EquityCalculator
     if (![0, 3, 4, 5].includes(board.length)) return 'The board needs 0, 3, 4 or 5 cards.';
     for (let i = 0; i < seats.length; i++) {
       const s = seats[i];
-      if (s.kind === 'hand' && s.cards.length !== 2) return `Player ${i + 1} needs two cards.`;
+      if (s.kind === 'hand' && s.cards.length !== holeSize) return `Player ${i + 1} needs ${holeSize} cards.`;
       if (s.kind === 'range' && !expandRange(s.range, [...board, ...dead]).length) return `Player ${i + 1} has an empty range.`;
     }
     return null;
-  }, [seats, board, dead]);
+  }, [seats, board, dead, holeSize]);
 
   const request = useMemo((): EquityRequest | null => {
     if (problem) return null;
@@ -71,8 +79,8 @@ export default function EquityCalculator({ initial, embedded }: EquityCalculator
       const combos = expandRange(s.range, blocked);
       return { hands: combos.map((c) => [c.c1, c.c2]), weights: combos.map((c) => c.w) };
     });
-    return { game: 'holdem', players, board, dead, mode, iterations, seed };
-  }, [problem, seats, board, dead, mode, iterations, seed]);
+    return { game: omaha ? 'omaha' : 'holdem', players, board, dead, mode, iterations, seed };
+  }, [problem, seats, board, dead, mode, iterations, seed, omaha]);
 
   const work = request ? exactWork(request) : 0;
   const willBeExact = mode === 'exact' || (mode === 'auto' && work <= DEFAULT_EXACT_BUDGET);
@@ -101,8 +109,8 @@ export default function EquityCalculator({ initial, embedded }: EquityCalculator
             title={i === 0 ? 'Player one' : `Player ${i + 1}`}
             right={
               <span className="flex items-center gap-3">
-                <button type="button" className={cx('hover:text-bone', s.kind === 'hand' && 'text-bone underline underline-offset-4')} onClick={() => update(i, { kind: 'hand' })}>Hand</button>
-                <button type="button" className={cx('hover:text-bone', s.kind === 'range' && 'text-bone underline underline-offset-4')} onClick={() => update(i, { kind: 'range' })}>Range</button>
+                {!omaha && <button type="button" className={cx('hover:text-bone', s.kind === 'hand' && 'text-bone underline underline-offset-4')} onClick={() => update(i, { kind: 'hand' })}>Hand</button>}
+                {!omaha && <button type="button" className={cx('hover:text-bone', s.kind === 'range' && 'text-bone underline underline-offset-4')} onClick={() => update(i, { kind: 'range' })}>Range</button>}
                 {seats.length > 2 && (
                   <button type="button" className="text-madder hover:underline" onClick={() => setSeats((ss) => ss.filter((_, j) => j !== i))} aria-label={`Remove player ${i + 1}`}>
                     Remove
@@ -112,7 +120,7 @@ export default function EquityCalculator({ initial, embedded }: EquityCalculator
             }
           >
             {s.kind === 'hand' ? (
-              <CardField label="Hole cards" max={2} value={s.cards} onChange={(cards) => update(i, { cards })} blocked={usedBy(i)} size="lg" />
+              <CardField label="Hole cards" max={holeSize} value={s.cards} onChange={(cards) => update(i, { cards })} blocked={usedBy(i)} size={omaha ? 'md' : 'lg'} />
             ) : (
               <RangeEditor value={s.range} onChange={(range) => update(i, { range })} dead={[...board, ...dead]} compact minimal={embedded} />
             )}
@@ -126,6 +134,11 @@ export default function EquityCalculator({ initial, embedded }: EquityCalculator
       </div>
 
       <div className="space-y-6">
+        <Plate serial="GM" title="Game">
+          <Segmented label="Game" value={game} onChange={switchGame} options={[{ value: 'holdem', label: "Hold'em" }, { value: 'plo', label: 'Omaha' }, { value: 'plo5', label: 'Omaha 5' }]} />
+          {omaha && <p className="mt-3 text-[13px] text-dim">Each hand must use exactly two hole cards and three board cards. Ranges are Hold'em only.</p>}
+        </Plate>
+
         <Plate serial="BD" title="Board" right={<button type="button" className="hover:text-bone" onClick={() => setShowDead((d) => !d)}>{showDead ? 'Hide dead cards' : 'Dead cards'}</button>}>
           <CardField label="Community cards" hint="0, 3, 4 or 5" max={5} value={board} onChange={setBoard} blocked={[...dead, ...seats.flatMap((s) => (s.kind === 'hand' ? s.cards : []))]} />
           {showDead && (

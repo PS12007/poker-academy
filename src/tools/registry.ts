@@ -13,7 +13,7 @@ export interface ToolMeta {
 export const TOOLS: ToolMeta[] = [
   {
     id: 'equity', serial: 'T-01', title: 'Equity Calculator', track: "Hold'em",
-    blurb: 'Hands or ranges for up to nine players. Exact enumeration when it fits, Monte Carlo with a confidence interval when it does not.',
+    blurb: "Hold'em hands or ranges, or Omaha and Omaha 5 hands, for up to nine players. Exact when it fits, Monte Carlo with a confidence interval when it does not.",
     component: lazyRetry(() => import('./EquityCalculator')),
   },
   {
@@ -37,7 +37,7 @@ export const TOOLS: ToolMeta[] = [
   { id: 'push-fold', serial: 'T-08', title: 'Push/Fold Nash Solver', track: 'Tournaments', blurb: 'Heads-up jam and call ranges by stack depth and ante, solved in your browser.', component: lazyRetry(() => import('./PushFoldSolver')) },
   { id: 'icm', serial: 'T-09', title: 'ICM Calculator', track: 'Tournaments', blurb: 'Stacks and payouts in, prize equity out, plus a bubble call or fold helper.', component: lazyRetry(() => import('./IcmCalculator')) },
   { id: 'variance', serial: 'T-10', title: 'Variance Simulator', track: 'All games', blurb: 'Bankroll paths, percentiles, risk of ruin and the longest break-even stretch.', component: lazyRetry(() => import('./VarianceSimulator')) },
-  { id: 'pot-limit', serial: 'T-11', title: 'Pot-Limit Calculator', track: 'Omaha', blurb: 'The maximum legal bet at every step of an action sequence.' },
+  { id: 'pot-limit', serial: 'T-11', title: 'Pot-Limit Calculator', track: 'Omaha', blurb: 'The maximum legal bet at every step of an action sequence.', component: lazyRetry(() => import('./PotLimitCalculator')) },
 ];
 
 export const findTool = (id: string) => TOOLS.find((t) => t.id === id);
