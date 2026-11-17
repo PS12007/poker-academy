@@ -1,0 +1,99 @@
+export const quiz = [
+  {
+    q: 'What is a mixed game?',
+    choices: ['A game with mixed stakes', 'A game that rotates through several poker variants, usually changing each orbit', 'Hold\'em with a joker', 'A tournament and cash game together'],
+    answer: 1,
+    why: 'For example HORSE rotates Hold\'em, Omaha hi-lo, Razz, Stud and Stud hi-lo.',
+  },
+  {
+    q: 'What does HORSE stand for?',
+    choices: ['Hold\'em, Omaha hi-lo, Razz, Stud, Stud eight-or-better', 'Hold\'em, Omaha, Rummy, Snap, Euchre', 'Heads-up, Omaha, Rake, Stud, Eights', 'It is not an acronym'],
+    answer: 0,
+    why: 'Five games, usually all played with fixed limits.',
+  },
+  {
+    q: 'Which skills carry over between every poker variant?',
+    choices: ['None', 'Pot odds, expected value, counting outs and card removal, position, bankroll management', 'Only bluffing', 'Only reading tells'],
+    answer: 1,
+    why: 'The rules and the hands change. The arithmetic of decisions does not.',
+  },
+  {
+    q: 'Where do mixed game players usually find their biggest edge?',
+    choices: ['In their best game', 'In the weakest games of their opponents', 'In Hold\'em', 'Nowhere'],
+    answer: 1,
+    why: 'Most players have one or two strong games. Being solid in all of them earns from opponents in the games they know least.',
+  },
+  {
+    q: 'In a pot-limit game, the pot is 30 and you face a bet of 10. What is the most you can raise to?',
+    numeric: 3 * 10 + 30,
+    tolerance: 0,
+    why: 'Raise to 3 × bet + old pot = 30 + 30 = 60. The pot-limit rule from the Omaha module applies in any pot-limit game.',
+  },
+];
+
+<Objectives>
+
+- Name the common mixed-game rotations
+- Separate rules that change from principles that do not
+- Plan how to approach a game you know less well
+
+</Objectives>
+
+## Many games in one
+
+A **mixed game** rotates through several variants, switching every orbit or every few hands. The best-known rotation is **HORSE**:
+
+| Letter | Game | Type |
+|---|---|---|
+| H | Hold'em | Community cards, high |
+| O | Omaha hi-lo | Community cards, split pot |
+| R | Razz | Stud, low |
+| S | Seven card stud | Stud, high |
+| E | Stud eight-or-better | Stud, split pot |
+
+Other rotations add **pot-limit Omaha**, **2-7 triple draw** (a draw game where you can replace cards three times and the lowest hand wins, with aces high and straights counting against you), and **badugi** (a four-card draw game for low with all different suits). An "8-game" or "dealer's choice" mixes several more.
+
+Mixed games are usually **fixed limit**, apart from the no-limit and pot-limit games in the mix. That keeps the stakes even across games and makes odds and position matter more than big bluffs.
+
+## What stays the same
+
+Each game has its own rules, but the decisions are built from the same pieces you have learned here.
+
+- **Pot odds and EV.** A call needs equity above the price, in every game.
+- **Counting outs and card removal.** In stud you see more dead cards, in draw games you see fewer.
+- **Position.** Acting last is worth money in every variant.
+- **Range thinking.** Each action narrows what a player can hold.
+- **Bankroll and tilt.** Variance does not care which game you are playing.
+
+The pot-limit calculator works for any pot-limit game in the rotation:
+
+<Live title="Pot-limit maths, any pot-limit game">
+  <PotLimitTool initial={{ preflop: false, pot: 30 }} />
+</Live>
+
+## How to approach a new game
+
+1. **Learn the rules cold**, including how hands are ranked and who acts first.
+2. **Learn starting hands**, which matter most in fixed-limit games.
+3. **Recount your odds.** Outs and probabilities change with the deck and the number of cards.
+4. **Play smaller stakes** for that game until your results and decisions settle.
+5. **Find the weak games of others.** Most mixed-game profit comes from opponents who are strong in one or two games and weak in the rest.
+
+<Remember>
+
+- HORSE: Hold'em, Omaha hi-lo, Razz, Stud, Stud hi-lo
+- Mixed games are mostly fixed limit
+- Rules change, but pot odds, EV, outs, position and ranges carry over
+- Profit comes from opponents' weakest games
+- Learn new games at lower stakes first
+
+</Remember>
+
+<Mistakes>
+
+- Playing every game as if it were Hold'em
+- Assuming Hold'em odds hold in other variants
+- Playing big in your weakest game
+- Ignoring how the bring-in and action order change in stud games
+
+</Mistakes>

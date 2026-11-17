@@ -1,5 +1,8 @@
 import { useMemo, useState } from 'react';
 import { parseCards } from '../../engine/cards';
+import { shortDeckCounts } from '../../engine/shortDeck';
+import { FIVE_CARD_COUNTS } from '../../engine/combinatorics';
+import { CATEGORY_NAMES } from '../../engine/evalCore';
 import { bestOmaha, omahaOuts } from '../../engine/omaha';
 import { describeHand, describeRank } from '../../engine/describe';
 import { CardField } from '../cards/CardField';
@@ -10,7 +13,7 @@ import { geometricFraction, geometricPlan, mdf, alpha, bluffFraction } from '../
 import { potOdds } from '../../engine/ev';
 import { RangeGrid } from '../range/RangeGrid';
 import { Figure, Plate, Segmented, Slider, Working } from '../ui/primitives';
-import { num, pct } from '../../lib/format';
+import { cx, num, pct } from '../../lib/format';
 
 /* ------------------------------------------------------- facing an open */
 const SPOTS = [
@@ -172,6 +175,37 @@ export function WrapCounter({ hole = 'JsTd7c6h', flop = '9h8d2s' }: { hole?: str
           <p className="mt-3 text-[12.5px] text-dim">Found by dealing every unseen card and checking the best hand under the two-plus-three rule. Unseen cards: {unseen}.</p>
         </div>
       )}
+    </Plate>
+  );
+}
+
+/* ------------------------------------------------------ short deck table */
+export function ShortDeckTable() {
+  const sd = useMemo(() => shortDeckCounts(), []);
+  const full = FIVE_CARD_COUNTS;
+  const order = [8, 7, 6, 5, 4, 3, 2, 1, 0];
+  const sdOrder = [...order].sort((a, b) => sd[a] - sd[b]);
+  return (
+    <Plate serial="TAB" title="Rarity in 52 cards and in 36" pad={false}>
+      <table className="w-full border-collapse">
+        <thead>
+          <tr className="border-b border-bone/40">
+            <th className="label px-4 py-2 text-left font-normal sm:px-5">Hand</th>
+            <th className="label py-2 pr-3 text-right font-normal">52-card deck</th>
+            <th className="label py-2 pr-4 text-right font-normal sm:pr-5">Short deck, 36 cards</th>
+          </tr>
+        </thead>
+        <tbody>
+          {sdOrder.map((c) => (
+            <tr key={c} className={cx('border-b border-bone/10', (c === 5 || c === 6) && 'text-madder')}>
+              <td className="px-4 py-2 text-[14px] sm:px-5">{CATEGORY_NAMES[c]}</td>
+              <td className="num py-2 pr-3 text-right text-[12.5px]">{num(full[c], 0)} · 1 in {num(2598960 / full[c], 0)}</td>
+              <td className="num py-2 pr-4 text-right text-[12.5px] sm:pr-5">{num(sd[c], 0)} · 1 in {num(376992 / sd[c], 0)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <p className="px-4 py-3 text-[12.5px] text-dim sm:px-5">Rows are ordered by rarity in short deck, rarest first. All 376,992 short deck hands were counted when this page opened.</p>
     </Plate>
   );
 }

@@ -1,0 +1,97 @@
+export const quiz = [
+  {
+    q: 'How many cards does each player receive in seven card stud?',
+    numeric: 7,
+    tolerance: 0,
+    why: 'Three to start (two down, one up), then four more one at a time: three face up and the last face down.',
+  },
+  {
+    q: 'Are there community cards in seven card stud?',
+    choices: ['Yes, five', 'No. Every card belongs to one player, and some are face up', 'Yes, three', 'Only on the river'],
+    answer: 1,
+    why: 'Each player builds their own seven-card hand. The face-up cards give information everyone can use.',
+  },
+  {
+    q: 'In razz, which hand is best?',
+    choices: ['The highest hand', 'The lowest five-card hand, A-2-3-4-5', 'A pair of aces', 'A flush'],
+    answer: 1,
+    why: 'Razz is stud played for low. Aces are low, and straights and flushes do not count against you.',
+  },
+  {
+    q: 'In stud, why do your opponents\' up cards matter for your draws?',
+    choices: ['They do not', 'Cards you can see are dead: if three of your flush suit are showing elsewhere, your flush draw has fewer outs', 'They decide the betting limit', 'They show who acts last'],
+    answer: 1,
+    why: 'Counting visible cards is the core skill of stud, like card removal on a much larger scale.',
+  },
+  {
+    q: 'In stud, who acts first on the first betting round?',
+    choices: ['The dealer', 'The player with the lowest up card, who must post a forced bet called the bring-in', 'The player with the highest up card', 'A random player'],
+    answer: 1,
+    why: 'The bring-in replaces the blinds. On later streets the player with the best showing hand acts first.',
+  },
+];
+
+<Objectives>
+
+- Describe how a hand of seven card stud is dealt and bet
+- Know the razz rules for low hands
+- Use visible cards to count outs
+
+</Objectives>
+
+## Seven card stud
+
+Before Hold'em took over, **seven card stud** was the most popular poker game. It has no community cards.
+
+**The deal.**
+
+1. Everyone antes. Each player gets two cards face down and one face up.
+2. The lowest up card must post a small forced bet, the **bring-in**. Betting follows.
+3. Three more cards are dealt face up, one at a time, each with a round of betting.
+4. The last card is dealt face down, with a final round of betting.
+
+Each player has seven cards, three hidden and four visible. You make the best five-card hand from your seven, exactly as in Hold'em, so the same hand ranking applies.
+
+<Live title="Best five of seven works the same way">
+  <HandNamer start="9s9dKhKc4s7d2h" />
+</Live>
+
+Stud is usually played with **fixed limits**: bets come in set sizes, smaller on early streets and doubled on later ones. Big bluffs matter less and careful odds matter more.
+
+## Dead cards
+
+The key stud skill is reading the up cards. Any card you can see in another player's hand is **dead**: it cannot come to you.
+
+If you hold four hearts and see three hearts showing around the table, your flush draw has only 6 hearts left instead of 9. The same goes for pairs: if both remaining kings are showing elsewhere, you cannot make trip kings.
+
+This is card removal from the combinatorics lesson, but you get to see far more cards.
+
+## Razz
+
+**Razz** is seven card stud played for **low**. The lowest five-card hand wins.
+
+- Aces are low.
+- Straights and flushes do not count, so A-2-3-4-5 is the best possible hand (the wheel).
+- Pairs are bad. You want five different low cards.
+- Hands are compared from the highest card down: 7-5-4-3-2 beats 8-4-3-2-A, because seven is lower than eight.
+
+In razz the **highest** up card brings it in, and the best low showing acts first on later streets. Starting hands with three low, different cards, such as A-2-4, are strong. A high card or a pair in the first three is usually a fold.
+
+<Remember>
+
+- Stud: no community cards, seven cards each, three down and four up
+- Best five of seven, normal rankings
+- The bring-in replaces the blinds. Fixed limits are usual
+- Visible cards are dead. Count them before counting outs
+- Razz: lowest hand wins, aces low, straights and flushes ignored
+
+</Remember>
+
+<Mistakes>
+
+- Counting outs without removing up cards
+- Chasing draws whose cards are already showing
+- In razz, keeping a pair or a high card because it looks strong
+- Forgetting razz reverses the bring-in
+
+</Mistakes>

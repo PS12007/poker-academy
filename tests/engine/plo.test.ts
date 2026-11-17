@@ -19,3 +19,18 @@ describe('Omaha wraps', () => {
     expect(() => omahaOuts(parseCards('AsKsQdJd'), [])).toThrow();
   });
 });
+
+import { shortDeckCounts } from '../../src/engine/shortDeck';
+import { Category } from '../../src/engine/evalCore';
+
+describe('short deck', () => {
+  it('counts all C(36,5) hands, and flushes are rarer than full houses', () => {
+    const c = shortDeckCounts();
+    expect(c.reduce((a, b) => a + b, 0)).toBe(376_992);
+    expect(c[Category.StraightFlush]).toBe(24); // six straights (A-6-7-8-9 up to T-J-Q-K-A) in each of four suits
+    expect(c[Category.Quads]).toBe(9 * 32);
+    expect(c[Category.FullHouse]).toBe(9 * 4 * 8 * 6);
+    expect(c[Category.Flush]).toBe(4 * (126 - 6));
+    expect(c[Category.Flush]).toBeLessThan(c[Category.FullHouse]);
+  });
+});

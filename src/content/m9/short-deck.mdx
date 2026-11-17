@@ -1,0 +1,91 @@
+
+export const quiz = [
+  {
+    q: 'Which cards are removed to make a short deck?',
+    choices: ['All face cards', 'The twos, threes, fours and fives', 'One suit', 'The aces'],
+    answer: 1,
+    why: 'Sixteen cards come out, leaving 36: sixes through aces in four suits.',
+  },
+  {
+    q: 'In most short deck games, which ranks higher?',
+    choices: ['Full house', 'Flush', 'They tie', 'Straight'],
+    answer: 1,
+    why: 'With only nine cards per suit, flushes become rarer than full houses, so they are ranked higher.',
+  },
+  {
+    q: 'What is the lowest straight in short deck?',
+    choices: ['A-2-3-4-5', '6-7-8-9-10', 'A-6-7-8-9', '5-6-7-8-9'],
+    answer: 2,
+    why: 'There are no twos to fives, so the ace plays low just above them: A-6-7-8-9.',
+  },
+  {
+    q: 'How many five-card hands can be made from a 36-card deck?',
+    numeric: 376992,
+    tolerance: 0,
+    why: 'C(36, 5) = 376,992.',
+  },
+  {
+    q: 'Why do equities run closer in short deck than in Hold\'em?',
+    choices: ['The deck is easier', 'With fewer low cards, more of the remaining cards connect, so drawing hands improve more often', 'Fewer players', 'The pot limit'],
+    answer: 1,
+    why: 'Every card is a six or higher, so straights and pairs are made more often and underdogs catch up more.',
+  },
+];
+
+<Objectives>
+
+- State the short deck rule changes
+- Explain, with counts, why a flush beats a full house
+- Adjust Hold'em instincts for a 36-card deck
+
+</Objectives>
+
+## Hold'em with fewer cards
+
+**Short deck** (also called 6+ Hold'em) is played like Hold'em with two hole cards and five on the board. The difference is the deck: all the twos, threes, fours and fives are removed, leaving 36 cards.
+
+Three things change.
+
+1. **A flush beats a full house** in most games.
+2. **The ace plays low in A-6-7-8-9**, the lowest straight.
+3. **Some games rank three of a kind above a straight.** Check the house rules before you play.
+
+Games often use an **ante** from everyone instead of blinds, with the button posting extra.
+
+## Why a flush beats a full house
+
+The ranking of hands is the order of rarity, as in Module 1. Removing sixteen low cards changes that order. With only nine cards in each suit, flushes become much harder to make, while full houses become easier because each rank is a bigger share of the deck.
+
+<Live title="Every short deck hand, counted">
+  <ShortDeckTable />
+</Live>
+
+In the full deck a flush is rarer than a straight and more common than a full house. In the short deck it drops below the full house in frequency, so it moves up in the ranking.
+
+## What changes in play
+
+- **More action, closer equities.** Every card is six or higher, so hands connect with the board more often and draws come in more often.
+- **Draws hit more often.** An open-ended straight draw still has 8 outs, but from only 31 unseen cards on the flop instead of 47, so each card is a 26% shot instead of 17%.
+- **Pairs are less dominant.** Aces against kings is still a big edge, but small pairs fall behind quickly.
+- **Flush draws lose value.** With four of your suit visible, only five more of that suit remain in the deck, so a flush draw has 5 outs instead of 9.
+
+Treat it as a different game with familiar rules, and recount odds before trusting Hold'em numbers.
+
+<Remember>
+
+- 36 cards: sixes through aces
+- A flush beats a full house, because flushes are rarer here
+- A-6-7-8-9 is the lowest straight
+- Equities run closer and hands improve more often
+- Check whether trips beat a straight in your game
+
+</Remember>
+
+<Mistakes>
+
+- Using Hold'em hand rankings
+- Using Hold'em outs and odds
+- Overvaluing small pairs
+- Forgetting the A-6-7-8-9 straight
+
+</Mistakes>
