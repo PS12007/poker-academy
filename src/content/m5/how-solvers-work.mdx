@@ -1,0 +1,135 @@
+import { nCr } from '@/engine/combinatorics';
+import { int } from '@/lib/format';
+
+export const flops = nCr(52, 3);
+export const runouts = nCr(49, 2);
+
+export const quiz = [
+  {
+    q: 'What does a poker solver compute?',
+    choices: ['The best play against your specific opponent', 'An approximate Nash equilibrium of the simplified game you gave it', 'The exact solution to all of poker', 'Your opponent\'s cards'],
+    answer: 1,
+    why: 'It solves the tree you describe, with the ranges, stacks and bet sizes you entered. Different inputs give a different answer.',
+  },
+  {
+    q: 'What is abstraction in a solver?',
+    choices: ['A graphical setting', 'Replacing the full game with a smaller one, for example by allowing only a few bet sizes', 'Hiding the results', 'A type of bluff'],
+    answer: 1,
+    why: 'The real game allows any bet size at every node. Limiting the choices makes the tree small enough to store and solve.',
+  },
+  {
+    q: 'A solution reports exploitability of 0.3% of the pot. What does that mean?',
+    choices: ['The strategy loses 0.3% to everyone', 'A perfect opponent, limited to the same tree, could gain at most 0.3% of the pot per hand against it', 'It is 99.7% of the way to solving poker', 'The solver failed'],
+    answer: 1,
+    why: 'Exploitability is measured inside the abstraction. It says nothing about bet sizes or lines the tree does not contain.',
+  },
+  {
+    q: 'What is the most useful thing to take from a solver run?',
+    choices: ['The exact frequency for each hand', 'The patterns and the reasons: which ranges bet, at what size, and why', 'The EV to four decimals', 'Nothing'],
+    answer: 1,
+    why: 'Exact frequencies depend on inputs you will never face again. The logic behind them transfers to other boards and other opponents.',
+  },
+  {
+    q: 'Why are the solver\'s input ranges so important?',
+    choices: ['They are not', 'The postflop solution is a best response to those ranges, so wrong ranges give a correct answer to the wrong question', 'They set the colors', 'They change the rake'],
+    answer: 1,
+    why: 'A postflop solve assumes both players arrive with exactly the ranges you typed. If real opponents arrive with different ones, the output does not describe your game.',
+  },
+];
+
+<Objectives>
+
+- Describe a game tree and what a solver stores at each node
+- Explain abstraction and what it costs
+- Read exploitability correctly
+- Study with a solver for patterns instead of memorizing output
+
+</Objectives>
+
+## The same loop, on a bigger tree
+
+You have watched CFR solve a three-card game. A Hold'em solver runs the same loop. The difference is the size of what it runs on, and the shortcuts needed to make that size manageable.
+
+## The game tree
+
+A **game tree** is every sequence of events a hand can follow. Each **node** is a moment where a player acts or a card is dealt. The branches are the options: check, each allowed bet size, fold, call, each allowed raise.
+
+At a decision node the solver stores, for every hand the acting player could hold, a probability for each action. Solving means filling in all of those numbers so that neither player can improve.
+
+The tree for real no-limit Hold'em is beyond any computer. From one flop there are {int(runouts)} turn and river runouts. There are {int(flops)} flops. At every node a player may bet any amount from one blind to a full stack. So solvers do not solve poker. They solve a model of it.
+
+## Abstraction
+
+**Abstraction** means replacing the game with a smaller one that keeps what matters.
+
+**Betting abstraction.** You choose the allowed sizes at each node, such as a third of the pot, three quarters, and all-in. The solver cannot use a size you did not give it. This is the biggest simplification and the one you control.
+
+**Scope.** Most study is done on **one flop at a time**, starting from the flop with preflop ranges supplied by you. Preflop is solved separately, with its own simplifications.
+
+**Card abstraction.** Larger solves group similar hands or similar runouts together. Suit isomorphism is the harmless version: boards that differ only by renaming suits are the same problem.
+
+Each simplification has a price. A tree with only small bets cannot discover that an overbet is best. Ranges that are too tight or too wide give an answer for a spot that does not occur. The output is exactly as good as the model.
+
+## One iteration
+
+Each pass of CFR does what you saw in Kuhn poker, at every node of the tree.
+
+1. Walk the tree with the current strategies.
+2. At each decision, for each hand, compute the value of each action and how it compares with the current mix.
+3. Add the differences to the running regrets.
+4. Set the next strategy from positive regrets.
+5. Keep the average.
+
+Thousands of iterations later, the average strategy is close to an equilibrium of the model.
+
+<Live title="The loop, small enough to watch">
+  <KuhnLab />
+</Live>
+
+## Exploitability, again
+
+A solver stops when exploitability drops below a target, usually given as a percentage of the pot. Read that number with two cautions.
+
+- It is measured **inside the model**. The best response is limited to the same bet sizes. Low exploitability does not mean a human with other sizes cannot do better.
+- It is an average over the whole tree. Rare lines deep in the tree are solved less accurately than common ones, since they are visited with little weight.
+
+## What the output is
+
+A solve gives you, at every node, a strategy grid and an EV for each hand. It is tempting to treat this as an answer key. Three reasons not to:
+
+1. **You will not face that exact spot again.** Change the stack by ten blinds or one card in a range and the frequencies shift.
+2. **Your opponents do not play the other side of it.** The solver's strategy is a best response to a perfect opponent. Against a real one, other plays earn more.
+3. **Nobody can memorize it.** A single flop has thousands of nodes.
+
+## How to study with one
+
+Use the solver to learn why, then carry the why.
+
+- **Ask aggregate questions first.** How often does each player bet on this flop, and at what size? Which player has the range and nut advantage? This connects to Module 4.
+- **Compare boards.** Run several flops of one type and several of another. The pattern across boards is the lesson.
+- **Look at which hands do what.** What do the bluffs have in common? Usually blockers and backdoor equity. What do the checked strong hands have in common?
+- **Change one input and re-solve.** Remove a bet size, widen a range, shorten the stacks. What moves tells you what the strategy depended on.
+- **Check the EV difference.** If two actions differ by a hundredth of a big blind, the choice is a detail. If they differ by a big blind, it is a principle.
+- **Then lock a leak.** The next lesson covers forcing one player to make a known mistake and seeing how the other should respond.
+
+The tools on this site are deliberately small: a toy river game, Kuhn poker, heads-up push or fold, and exact range equities. They are the pieces a full solver is made of, and they are small enough that you can check every number.
+
+<Remember>
+
+- A solver finds an approximate equilibrium of a simplified game tree
+- You choose the abstraction: bet sizes, ranges, stacks. The output answers that model only
+- CFR adjusts toward regretted actions and reports the average strategy
+- Exploitability is measured inside the model
+- Study patterns, comparisons and reasons, not frequencies
+- Change one input at a time to see what the strategy depends on
+
+</Remember>
+
+<Mistakes>
+
+- Treating solver output as the answer to real poker
+- Feeding in unrealistic ranges and trusting the result
+- Memorizing grids for one board
+- Copying a balanced strategy against an opponent with large, obvious leaks
+
+</Mistakes>

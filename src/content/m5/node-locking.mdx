@@ -1,0 +1,142 @@
+import { evBluff, evCall } from '@/engine/ev';
+import { alpha, bluffFraction, mdf } from '@/engine/theory';
+import { pct, num, signed } from '@/lib/format';
+
+export const valueEv = (callFreq, bet) => 1 + callFreq * bet;
+
+export const quiz = [
+  {
+    q: 'What is node locking?',
+    choices: ['Saving a solver file', 'Fixing one player\'s strategy at a point in the tree to a chosen, usually imperfect, strategy and re-solving the rest', 'Blocking a card', 'Limiting bet sizes'],
+    answer: 1,
+    why: 'The solver then computes how both players should play everywhere else given that the locked decision cannot change.',
+  },
+  {
+    q: 'An opponent calls pot-sized river bets 70% of the time instead of 50%. What is the best adjustment?',
+    choices: ['Bluff more', 'Stop bluffing and value bet thinner', 'No change', 'Bet smaller with everything'],
+    answer: 1,
+    why: `Each bluff now loses ${Math.abs(evBluff(1, 1, 0.3)).toFixed(1)} pots on average. Each value bet earns more, so hands that were too thin to bet become bets.`,
+  },
+  {
+    q: 'An opponent never bluffs the river. What should you do with bluff catchers?',
+    choices: ['Call at MDF', 'Fold all of them', 'Raise', 'Call half'],
+    answer: 1,
+    why: 'A bluff catcher only beats bluffs. With none in their range it has zero equity when called, and the minimum defense frequency no longer applies.',
+  },
+  {
+    q: 'Why do exploits in one spot change the right play in earlier spots?',
+    choices: ['They do not', 'Because the value of reaching a spot changes when the play there changes', 'Because of the rake', 'Because cards change'],
+    answer: 1,
+    why: 'If rivers are over-folded, bluffing lines become more valuable on the turn and flop too, since those lines lead to a profitable river.',
+  },
+  {
+    q: 'What is the main risk when exploiting population tendencies?',
+    choices: ['None', 'The particular opponent may not share the tendency, and your adjusted strategy is itself exploitable', 'It is illegal', 'It takes too long'],
+    answer: 1,
+    why: 'A population read is an average. Update it for the player in front of you as evidence arrives.',
+  },
+];
+
+<Objectives>
+
+- Explain what node locking does and why it is the bridge from theory to practice
+- Compute the best response to a specific frequency leak
+- Follow how an exploit spreads to earlier streets
+- List common population tendencies and the adjustment for each
+
+</Objectives>
+
+## From the perfect opponent to the real one
+
+An equilibrium tells you how to play against someone who makes no mistakes. Real opponents make the same few mistakes over and over. To profit from them you need to know two things: what the mistake is, and what the best response to it looks like.
+
+**Node locking** answers the second. You take a solved spot, fix one decision for one player to what real people do, and re-solve everything else. The solver is now finding the best response to an imperfect opponent, and its recommendations often change a great deal.
+
+You can do the essential arithmetic by hand, because you already have the formulas.
+
+## Locking the caller
+
+Take the pot-sized river bet. At equilibrium the defender calls {pct(mdf(1, 1), 0)} and the bettor's air is indifferent.
+
+<DataTable
+  head={['Caller calls', 'EV of a bluff', 'EV of a nut value bet', 'Best response']}
+  rows={[0.3, 0.4, 0.5, 0.6, 0.7].map((c) => [pct(c, 0), signed(evBluff(1, 1, 1 - c), 2), num(valueEv(c, 1), 2), c < 0.5 ? 'Bluff all air, value bet only strong hands' : c > 0.5 ? 'Never bluff, value bet thinner' : 'Balanced'])}
+  caption="In pots. Bluff EV = fold% × pot − call% × bet. Value EV = pot + call% × bet."
+/>
+
+Two things move at once.
+
+**Against an over-folder**, bluffs print money, so every hand with no showdown value becomes a bluff. Your value range should tighten or stay the same, since you are paid less often.
+
+**Against an over-caller**, bluffs lose, so you stop. Value bets earn more, so you bet hands you would have checked. The thin value bet is the main weapon against players who call too much.
+
+<Live title="Move the fold frequency and watch the sign change">
+  <BluffEV />
+</Live>
+
+## Locking the bettor
+
+Now lock the other side. At equilibrium a pot-sized river bet is {pct(bluffFraction(1, 1), 0)} bluffs, and a bluff catcher is indifferent.
+
+<DataTable
+  head={['Their bets are bluffs', 'EV of calling with a bluff catcher', 'Best response']}
+  rows={[0.1, 0.2, 1 / 3, 0.45, 0.6].map((b) => [pct(b, 0), signed(evCall(2, 1, b), 2), b < 0.33 ? 'Fold every bluff catcher' : b > 0.34 ? 'Call every bluff catcher' : 'Indifferent'])}
+  caption="In pots, pot-sized bet. EV = bluff% × 2 − (1 − bluff%) × 1."
+/>
+
+Against an under-bluffer, MDF is the wrong guide. It was derived for a balanced bettor. If the bluffs are not there, folding more than MDF is correct, and the more they under-bluff, the closer you get to folding everything that cannot beat a value bet.
+
+## Exploits travel backward
+
+A change at one node changes the value of every path leading to it.
+
+Suppose a population folds too much to river bets after calling the flop and turn. Then:
+
+- River bluffs are profitable, as above.
+- So **turn bets** with hands that will bluff the river become more profitable, since they lead to a good river spot.
+- So does the **flop bet** that starts the line.
+
+The reverse holds too. If opponents call rivers too much, three-street bluffs lose at the end, and you should bluff less on the earlier streets, keeping only bluffs with real equity. A solver with a locked node recomputes all of this at once. By hand, the rule is to follow the money back up the tree.
+
+There is a second effect on the opponent's side. If a player never check-raises the flop, their checking and calling range is uncapped in theory but in practice their strong hands are all in the calling range. That changes how you should size later bets against it.
+
+## Common population tendencies
+
+These patterns are widely observed in low and middle stakes games. Treat them as starting assumptions to be confirmed, not facts about any one player.
+
+| Tendency | Best response |
+|---|---|
+| Calls too much before the flop | Open and 3-bet for value more, bluff less preflop, bet bigger |
+| Folds too much to 3-bets | 3-bet bluff more with blocker hands |
+| Folds too much to flop bets | Bet small with the whole range more often |
+| Rarely check-raises | Bet thinner and more often, since bets are seldom punished |
+| Calls flop and turn too wide, folds river to big bets | Barrel three streets with bluffs |
+| Calls rivers too much | Stop river bluffs, value bet thin |
+| Bluffs rivers too little, especially with raises | Fold bluff catchers to big bets and raises |
+| Bets big only with strong hands | Fold more to big bets, call small ones wider |
+
+## Limits
+
+- **Sample size.** A frequency read needs many observations. Ten hands tell you little, as the variance lesson showed.
+- **Individuals differ.** The population is an average of tight players and loose ones.
+- **You become exploitable.** Never bluffing against a caller is right until the caller notices and starts folding. Against opponents who adapt, move back toward balance.
+- **Start small.** A read supports a shift in the direction of the exploit. The size of the shift should match how sure you are.
+
+<Remember>
+
+- Node locking fixes one decision to a realistic strategy and solves the best response around it
+- Over-folder: bluff more. Over-caller: stop bluffing and value bet thinner
+- Under-bluffer: fold bluff catchers, ignoring MDF
+- An exploit on a late street changes the value of the earlier bets that lead there
+- Population reads are a starting point. Confirm them, and expect opponents to adapt
+
+</Remember>
+
+<Mistakes>
+
+- Bluffing a calling station because theory says to bluff
+- Calling at MDF against players who never bluff
+- Exploiting hard on a tiny sample
+- Adjusting one street and forgetting the streets before it
+
+</Mistakes>

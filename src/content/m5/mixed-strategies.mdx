@@ -1,0 +1,124 @@
+import { evBluff } from '@/engine/ev';
+import { pct, num, signed } from '@/lib/format';
+
+export const quiz = [
+  {
+    q: 'What is a mixed strategy?',
+    choices: ['Playing different games', 'Taking different actions with the same hand in the same spot, at set frequencies', 'Changing seats', 'Playing loose then tight'],
+    answer: 1,
+    why: 'For example calling 60% and folding 40% with one specific hand. The frequencies are part of the strategy.',
+  },
+  {
+    q: 'When a solver mixes two actions with a hand, what is true of their EVs at equilibrium?',
+    choices: ['The more frequent action has higher EV', 'They are exactly equal', 'They are unrelated', 'The less frequent action has higher EV'],
+    answer: 1,
+    why: 'If one were better, the solver would play it every time. A mix is only possible when the hand is indifferent.',
+  },
+  {
+    q: 'If a hand is indifferent between calling and folding, what do you lose by always folding it against an opponent playing the equilibrium?',
+    choices: ['A lot', 'Nothing directly with that hand. The cost only appears if the opponent adjusts', 'The whole pot', 'Half the pot'],
+    answer: 1,
+    why: 'Both actions have the same EV against the equilibrium. The frequency matters for what it does to the opponent\'s incentives, not for this hand\'s payoff.',
+  },
+  {
+    q: 'In the push/fold solver, which hands are played at mixed frequencies?',
+    choices: ['The strongest hands', 'A few hands right at the edge of the range', 'Every hand', 'None'],
+    answer: 1,
+    why: 'Hands well inside the range always jam and hands well outside always fold. Only the boundary hands are close to indifferent.',
+  },
+  {
+    q: 'What is a practical way to simplify a mixed strategy at the table?',
+    choices: ['Ignore it', 'Split by a property of the hand, such as suits or blockers, so the overall frequency is about right', 'Always take the more passive action', 'Flip a coin in view of the table'],
+    answer: 1,
+    why: 'Choosing which combos take which action by a fixed rule approximates the frequency without needing a random number, and the rule can favor the combos with better blockers.',
+  },
+];
+
+<Objectives>
+
+- Explain why equilibrium strategies are often mixed
+- Tell which hands mix and why most do not
+- Judge when exact frequencies matter and when they do not
+- Turn a mixed strategy into something playable
+
+</Objectives>
+
+## Same hand, same spot, different actions
+
+A **pure** strategy always does the same thing with a given hand in a given situation. A **mixed** strategy randomizes: this hand bets 30% of the time and checks 70%.
+
+Solver outputs are full of mixes, and they put people off. A grid where half the cells are split two or three ways looks impossible to play. It helps to understand why the mixes are there, because that tells you which ones matter.
+
+## Why mix at all
+
+You saw it in the toy game. If the air always bluffs, the caller always calls. If it never bluffs, the caller always folds. No pure strategy survives being known. The only stable answer is a frequency, set so that the opponent gains nothing by adjusting.
+
+The mix has one job: to control the opponent's incentives. It is about the range, not the hand. In the toy game the bettor needed a certain number of bluffs in total. Which particular air hands supplied them did not matter.
+
+## Which hands mix
+
+A hand is mixed only when it is **indifferent**: both actions have the same EV. That is a narrow condition, so in any spot most hands are pure.
+
+- Hands clearly good enough always take the aggressive action.
+- Hands clearly too weak never do.
+- A band of hands at the boundary is close to indifferent and makes up the difference.
+
+The push/fold solver shows this cleanly. Solve any stack size and look for the partly filled cells.
+
+<Live title="Find the mixed hands">
+  <PushFoldTool initial={{ stack: 12 }} />
+</Live>
+
+Out of 169 hands, only a few carry a number. Everything else is always or never. Move the stack by half a big blind and the mixed hands change, because the boundary has moved.
+
+In bigger games there is a second source of mixing. A hand can be indifferent between two bet sizes, or between betting and checking, because the range needs some of each. Strong hands are split between betting and checking so that the checking range is not defenseless.
+
+## How much the frequencies matter
+
+Here is the part that makes mixed strategies livable.
+
+**Against an equilibrium opponent, the choice does not affect the hand's EV.** That is what indifferent means. If the solver calls 60% and folds 40%, then calling always, folding always and anything between all earn the same with that hand.
+
+So where is the cost of getting it wrong? It appears only if the opponent notices and adjusts. If you never bluff in a spot where the equilibrium bluffs a third of the time, a perfect opponent folds every bluff catcher and your value bets earn less. Against an opponent who is not adjusting, the cost is zero.
+
+And if the opponent is not at equilibrium, the hand is usually not indifferent at all. One action is strictly better.
+
+<DataTable
+  head={['Opponent folds to a pot-sized river bet', 'EV of bluffing', 'What a mixed 33% bluff earns', 'What the best pure play earns']}
+  rows={[0.4, 0.5, 0.6].map((f) => { const ev = evBluff(1, 1, f); return [pct(f, 0), signed(ev, 2), signed(ev / 3, 3), signed(Math.max(0, ev), 2)]; })}
+  caption="In pots, for a hand with no showdown value. At 50% the hand is indifferent and every frequency earns the same."
+/>
+
+Away from the 50% line, the mix is worse than choosing the better action every time. Mixing is the right answer to an opponent who plays perfectly, and a hedge when you do not know which way they lean.
+
+## Making it playable
+
+Nobody rolls dice for every decision. Three practical tools:
+
+**Round to pure.** If a hand is 85% bet and 15% check, bet it. The loss is negligible against anyone, and you remove a decision.
+
+**Split by a property of the hand.** To bluff half of some hand class, bluff the combos with one feature and give up with the others. Choose the feature so the bluffing half has the better blockers. Many players split by suit: this pair of suits bets, that pair checks.
+
+**Randomize with something neutral** when it matters, such as the second hand on a clock or the suit of a specific card. This is for close, high-stakes spots against observant opponents.
+
+Most important is to carry the reason rather than the number. Remembering that a spot needs some bluffs with good blockers and some strong hands in the checking range is worth more than memorizing 37%.
+
+<Remember>
+
+- A mixed strategy plays one hand more than one way at set frequencies
+- Mixing exists to keep the opponent indifferent. It is a property of the range
+- Only indifferent hands mix. Most hands are pure
+- Against equilibrium, any frequency with an indifferent hand earns the same
+- Against a leak, pick the better action every time
+- Simplify by rounding, or by splitting combos on suits and blockers
+
+</Remember>
+
+<Mistakes>
+
+- Trying to memorize frequencies to the percent
+- Mixing against an opponent with an obvious leak
+- Believing a 60/40 mix means the 60% action is better
+- Using a visible or patterned way to randomize
+
+</Mistakes>

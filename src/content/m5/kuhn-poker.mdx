@@ -1,0 +1,145 @@
+import { solveKuhn, kuhnValue, kuhnExploitability } from '@/engine/cfr/kuhn';
+import { pct, num } from '@/lib/format';
+
+export const r = solveKuhn(20000, true);
+export const s = r.final.strategy;
+export const early = r.snapshots.find((x) => x.iteration >= 10);
+
+export const quiz = [
+  {
+    q: 'How many cards are in the Kuhn poker deck?',
+    numeric: 3,
+    tolerance: 0,
+    why: 'Jack, queen and king. Each player gets one, so one card is always unseen.',
+  },
+  {
+    q: 'What is the value of Kuhn poker for the first player?',
+    choices: ['+1/18', '0', '-1/18', '-1/2'],
+    answer: 2,
+    why: 'The first player loses 1/18 of a chip per hand at equilibrium. Acting second is an advantage even in a three-card game.',
+  },
+  {
+    q: 'At equilibrium, what does the first player do with the queen?',
+    choices: ['Always bets', 'Never bets first', 'Bets half the time', 'Folds before acting'],
+    answer: 1,
+    why: 'The queen is a pure bluff catcher. Betting it folds out the jack and gets called only by the king.',
+  },
+  {
+    q: 'Facing a bet, how often does the second player call with the queen?',
+    choices: ['Never', 'About one time in three', 'Half the time', 'Always'],
+    answer: 1,
+    why: 'The pot is 2 and the bet is 1, so the caller needs 1/4 equity. Calling the king always and the queen one third makes the first player\'s jack bluff break even.',
+  },
+  {
+    q: 'What is regret, in counterfactual regret minimization?',
+    choices: ['The chips lost in a hand', 'How much better an action would have done than the strategy actually played, summed over iterations', 'The opponent\'s winnings', 'The rake'],
+    answer: 1,
+    why: 'CFR keeps a running total for each action at each decision point and plays actions in proportion to their positive regret.',
+  },
+  {
+    q: 'Which strategy from a CFR run converges to equilibrium?',
+    choices: ['The strategy on the final iteration', 'The average of the strategies over all iterations', 'The first strategy', 'None of them'],
+    answer: 1,
+    why: 'The current strategy keeps swinging. The time average is what settles, and it is what solvers report.',
+  },
+];
+
+<Objectives>
+
+- State the rules of Kuhn poker and why it is studied
+- Read its equilibrium and explain each part by indifference
+- Describe what CFR does on each iteration
+- Use exploitability to judge how close a strategy is to equilibrium
+
+</Objectives>
+
+## Poker with three cards
+
+Kuhn poker is the smallest game that still has bluffing, value betting and bluff catching. It is small enough to solve completely, and the method that solves it is the same one that solves Hold'em.
+
+**Rules.**
+
+- The deck is a jack, a queen and a king. Each player antes 1 and gets one card.
+- Player 1 checks or bets 1.
+- If player 1 bets, player 2 calls or folds.
+- If player 1 checks, player 2 checks (showdown) or bets 1, and then player 1 calls or folds.
+- Higher card wins at showdown.
+
+Each player has six situations to plan for: three possible cards at each of two decision points. A strategy is twelve numbers in all.
+
+## The equilibrium, and why
+
+The solver's answer after {r.iterations.toLocaleString('en-US')} iterations:
+
+<DataTable
+  head={['Situation', 'Jack', 'Queen', 'King']}
+  rows={[
+    ['Player 1 bets first', pct(s.J, 0), pct(s.Q, 0), pct(s.K, 0)],
+    ['Player 1 calls after checking', pct(s.Jpb, 0), pct(s.Qpb, 0), pct(s.Kpb, 0)],
+    ['Player 2 bets when checked to', pct(s.Jp, 0), pct(s.Qp, 0), pct(s.Kp, 0)],
+    ['Player 2 calls a bet', pct(s.Jb, 0), pct(s.Qb, 0), pct(s.Kb, 0)],
+  ]}
+  caption={`Average strategy from CFR+. Exploitability ${num(r.final.exploitability, 5)} chips per hand, value for player 1 ${num(r.final.value, 4)} (theory: −1/18 = −0.0556).`}
+/>
+
+Every entry has a reason you already know.
+
+- **The king** is the nuts. Player 2 always bets it and always calls with it.
+- **The jack** is air. It never calls. It bluffs some of the time.
+- **The queen** is the bluff catcher. It never bets, because a bet folds out the jack and is called only by the king. It calls some of the time.
+
+The mixed frequencies come from indifference. When player 2 faces a bet, the pot is 2 and the bet is 1. A bluff must work 1/3 of the time, so player 2 calls 2/3 of the hands it can hold, weighted correctly: the king always and the queen about a third. When player 2 bets after a check, the balanced bluff share at this price is bet / (pot + 2 × bet) = 1/4 of its bets. That is one bluff for every three value bets, so with the king always betting, the jack bluffs one time in three. That ratio leaves player 1's queen indifferent between calling and folding.
+
+Player 1's strategy is not unique. There is a family of equilibria: player 1 may bluff the jack with any frequency up to one third, as long as it bets the king three times as often. The solver lands on one member of the family. Here the jack bets {pct(s.J, 0)} and the king {pct(s.K, 0)}.
+
+## How CFR finds it
+
+**Counterfactual regret minimization** starts knowing nothing and improves by self-play.
+
+1. Begin with every action equally likely everywhere.
+2. Play the game against yourself, covering every deal.
+3. At each decision point, for each action, compute how much better or worse that action would have done than the mix you used. Add that to the action's running total, its **regret**.
+4. Set the next strategy in proportion to positive regret. Actions you wish you had taken more get played more.
+5. Repeat, and keep the **average** strategy over all iterations.
+
+The strategy of any single iteration keeps oscillating: bluff too much, get called, bluff too little, get folded to. The average of those swings is what converges to equilibrium. That is a theorem for two-player zero-sum games, and you can watch it below.
+
+After ten iterations the average strategy can still be exploited for {num(early.exploitability, 3)} chips a hand. By the end it is {num(r.final.exploitability, 5)}.
+
+<Live title="Run the solver and scrub through time">
+  <KuhnLab />
+</Live>
+
+Drag the second slider from left to right. Early on the bars lurch. Later they barely move. Switch to CFR+ and compare how fast the exploitability line falls.
+
+## Exploitability
+
+How do you know a strategy is close to equilibrium without knowing the equilibrium? Compute each player's **best response** to it, the strategy that would beat it by the most, and add up what the two best responses gain. That total is the exploitability.
+
+- At equilibrium it is zero: nobody can gain.
+- A positive value is the size of the mistake, in chips per hand.
+
+In Kuhn poker each player has only 64 pure strategies, so the lab tries all of them. Hold'em solvers use the same idea with a more efficient best-response pass, and they report the result as a percentage of the pot. A solution with exploitability under about half a percent of the pot is considered good enough for study.
+
+## From three cards to fifty-two
+
+Nothing in CFR depends on the game being small. Hold'em has more decision points than can be stored, so practical solvers shrink it first: a few bet sizes instead of every size, and one street or one flop at a time. The next lessons cover what those simplifications cost.
+
+<Remember>
+
+- Kuhn poker: three cards, one bet, and the same strategic roles as real poker
+- King is value, jack is the bluff, queen is the bluff catcher
+- Player 1 bets the king three times as often as it bluffs the jack. The game is worth −1/18 to player 1
+- CFR plays in proportion to accumulated regret and reports the average strategy
+- Exploitability is what best responses would gain. Zero means equilibrium
+
+</Remember>
+
+<Mistakes>
+
+- Reading the last iteration's strategy instead of the average
+- Expecting a unique answer. Many games have a family of equilibria with the same value
+- Thinking the solver was told to bluff. Bluffing emerges from regret alone
+- Treating low exploitability in a simplified game as proof about the full game
+
+</Mistakes>
