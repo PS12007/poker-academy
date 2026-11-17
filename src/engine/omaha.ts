@@ -1,4 +1,5 @@
 import { evaluate5 } from './evaluator5';
+import { categoryOf } from './evalCore';
 
 /**
  * Omaha evaluation: the best hand using EXACTLY two hole cards and EXACTLY
@@ -51,4 +52,21 @@ export function bestOmaha(hole: readonly number[], board: readonly number[]): Om
     }
   }
   return { rank: best, hole: [bh0, bh1], board: [bb0, bb1, bb2] };
+}
+
+/**
+ * Omaha outs: unseen cards after which the hand (two hole cards plus three
+ * board cards) reaches at least `minCategory` (4 = straight) and improves.
+ */
+export function omahaOuts(hole: readonly number[], board: readonly number[], minCategory = 4): number[] {
+  if (board.length < 3 || board.length > 4) throw new Error('Omaha outs need a flop or a turn');
+  const used = new Set([...hole, ...board]);
+  const now = evaluateOmaha(hole, board);
+  const out: number[] = [];
+  for (let c = 0; c < 52; c++) {
+    if (used.has(c)) continue;
+    const r = evaluateOmaha(hole, [...board, c]);
+    if (r > now && categoryOf(r) >= minCategory) out.push(c);
+  }
+  return out;
 }

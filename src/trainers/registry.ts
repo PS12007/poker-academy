@@ -20,7 +20,7 @@ export const DRILLS: DrillMeta[] = [
   { id: 'mdf', serial: 'D-07', title: 'MDF and alpha', track: "Hold'em", blurb: 'Rapid-fire bet sizes. Defend how often? Bluff how often?', component: lazyRetry(() => import('./MdfDrill')) },
   { id: 'replayer', serial: 'D-08', title: 'Hand replayer', track: "Hold'em", blurb: 'Original hands street by street with a decision at each key point.', component: lazyRetry(() => import('./HandReplayer')) },
   { id: 'icm', serial: 'D-09', title: 'ICM spots', track: 'Tournaments', blurb: 'Call or fold a shove on the bubble, with the ICM math shown after.', component: lazyRetry(() => import('./IcmDrill')) },
-  { id: 'plo', serial: 'D-10', title: 'Omaha hand reading', track: 'Omaha', blurb: 'Find the real best hand under the two-card rule, and count wrap outs.' },
+  { id: 'plo', serial: 'D-10', title: 'Omaha hand reading', track: 'Omaha', blurb: 'Find the real best hand under the two-card rule, and count wrap outs.', component: lazyRetry(() => import('./PloDrill')) },
 ];
 
 export const findDrill = (id: string) => DRILLS.find((d) => d.id === id);
