@@ -1,0 +1,139 @@
+import { solveRiverToyGame } from '@/engine/theory';
+import { pct, num } from '@/lib/format';
+
+export const g = (bet, v) => solveRiverToyGame(100, bet, v);
+export const base = g(100, 0.5);
+export const heavy = g(100, 0.8);
+
+export const quiz = [
+  {
+    q: 'In the toy game with a pot of 100, a bet of 100 and a bettor holding the nuts half the time, what fraction of the air should bluff?',
+    numeric: Math.round(base.bluffFreqOfAir * 1000) / 10,
+    tolerance: 1,
+    unit: '%',
+    why: 'One bluff for every two value bets at a pot-sized bet. Value is 50% of the range, so bluffs are 25% of the range, which is half of the air.',
+  },
+  {
+    q: 'In the same game, how often does the bluff catcher call?',
+    numeric: Math.round(base.callFreq * 1000) / 10,
+    tolerance: 1,
+    unit: '%',
+    why: 'pot / (pot + bet) = 100 / 200 = 50%, the frequency that makes bluffing and giving up equal for the air.',
+  },
+  {
+    q: 'What is the bettor\'s EV in that game, with the pot at 100?',
+    numeric: Math.round(base.bettorEV * 10) / 10,
+    tolerance: 1,
+    why: 'Value hands win the pot plus the bet half the time they are called: 0.5 x (100 + 0.5 x 100) = 75. Bluffs and checked air earn zero.',
+  },
+  {
+    q: 'What is the caller\'s EV in the same game?',
+    choices: ['25', '50', '0', '75'],
+    answer: 0,
+    why: 'The pot is 100 and the bettor captures 75, so the caller keeps 25. Before any betting, the caller would have won 50 by showdown. Position and polarization took half of it.',
+  },
+  {
+    q: 'If the bettor holds the nuts 80% of the time and bets the pot, what does the caller do?',
+    choices: ['Call always', 'Call half the time', 'Fold always', 'Raise'],
+    answer: 2,
+    why: `There is not enough air to reach one bluff per two value bets. Even betting everything, bluffs are only ${(heavy.bluffShare * 100).toFixed(0)}% of bets, below the 33% the caller needs. Folding is strictly better.`,
+  },
+  {
+    q: 'In this game, how does the bettor\'s EV change as the bet size grows?',
+    choices: ['It falls', 'It rises toward the whole pot', 'It stays the same', 'It rises then falls'],
+    answer: 1,
+    why: 'Larger bets let the bettor include more bluffs and win more when called. In the limit the caller keeps nothing. Stack sizes are what stop this in a real game.',
+  },
+];
+
+<Objectives>
+
+- Set up the polarized river game and state its assumptions
+- Solve it by indifference for any bet size and range composition
+- Compute each player's EV at the solution
+- Explain why polarized ranges prefer large bets and what limits them
+
+</Objectives>
+
+## The simplest game that contains a bluff
+
+Real poker is too large to solve by hand. This game is small enough, and it contains the central mechanism.
+
+**Setup.** It is the river. The pot is 100.
+
+- The **bettor** holds either the nuts or air. Say the nuts 50% of the time.
+- The **caller** holds one hand, a bluff catcher: it beats the air and loses to the nuts.
+- The bettor may bet 100 or check. The caller may call or fold. No raising.
+
+If nobody bets, the hands are shown: the bettor wins 100 half the time, so each player's share is 50.
+
+## Solving it
+
+**Step 1: the nuts always bet.** Betting can only win more.
+
+**Step 2: the air cannot always bluff or never bluff.** If it always bluffed, half the bets would be bluffs and the caller would call every time, which makes bluffing a loser. If it never bluffed, the caller would fold every time, which makes bluffing a winner. So the air bluffs some of the time, and must be indifferent.
+
+**Step 3: the caller makes the air indifferent.** From the last lesson, a bluff breaks even when the caller calls pot / (pot + bet) = {pct(base.callFreq, 0)} of the time.
+
+**Step 4: the bettor makes the caller indifferent.** Bluffs must be bet / (pot + 2 × bet) = {pct(base.bluffShare)} of all bets. That is one bluff for every two value bets. With the nuts 50% of the range, bluffs are 25% of the range: {pct(base.bluffFreqOfAir, 0)} of the air bluffs.
+
+**Step 5: the EVs.**
+
+<Working steps={[
+  { label: 'Nuts (50% of the time): win the pot, plus the bet when called', expr: '0.5 × (100 + 0.5 × 100)', result: num(base.bettorEV, 0) },
+  { label: 'Air that bluffs: indifferent, EV zero', expr: '0.5 × 100 − 0.5 × 100', result: '0' },
+  { label: 'Air that checks: loses the showdown', expr: '', result: '0' },
+  { label: 'Bettor total', expr: '', result: num(base.bettorEV, 0) },
+  { label: 'Caller gets the rest of the pot', expr: `100 − ${num(base.bettorEV, 0)}`, result: num(100 - base.bettorEV, 0) },
+]} />
+
+Without betting, each side had 50. With it, the bettor has {num(base.bettorEV, 0)} and the caller {num(100 - base.bettorEV, 0)}. The caller cannot do better: calling more just pays off the nuts more, and folding more gives the air free money.
+
+<Live title="Change the bet and the range">
+  <RiverToyGame />
+</Live>
+
+## What the sliders show
+
+**Bigger bets earn more.** Slide the bet up with the range at 50/50.
+
+<DataTable
+  head={['Bet', 'Air that bluffs', 'Caller calls', 'Bettor EV', 'Caller EV']}
+  rows={[25, 50, 100, 200, 300].map((b) => { const r = g(b, 0.5); return [`${b}`, pct(r.bluffFreqOfAir, 0), pct(r.callFreq, 0), num(r.bettorEV, 1), num(100 - r.bettorEV, 1)]; })}
+  caption="Pot 100, bettor holds the nuts half the time. Solved by the engine."
+/>
+
+A polarized range wants to bet as much as it can. Each increase lets it bluff more hands and get paid more by the calls it does receive. In this toy game the only limit is the bettor running out of air to bluff with. In a real game the limits are the stacks, and the fact that real value hands are not the pure nuts: bet too big and only better hands call.
+
+**Too much value means no calls.** Set the nuts to 80%. One bluff per two value bets would need 40% of the range as bluffs, and only 20% is air. The bettor bets everything, bluffs are {pct(heavy.bluffShare, 0)} of bets, and the caller folds every time. The bettor wins exactly the pot.
+
+**More air helps the bettor less than you think.** Lower the nuts to 20%. The bettor bluffs only a small part of its air and gives up with the rest. A range that is mostly air cannot bluff its way to a profit against a caller who defends correctly.
+
+## What carries over to real poker
+
+- **The polarized player has the advantage.** Holding the nuts or nothing against a range of medium hands is worth more than the hands themselves.
+- **Bluff catchers lose value against polarized bets.** A hand worth half the pot at showdown is worth much less facing a balanced bet.
+- **Bluffs make value bets profitable.** With no bluffs the caller folds and the nuts win only the pot.
+- **The caller's exact hand does not matter.** Any bluff catcher is the same hand. This is why solvers choose which ones to call with by blockers.
+
+The game leaves out raising, draws, and ranges with medium-strength hands on both sides. Those are what make real poker hard. The mechanism of indifference stays the same.
+
+<Remember>
+
+- Polarized bettor against a bluff catcher: the nuts always bet, some air bluffs
+- Caller calls pot / (pot + bet). Bluffs are bet / (pot + 2 × bet) of all bets
+- At a pot-sized bet: one bluff per two value bets, caller calls half
+- The bettor's EV exceeds its showdown share, and grows with bet size
+- With too little air to balance, the caller folds everything
+- Bluffs are what get value bets paid
+
+</Remember>
+
+<Mistakes>
+
+- Bluffing all of your air because bluffing is part of the game
+- Calling a bluff catcher always, or never, against a balanced range
+- Betting small with a polarized range
+- Forgetting that real value hands are not the nuts, which caps the size
+
+</Mistakes>

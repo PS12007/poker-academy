@@ -14,7 +14,7 @@ The original spec's phases are reordered so that everything Hold'em ships before
 | 3 | App shell, design system, card and range components, Equity / Range / Outs / Pot odds tools, progress store | done |
 | 4 | MDX pipeline, Modules 1 and 2, quizzes, glossary, cheat sheets, Hand ranking / Outs / Pot odds trainers | done |
 | 5 | Modules 3 and 4, range heatmap, Combo and Equity estimation trainers, hand replayer | done |
-| 6 | Theory functions, river toy game, Kuhn CFR lab, push/fold Nash solver, Module 5, MDF trainer | |
+| 6 | Theory functions, river toy game, Kuhn CFR lab, push/fold Nash solver, Module 5, MDF trainer | in progress: Module 5 lessons 4 to 7 remain |
 | 7 | Tournaments (Hold'em): ICM calculator, Module 6, ICM trainer | |
 | 8 | Bankroll and mental game: variance simulator, Module 8, spaced repetition, placement quiz, dashboard, search, notes | |
 | 9 | PLO: Module 7, PLO equity, pot-limit calculator, PLO trainer | |

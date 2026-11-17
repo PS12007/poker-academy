@@ -1,0 +1,149 @@
+import { mdf, alpha, bluffFraction } from '@/engine/theory';
+import { potOdds, evBluff, evCall } from '@/engine/ev';
+import { pct, num, signed } from '@/lib/format';
+
+export const quiz = [
+  {
+    q: 'What does it mean to make an opponent indifferent?',
+    choices: ['To make them not care about the game', 'To play so that two of their options have exactly the same EV', 'To make them fold', 'To bet the minimum'],
+    answer: 1,
+    why: 'When two options are worth the same, the opponent cannot gain by choosing between them, so they cannot exploit you there.',
+  },
+  {
+    q: 'The pot is 100 and the bet is 50. What is the minimum defense frequency?',
+    numeric: Math.round(mdf(100, 50) * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: 'pot / (pot + bet) = 100 / 150 = 66.7%.',
+  },
+  {
+    q: 'The pot is 100 and the bet is 50. What is alpha?',
+    numeric: Math.round(alpha(100, 50) * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: 'bet / (pot + bet) = 50 / 150 = 33.3%. MDF and alpha always add to 100%.',
+  },
+  {
+    q: 'Whose indifference does the minimum defense frequency create?',
+    choices: ['The defender\'s', 'The bettor\'s, between bluffing and giving up with a hand that cannot win', 'Nobody\'s', 'The dealer\'s'],
+    answer: 1,
+    why: 'MDF is the calling frequency at which a pure bluff has an EV of zero, the same as checking a hopeless hand.',
+  },
+  {
+    q: 'On the river, a polarized range bets half the pot. What share of the betting range should be bluffs?',
+    numeric: Math.round(bluffFraction(100, 50) * 1000) / 10,
+    tolerance: 0.6,
+    unit: '%',
+    why: 'bet / (pot + 2 x bet) = 50 / 200 = 25%. It equals the caller\'s pot odds, which is what makes the bluff catcher indifferent.',
+  },
+  {
+    q: 'When does MDF overstate how much you should defend?',
+    choices: ['Never', 'When the bettor\'s bluffs have equity, or the board favors the bettor so strongly that they should win more than their share', 'On the river only', 'When the pot is small'],
+    answer: 1,
+    why: 'MDF assumes a bluff with zero equity and a neutral situation. Before the river bluffs can improve, and on some boards the bettor\'s range advantage entitles them to a profit.',
+  },
+];
+
+<Objectives>
+
+- Explain why equilibrium strategies make the opponent indifferent
+- Derive the minimum defense frequency and alpha
+- Derive the balanced bluffing ratio from the caller's pot odds
+- State the assumptions behind MDF and when it bends
+
+</Objectives>
+
+## Why indifference
+
+In the last lesson a best response was always extreme: bluff every time or never. So how can an equilibrium contain a player who bluffs some of the time?
+
+Only one way. If bluffing were better than checking, the player would always bluff. If worse, never. A hand can be played two ways at equilibrium only if both ways have **exactly the same EV**. The player is indifferent.
+
+And who sets those EVs equal? The opponent. Your calling frequency determines what their bluff is worth. Their bluffing frequency determines what your call is worth. Each side's mix is chosen so the other side has nothing to gain by leaning either way. That is the engine underneath every solver output, and two formulas come straight from it.
+
+## Deriving MDF and alpha
+
+A player bets B into a pot of P with a hand that can never win at showdown. Let the defender fold with probability f.
+
+- If the bluffer gives up, the EV is 0.
+- If they bluff, the EV is f × P − (1 − f) × B.
+
+Indifference means those are equal.
+
+<Working steps={[
+  { label: 'Set the bluff EV to zero', expr: 'f × P − (1 − f) × B = 0', result: '' },
+  { label: 'Collect f', expr: 'f × (P + B) = B', result: '' },
+  { label: 'The fold frequency that makes a bluff break even (alpha)', expr: 'f = B / (P + B)', result: 'α' },
+  { label: 'So the defender must continue (MDF)', expr: '1 − B / (P + B) = P / (P + B)', result: 'MDF' },
+]} />
+
+<Formula name="alpha and minimum defense frequency">α = B / (P + B) &nbsp;&nbsp;&nbsp; MDF = P / (P + B)</Formula>
+
+If the defender folds more often than alpha, any two cards are a profitable bluff. If they fold less, bluffs lose and the bettor should stop. At exactly MDF the bettor's hopeless hands are indifferent.
+
+## Deriving the bluff ratio
+
+Now the other side. On the river the defender holds a bluff catcher: it beats bluffs and loses to value. Let b be the fraction of the betting range that is bluffs.
+
+- If they fold, the EV is 0.
+- If they call, they win P + B when it is a bluff and lose B when it is value.
+
+<Working steps={[
+  { label: 'Set the call EV to zero', expr: 'b × (P + B) − (1 − b) × B = 0', result: '' },
+  { label: 'Collect b', expr: 'b × (P + 2B) = B', result: '' },
+  { label: 'Bluff share of a balanced betting range', expr: 'b = B / (P + 2B)', result: '' },
+]} />
+
+<Formula name="balanced bluff share">bluffs / (bluffs + value) = B / (P + 2B)</Formula>
+
+That is the caller's pot odds. A bluff catcher needs equity equal to its pot odds to break even, its equity is the bluff share, so the balanced bettor bluffs at exactly that rate.
+
+## All four numbers at once
+
+<Live title="Slide the bet size">
+  <BetSizeTheory start={75} />
+</Live>
+
+<DataTable
+  head={['Bet', 'Alpha', 'MDF', 'Bluff share', 'Check: bluff EV at alpha', 'Check: call EV at bluff share']}
+  rows={[0.33, 0.5, 0.75, 1, 2].map((b) => [`${pct(b, 0)} pot`, pct(alpha(1, b)), pct(mdf(1, b)), pct(bluffFraction(1, b)), signed(evBluff(1, b, alpha(1, b)), 3), signed(evCall(1 + b, b, bluffFraction(1, b)), 3)])}
+  caption="The last two columns plug the formulas back into the EV functions. Both come out at zero, which is what indifference means."
+/>
+
+Two patterns to carry forward. Larger bets let the defender fold more, and they let the bettor bluff more. A double-pot bet is {pct(bluffFraction(1, 2), 0)} bluffs when balanced, and the defender still only has to call {pct(mdf(1, 2), 0)} of the time.
+
+## What MDF assumes
+
+The derivation made three assumptions. Each one fails somewhere.
+
+**The bluff has no equity.** True on the river. On the flop and turn, a bluff with a draw wins sometimes when called, so it profits at a lower fold frequency. The defender cannot fix this by calling more. Solvers typically defend somewhat less than MDF on early streets.
+
+**The bettor is not entitled to a profit.** If the board gives the bettor a large range advantage, they should win more than a neutral share of the pot, and the defender is correct to fold more than MDF. Folding at MDF is about not letting them profit with air, not about breaking even on the hand.
+
+**The whole range is counted.** MDF applies to the range you arrived with, not to the hand in front of you. Which hands make up the defending share is a separate question, answered by blockers and equity.
+
+So treat MDF as a ceiling on how much you may fold against a balanced opponent, and as a detector: if a line has you folding far more than alpha allows, either the bettor has a big advantage or you are being run over.
+
+## Indifference is not a reason to stop thinking
+
+At equilibrium a bluff catcher has the same EV calling or folding. That does not make the choice irrelevant in practice. It is only true if the opponent is balanced. Real opponents are not. If they bluff less than {pct(bluffFraction(1, 1), 0)} of the time with a pot-sized bet, calling loses, and if more, calling wins. The indifference point is the line you measure them against.
+
+<Remember>
+
+- A hand is mixed at equilibrium only when both actions have equal EV
+- Alpha = bet / (pot + bet): how often a zero-equity bluff must work
+- MDF = pot / (pot + bet): how often the defender must continue
+- Balanced river bluff share = bet / (pot + 2 × bet), the caller's pot odds
+- MDF bends when bluffs have equity or the bettor has a large range advantage
+- Indifference describes equilibrium. Against real opponents, one side of the line is better
+
+</Remember>
+
+<Mistakes>
+
+- Applying MDF hand by hand instead of to the whole range
+- Calling down at MDF against opponents who never bluff
+- Using river MDF on the flop without allowing for draws
+- Confusing the bluff share of a betting range with the frequency of bluffing your air
+
+</Mistakes>
