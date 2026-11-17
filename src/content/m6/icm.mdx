@@ -1,0 +1,126 @@
+import { icmEquity, finishProbabilities } from '@/engine/icm';
+import { pct, num } from '@/lib/format';
+
+export const st = [5000, 3000, 2000];
+export const pay = [50, 30, 20];
+export const e = icmEquity(st, pay);
+export const p = finishProbabilities(st);
+export const doubled = icmEquity([10000, 3000, 2000], pay);
+export const busted = icmEquity([0, 3000, 2000], pay);
+
+export const quiz = [
+  {
+    q: 'Under ICM, what is the chance a player finishes first?',
+    choices: ['One divided by the number of players', 'Their share of the chips in play', 'Their share squared', 'It depends on the payouts'],
+    answer: 1,
+    why: 'Malmuth-Harville starts from the assumption that the probability of winning equals chip share.',
+  },
+  {
+    q: 'Stacks 5,000, 3,000 and 2,000 with payouts 50, 30, 20. How much prize equity does the 5,000 stack have, to one decimal?',
+    numeric: Math.round(e[0] * 10) / 10,
+    tolerance: 0.15,
+    why: `First 50% of the time, second ${(p[0][1] * 100).toFixed(1)}%, third ${(p[0][2] * 100).toFixed(1)}%: 0.5 x 50 + ${p[0][1].toFixed(4)} x 30 + ${p[0][2].toFixed(4)} x 20 = ${e[0].toFixed(2)}.`,
+  },
+  {
+    q: 'In the same spot, the chip leader doubles to 10,000. How much does their prize equity go up?',
+    choices: ['It doubles', `About ${(doubled[0] - e[0]).toFixed(0)}, far less than double`, 'Not at all', 'It triples'],
+    answer: 1,
+    why: `From ${e[0].toFixed(1)} to ${doubled[0].toFixed(1)}. Losing all 5,000 would cost all ${e[0].toFixed(1)}. Winning chips is worth less than losing them.`,
+  },
+  {
+    q: 'Why do short stacks have more prize equity than their chip share?',
+    choices: ['They get better cards', 'They often finish in a paid place above last just by outlasting someone', 'The rules favor them', 'They do not'],
+    answer: 1,
+    why: 'Every paid place pays something. A short stack that survives one elimination moves up a place without winning a hand.',
+  },
+  {
+    q: 'What does ICM not take into account?',
+    choices: ['Stack sizes', 'Payouts', 'Skill, position and the blinds', 'The number of players'],
+    answer: 2,
+    why: 'It is a model of chip value only. Real equity also depends on who is better, who has position and how soon the blinds hit each stack.',
+  },
+];
+
+<Objectives>
+
+- State the Malmuth-Harville model and compute it for three players by hand
+- Explain why tournament chips lose value as a stack grows
+- Use the ICM calculator on any stacks and payouts
+- Know what the model ignores
+
+</Objectives>
+
+## Turning chips into money
+
+At any moment in a tournament, each player has some expected share of the prize pool. That share is their **equity**, in money. The **Independent Chip Model** (ICM) estimates it from stacks and payouts alone.
+
+The model makes one assumption and applies it repeatedly.
+
+1. A player's chance of finishing **first** equals their share of the chips.
+2. Given who finished first, the chance of each remaining player finishing **second** is their share of the chips that remain.
+3. And so on down the places.
+
+Each player's equity is the sum over places of the probability of finishing there times what that place pays.
+
+## Three players, by hand
+
+Stacks 5,000, 3,000 and 2,000. Payouts 50, 30 and 20.
+
+<Working steps={[
+  { label: 'A finishes first: chip share', expr: '5,000 / 10,000', result: pct(p[0][0]) },
+  { label: 'B first, then A second of the remaining 7,000', expr: '0.3 × 5,000/7,000', result: num(0.3 * 5 / 7, 4) },
+  { label: 'C first, then A second of the remaining 8,000', expr: '0.2 × 5,000/8,000', result: num(0.2 * 5 / 8, 4) },
+  { label: 'A finishes second', expr: 'sum of the two', result: pct(p[0][1]) },
+  { label: 'A finishes third', expr: '1 − first − second', result: pct(p[0][2]) },
+  { label: "A's equity", expr: `${num(p[0][0], 2)} × 50 + ${num(p[0][1], 4)} × 30 + ${num(p[0][2], 4)} × 20`, result: num(e[0], 2) },
+]} />
+
+<DataTable
+  head={['Player', 'Chips', 'Chip share of the pool', 'ICM equity']}
+  rows={st.map((c, i) => [['A', 'B', 'C'][i], c.toLocaleString(), num((c / 10000) * 100, 2), num(e[i], 2)])}
+  caption="Computed by the engine. The ICM column adds to 100, the whole pool."
+/>
+
+The chip leader has half the chips and only {pct(e[0] / 100)} of the money. The short stack has a fifth of the chips and {pct(e[2] / 100)} of the money. Equity has moved from big stacks to small ones.
+
+## Why it compresses
+
+The short stack is guaranteed 20 for being in the room. Every paid place pays something, so just surviving while someone else busts is worth money. The big stack can never win more than first prize, 50, however many chips it collects.
+
+That gives the central asymmetry of tournament poker. If A's stack goes from 5,000 to 10,000, equity rises from {num(e[0], 1)} to {num(doubled[0], 1)}. If A loses the 5,000, equity falls from {num(e[0], 1)} to {num(busted[0], 1)}. Chips won are worth less than chips lost. Every risky decision is more expensive than its chip arithmetic suggests.
+
+<Live title="Any stacks, any payouts">
+  <IcmTool initial={{ stacks: [5000, 3000, 2000], payouts: [50, 30, 20] }} />
+</Live>
+
+Try a flat payout such as 34, 33, 33 and a steep one such as 100. With winner-take-all, ICM equity equals chip share exactly: nothing is compressed.
+
+## What the model leaves out
+
+ICM is a model of chip value and nothing else.
+
+- **Skill.** A better player's chips are worth more than a weaker player's.
+- **Position and blinds.** A short stack about to pay the big blind is worse off than one with a full orbit to wait.
+- **Future play.** Big stacks can apply pressure on the bubble, which is worth money ICM does not count.
+
+Even so, it is the standard tool, and its main prediction, that risk costs more than reward pays near the money, is robust. The next lesson turns it into a calling rule.
+
+<Remember>
+
+- ICM: chance of first = chip share, then the same rule among the remaining players for each lower place
+- Equity = sum of P(place) × payout
+- Short stacks are worth more than their chip share, big stacks less
+- Chips won are worth less than chips lost
+- With winner-take-all, ICM equity is chip share
+- ICM ignores skill, position and the blinds
+
+</Remember>
+
+<Mistakes>
+
+- Treating tournament chips as cash near the money
+- Expecting a doubled stack to double equity
+- Forgetting the model ignores skill and position
+- Using ICM where the payouts are winner-take-all
+
+</Mistakes>

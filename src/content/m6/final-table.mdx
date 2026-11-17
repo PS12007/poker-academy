@@ -1,0 +1,120 @@
+import { icmEquity, callDecision } from '@/engine/icm';
+import { pct, num } from '@/lib/format';
+
+export const stacks = [40, 25, 15, 10, 6, 4];
+export const steep = [40, 24, 15, 10, 7, 4];
+export const flat = [22, 19, 17, 15, 14, 13];
+export const eSteep = icmEquity(stacks, steep);
+export const eFlat = icmEquity(stacks, flat);
+export const bf = (pay, s, c) => callDecision({ stacks, payouts: pay, shover: s, caller: c }).bubbleFactor;
+
+export const quiz = [
+  {
+    q: 'Why does the chip leader at a final table have a strategic advantage beyond their chips?',
+    choices: ['They get better cards', 'Other players risk elimination against them and must call tightly, so the leader\'s shoves get folds', 'They act last', 'There is none'],
+    answer: 1,
+    why: 'The leader can cover anyone. Every confrontation risks the opponent\'s tournament and only part of the leader\'s stack.',
+  },
+  {
+    q: 'Which payout structure gives callers larger bubble factors?',
+    choices: ['A flat one, with small differences between places', 'A steep one, with big jumps between places', 'Both the same', 'Neither'],
+    answer: 0,
+    why: 'With flat payouts, winning chips adds almost nothing because the top prizes are close together, while busting still costs a whole place. Cost over gain becomes very large.',
+  },
+  {
+    q: 'Two medium stacks at a final table, with shorter stacks still alive. How should they play against each other?',
+    choices: ['Aggressively, to build a stack', 'Carefully. Both lose a lot by busting before the short stacks', 'All-in every hand', 'It does not matter'],
+    answer: 1,
+    why: 'Confrontations between medium stacks hand equity to the players not involved, since one medium stack busts and everyone else moves up.',
+  },
+  {
+    q: 'You are the shortest stack. What is the right approach?',
+    choices: ['Fold until others bust', 'Look for good spots to shove, since waiting lets the blinds take your stack and your fold equity', 'Call every shove', 'Min-raise'],
+    answer: 1,
+    why: 'A short stack has the least to lose from risk and loses fold equity with every orbit. Laddering by folding works only when another stack is shorter and about to be blinded out.',
+  },
+  {
+    q: 'In this lesson\'s six-handed example, which stack gains the most from a steeper payout structure, compared with a flat one?',
+    choices: ['The chip leader', 'The shortest stack', 'Every stack equally', 'Nobody'],
+    answer: 0,
+    why: `The chip leader's equity is ${eSteep[0].toFixed(1)} with steep payouts and ${eFlat[0].toFixed(1)} with flat ones. Big first prizes reward the stack most likely to win them.`,
+  },
+];
+
+<Objectives>
+
+- Read pay jumps and how they set ICM pressure
+- Use a big stack to apply pressure and a medium stack to avoid it
+- Know when a short stack should take risk
+- Compare steep and flat payouts with the calculator
+
+</Objectives>
+
+## Where the money is
+
+Most of a tournament's prize pool is paid at the final table, and every elimination moves everyone up one place. That makes ICM the dominant consideration in nearly every decision. How strong the effect is depends on the shape of the payouts.
+
+Take six players with stacks of 40, 25, 15, 10, 6 and 4 (in big blinds or thousands, it does not matter for ICM).
+
+<DataTable
+  head={['Stack', 'Steep payouts', 'Equity, steep', 'Flat payouts', 'Equity, flat']}
+  rows={stacks.map((s, i) => [s, steep[i], num(eSteep[i], 1), flat[i], num(eFlat[i], 1)])}
+  caption="Both structures pay 100 in total. ICM equity computed by the engine."
+/>
+
+The same stacks are worth different amounts under different structures. With steep payouts the leader has {num(eSteep[0], 1)}; with flat ones only {num(eFlat[0], 1)}. Flat payouts give most of the value to the act of surviving, which hands value to short stacks.
+
+## Pressure depends on who you face
+
+<DataTable
+  head={['Confrontation', 'Bubble factor, steep', 'Bubble factor, flat']}
+  rows={[
+    ['Leader shoves on the 15 stack', num(bf(steep, 0, 2), 2), num(bf(flat, 0, 2), 2)],
+    ['15 stack shoves on the 10 stack', num(bf(steep, 2, 3), 2), num(bf(flat, 2, 3), 2)],
+    ['15 stack shoves on the leader', num(bf(steep, 2, 0), 2), num(bf(flat, 2, 0), 2)],
+  ]}
+  caption="For the player deciding whether to call. Higher means a tighter calling range."
+/>
+
+Notice the flat column. When places pay nearly the same, extra chips are worth very little, since even first prize is not much more than sixth, but busting still costs a whole place. So the cost of losing dwarfs the gain from winning, and callers must be extremely tight. Steep payouts reward accumulating chips, which keeps bubble factors lower.
+
+Three more patterns come out of tables like this one.
+
+**The leader's shoves are hard to call.** A medium stack calling the leader risks its tournament for a double-up worth much less. Big stacks should open and shove wide, especially into medium stacks.
+
+**Medium stacks should avoid each other.** When two of them clash, one busts, and everyone not in the hand moves up a place for free. Those spots have high bubble factors on both sides.
+
+**The leader calls more freely.** Losing hurts them, but it does not end their tournament.
+
+## Short stacks
+
+A very short stack is tempted to fold and wait for others to bust. This **laddering** works only when another stack is shorter and about to be forced in by the blinds. Otherwise waiting costs the blinds every orbit and shrinks the fold equity of a later shove. With little to lose, the shortest stack has the lowest bubble factor at the table and should take good spots: shoving into players who cannot afford to call.
+
+<Live title="Build your own final table">
+  <IcmTool initial={{ stacks: [40, 25, 15, 10, 6, 4], payouts: [40, 24, 15, 10, 7, 4] }} />
+</Live>
+
+Pick a shover and a caller and read the equity needed. Then change the payouts to the flat set (22, 19, 17, 15, 14, 13) and watch the required equity climb.
+
+## Deals
+
+Final tables sometimes agree to split the remaining prize money. The two common methods are a **chip-chop**, which pays in proportion to chips and favors the leader, and an **ICM chop**, which pays each player their ICM equity. The table at the top of this lesson is an ICM chop. Knowing your number before negotiating is the main defense against a bad deal. ICM ignores skill, so a much stronger player may reasonably ask for more.
+
+<Remember>
+
+- Flat payouts make survival nearly everything and push bubble factors up. Steep payouts reward chips
+- Big stacks shove and open wide. Others must call tightly against them
+- Medium stacks avoid clashes with each other
+- Short stacks take risk unless a shorter stack is about to bust
+- An ICM chop pays each player their ICM equity
+
+</Remember>
+
+<Mistakes>
+
+- Calling the chip leader's shove with a medium stack and a hand that is only a chip-EV call
+- Playing big pots between medium stacks
+- Folding into the blinds as the short stack with no one shorter
+- Agreeing to a chip-chop as a short stack
+
+</Mistakes>

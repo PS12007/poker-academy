@@ -1,0 +1,104 @@
+import { spr } from '@/engine/theory';
+import { pct, num } from '@/lib/format';
+
+export const orbit = (bb, ante, players) => 1.5 * bb + ante * players;
+export const m = (stack, bb, ante, players) => stack / orbit(bb, ante, players);
+
+export const quiz = [
+  {
+    q: 'You have 12,000 chips and the big blind is 600. How many big blinds is your stack?',
+    numeric: 20,
+    tolerance: 0,
+    why: '12,000 / 600 = 20bb. Tournament decisions depend on this number far more than on the raw chip count.',
+  },
+  {
+    q: 'Why do tournament blinds go up over time?',
+    choices: ['To pay the dealers', 'To force action so the tournament ends, steadily shrinking stacks measured in big blinds', 'To favor short stacks', 'They do not'],
+    answer: 1,
+    why: 'Rising blinds make waiting more and more expensive, which pushes stacks toward all-in play.',
+  },
+  {
+    q: 'What does an ante do to correct strategy?',
+    choices: ['Makes everyone tighter', 'Adds dead money, so stealing the blinds pays more and ranges widen', 'Nothing', 'Only affects the big blind'],
+    answer: 1,
+    why: 'More money in the pot before the cards are dealt means each steal wins more, so both opening and defending ranges widen.',
+  },
+  {
+    q: 'Blinds 500/1,000 with a big-blind ante of 1,000 at nine players. How many chips are in the pot before anyone acts?',
+    numeric: 2500,
+    tolerance: 0,
+    why: 'Small blind 500, big blind 1,000 and the big-blind ante 1,000: 2,500, which is 2.5bb.',
+  },
+  {
+    q: 'At roughly what stack depth does most tournament play become push or fold before the flop?',
+    choices: ['100bb', '50bb', 'Around 10 to 15bb', '2bb'],
+    answer: 2,
+    why: 'Below about 15bb a normal raise commits a large part of the stack, so moving all-in becomes the cleaner option.',
+  },
+];
+
+<Objectives>
+
+- Describe how a tournament runs: entry, blinds, antes, payouts
+- Measure every stack in big blinds and know the depth bands
+- Explain how rising blinds and antes push play toward all-in decisions
+
+</Objectives>
+
+## How a tournament runs
+
+Everyone pays the same entry fee and gets the same starting stack. The fees, minus the house's cut, form the **prize pool**. Players are eliminated when they lose their chips, and the last ones standing are paid by finishing position. Typically 10 to 20% of the field is paid, and the payouts rise steeply toward first place.
+
+The **blinds** rise on a schedule, every level of 15 to 60 minutes. Later levels add an **ante**, a small forced bet that grows the pot before the cards are dealt. Most modern events use a **big-blind ante**: the big blind pays one ante for the whole table, usually equal to the big blind.
+
+## Count in big blinds
+
+The raw number of chips tells you almost nothing. A stack of 20,000 is deep at blinds of 50/100 and desperate at 1,000/2,000. Always convert:
+
+<Formula>stack in big blinds = chips / big blind</Formula>
+
+Strategy changes by depth band.
+
+| Depth | What the game looks like |
+|---|---|
+| 60bb and up | Close to a cash game. Speculative hands have implied odds |
+| 25 to 60bb | Standard opens. 3-bets start to commit stacks. Fewer speculative calls |
+| 15 to 25bb | Opens are smaller. Re-shoving over opens becomes a main weapon |
+| Under 15bb | Push or fold for most hands |
+
+The reason behind the bands is the stack-to-pot ratio from Module 4. A 2.5bb open called by the big blind makes a 5.5bb pot, plus antes. With 20bb, the SPR on the flop is about {num(spr(17.5, 5.5), 1)}. With 10bb, about {num(spr(7.5, 5.5), 1)}: any pair is committed and there is no room to play.
+
+## Why the pressure keeps rising
+
+Each orbit costs you the blinds and the antes whether you play a hand or not. At blinds 500/1,000 with a 1,000 big-blind ante, the table puts in {num(orbit(1000, 1000 / 9, 9), 0)} chips per orbit. A stack of 15,000 pays about 2,500 of that each orbit, so waiting six orbits for a premium hand costs it entirely.
+
+The other effect is dead money. With 2.5bb in the pot before anyone acts, a raise to 2bb risks 2 to win 2.5. As a pure steal it needs only {pct(2 / 4.5, 0)} folds, against {pct(2.5 / 4, 0)} for a 2.5bb raise with no ante. Antes widen everyone's ranges, and the push/fold solver shows by how much.
+
+<Live title="Push or fold at any depth, with and without an ante">
+  <PushFoldTool initial={{ stack: 15, ante: 0.125 }} />
+</Live>
+
+Drag the stack from 25bb down to 5bb. The jamming range grows from a narrow band of strong hands to most of the deck. Set the ante to zero and compare.
+
+## Chips are not money
+
+In a cash game a chip is worth its face value. In a tournament it is not, because you cannot cash chips out and you are paid by position. Doubling your stack does not double your expected prize, and losing your stack ends your tournament. That gap between chips and money is the subject of the ICM lessons, and it is the reason tournament strategy differs from cash strategy even at the same stack depth.
+
+<Remember>
+
+- Measure every stack in big blinds
+- Blinds rise on a schedule. Antes add dead money and widen ranges
+- Above about 60bb play is cash-like. Under about 15bb it is push or fold
+- Waiting costs the blinds and antes every orbit
+- Tournament chips are not money. Payouts depend on finishing place
+
+</Remember>
+
+<Mistakes>
+
+- Thinking in chip counts instead of big blinds
+- Playing 20bb like 100bb, with small raises and speculative calls
+- Waiting too long for a premium hand as the blinds rise
+- Ignoring the ante when choosing stealing ranges
+
+</Mistakes>

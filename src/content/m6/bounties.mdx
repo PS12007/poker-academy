@@ -1,0 +1,119 @@
+import { potOdds } from '@/engine/ev';
+import { pct, num } from '@/lib/format';
+
+export const need = (pot, call, bountyChips) => potOdds(pot + bountyChips, call);
+export const plain = need(13.5, 8, 0);
+export const withB = need(13.5, 8, 10);
+
+export const quiz = [
+  {
+    q: 'In a bounty tournament, when do you collect a bounty?',
+    choices: ['When you win any pot', 'When you eliminate the player carrying it', 'At the end of the tournament', 'When you double up'],
+    answer: 1,
+    why: 'The bounty is paid immediately to whoever knocks the player out. In progressive formats part of it is added to your own bounty.',
+  },
+  {
+    q: 'How do you account for a bounty in pot odds?',
+    choices: ['Ignore it', 'Convert it to chips at the tournament\'s chip-to-money rate and add it to the pot', 'Double the pot', 'Subtract it from your stack'],
+    answer: 1,
+    why: 'The bounty is extra prize for winning the hand. Expressed in chips, it is extra pot you win when you win.',
+  },
+  {
+    q: 'A short stack shoves 8bb into a pot of 5.5bb. Without a bounty you need about 37% to call. If their bounty is worth 10bb, what do you need?',
+    numeric: Math.round(withB * 1000) / 10,
+    tolerance: 1,
+    unit: '%',
+    why: 'Pot to win is 5.5 + 8 + 10 = 23.5bb. Equity needed = 8 / (23.5 + 8) = 25.4%.',
+  },
+  {
+    q: 'Can you win a bounty when you cover the player all-in, but not when they cover you?',
+    choices: ['Yes. You must cover them to knock them out', 'No, both ways win it', 'Only on the river', 'Only preflop'],
+    answer: 0,
+    why: 'If they have more chips, winning the pot does not eliminate them, so no bounty is collected.',
+  },
+  {
+    q: 'What is the effect of bounties on ICM pressure?',
+    choices: ['It increases it', 'It reduces it, because part of the prize pool is paid for eliminations, not finishing position', 'No effect', 'It removes position'],
+    answer: 1,
+    why: 'Less money in the payout ladder means smaller pay jumps and lower bubble factors. Bounty tournaments play looser.',
+  },
+];
+
+<Objectives>
+
+- Convert a bounty into chips and include it in pot odds
+- Know when a bounty can and cannot be won
+- Adjust calling and shoving ranges for bounties
+- Explain why bounties reduce ICM pressure
+
+</Objectives>
+
+## Money on each head
+
+In a **bounty** tournament (also called knockout), part of each entry goes to a bounty on that player. Knock them out and you collect it at once. In **progressive** bounty formats, half goes into your pocket and half onto your own head, so bounties grow as players accumulate them.
+
+Bounties change the reward for winning a hand against a player you cover. That reward is extra pot, and pot odds can include it.
+
+## Bounties in pot odds
+
+Convert the bounty to chips. A simple rate: the starting stack is worth the part of the entry that goes into the main prize pool. If the entry is split evenly between pool and bounty, a starting stack of 10,000 chips buys 50 of prize money, so each 1 of bounty is worth 200 chips. Late in a tournament, when chips are worth less per chip, the conversion favors bounties further.
+
+Then treat the bounty as part of the pot.
+
+<Formula>equity needed = call / (pot + bounty in chips + call)</Formula>
+
+<Example title="Calling a short stack's shove">
+
+A player shoves 8bb into a pot of 5.5bb. You cover them. Their bounty converts to 10bb.
+
+<Working steps={[
+  { label: 'Without the bounty', expr: '8 / (13.5 + 8)', result: pct(plain) },
+  { label: 'Pot including the bounty', expr: '5.5 + 8 + 10', result: '23.5bb' },
+  { label: 'With the bounty', expr: '8 / (23.5 + 8)', result: pct(withB) },
+]} />
+
+The required equity falls by {num((plain - withB) * 100, 0)} points. Hands like any ace, most pairs and many suited broadway hands become calls that would otherwise be folds.
+
+</Example>
+
+<Live title="Price a bounty call">
+  <PotOddsTool initial={{ pot: 15.5, bet: 8, equity: 30 }} />
+</Live>
+
+Enter the pot including the bounty in chips, and the shove as the bet you face.
+
+## Who can collect
+
+You can win a bounty only from a player you **cover**: you have at least as many chips as they do. If they cover you, winning the pot leaves them alive. Two practical effects:
+
+- Big stacks have bounties available against everyone. Short stacks have few.
+- When you are covered, play as if there were no bounty. When you cover, call wider.
+
+## Adjusting ranges
+
+- **Calling short stacks:** much wider, because the bounty adds directly to the pot.
+- **Shoving as a short stack:** expect more calls, since others are calling for your bounty. Shove tighter and lean toward hands that do well when called.
+- **Big bounties:** in progressive formats, players with large bounties attract calls and should tighten their shoves.
+- **Postflop:** when a player is all-in and others remain, everyone with the cover has a reason to continue. Isolating the short stack becomes more valuable.
+
+## Less ICM
+
+Part of the prize pool is paid for knockouts rather than finishing places, so the payout ladder is smaller and bubble factors are lower. Bounty tournaments play looser through the bubble than standard ones, and chip-EV ranges are a better starting point.
+
+<Remember>
+
+- Convert the bounty to chips and add it to the pot
+- You can only win a bounty from a player you cover
+- Call short stacks much wider. Shove a little tighter as a short stack
+- Bounties shrink the payout ladder, so ICM pressure is lower
+
+</Remember>
+
+<Mistakes>
+
+- Ignoring bounties in pot odds
+- Calling for a bounty you cannot win because the player covers you
+- Shoving a standard range as a short stack when everyone is hunting your bounty
+- Applying full ICM tightening in a bounty event
+
+</Mistakes>

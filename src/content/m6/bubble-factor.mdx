@@ -1,0 +1,136 @@
+import { callDecision } from '@/engine/icm';
+import { pct, num } from '@/lib/format';
+
+export const stacks = [5000, 3000, 1500, 500];
+export const pay = [50, 30, 20];
+export const d = (shover, caller) => callDecision({ stacks, payouts: pay, shover, caller });
+export const bigOnMid = d(0, 1);
+export const bigOnShort = d(0, 2);
+export const midOnBig = d(1, 0);
+export const after = callDecision({ stacks: [5000, 3000, 1500], payouts: pay, shover: 0, caller: 1 });
+
+export const quiz = [
+  {
+    q: 'What is the bubble factor?',
+    choices: ['How close the bubble is', 'The prize equity lost by losing a confrontation divided by the equity gained by winning it', 'The size of the blinds', 'The number of players left'],
+    answer: 1,
+    why: 'A bubble factor of 1.5 means losing costs one and a half times as much as winning gains.',
+  },
+  {
+    q: 'With a bubble factor B and no dead money, what equity does a call need?',
+    choices: ['50%', 'B / (1 + B)', '1 / B', 'B / 2'],
+    answer: 1,
+    why: 'Calling breaks even when equity × gain = (1 − equity) × cost, so equity = cost / (gain + cost) = B / (1 + B).',
+  },
+  {
+    q: `Four left, three paid 50/30/20, stacks 5,000/3,000/1,500/500. The 5,000 stack shoves on the 3,000 stack. What equity does the 3,000 stack need to call, to the nearest percent?`,
+    numeric: Math.round(bigOnMid.requiredEquity * 100),
+    tolerance: 1,
+    unit: '%',
+    why: `Bubble factor ${bigOnMid.bubbleFactor.toFixed(2)}, so ${bigOnMid.bubbleFactor.toFixed(2)} / ${(1 + bigOnMid.bubbleFactor).toFixed(2)} = ${(bigOnMid.requiredEquity * 100).toFixed(1)}%. In chips alone it would be 50%.`,
+  },
+  {
+    q: 'Who suffers most from bubble pressure?',
+    choices: ['The chip leader', 'Medium stacks facing a bigger stack, while a much shorter stack is still alive', 'The shortest stack', 'Nobody'],
+    answer: 1,
+    why: 'A medium stack that calls and loses busts before the short stack and loses a whole pay jump. Busting the short stack would have paid them without risk.',
+  },
+  {
+    q: 'What is risk premium?',
+    choices: ['A fee for entering', 'The extra equity a call needs above chip pot odds because of ICM', 'Tournament insurance', 'The rake'],
+    answer: 1,
+    why: 'It is required equity under ICM minus required equity in chips. On a tight bubble it can be fifteen or twenty points.',
+  },
+];
+
+<Objectives>
+
+- Define the bubble factor and risk premium
+- Compute the equity a call needs under ICM
+- Explain why medium stacks face the most pressure
+- Turn bubble pressure into adjustments for shoving and calling
+
+</Objectives>
+
+## Losing costs more than winning pays
+
+The last lesson showed that chips won are worth less than chips lost. The **bubble factor** puts one number on it for a specific confrontation.
+
+<Formula name="bubble factor">B = equity lost if you lose / equity gained if you win</Formula>
+
+With chip value, B is 1: losing 3,000 chips costs exactly what winning 3,000 gains. Under ICM, B is above 1 for nearly every confrontation once payouts matter, and the more it rises the more a call needs.
+
+## From bubble factor to a calling threshold
+
+Calling an all-in breaks even when your chance of winning times the gain equals your chance of losing times the cost.
+
+<Working steps={[
+  { label: 'Break-even condition', expr: 'q × gain = (1 − q) × cost', result: '' },
+  { label: 'Solve for q', expr: 'q = cost / (gain + cost)', result: '' },
+  { label: 'In terms of the bubble factor', expr: 'q = B / (1 + B)', result: '' },
+]} />
+
+With B = 1 that is 50%, the chip answer. With B = 1.5 it is {pct(1.5 / 2.5, 0)}. With B = 2 it is {pct(2 / 3, 0)}.
+
+## A real bubble
+
+Four players remain and three are paid: 50, 30 and 20. Stacks are 5,000, 3,000, 1,500 and 500.
+
+<DataTable
+  head={['Shover', 'Caller', 'Bubble factor', 'Equity needed', 'In chips alone']}
+  rows={[
+    ['5,000', '3,000', num(bigOnMid.bubbleFactor, 2), pct(bigOnMid.requiredEquity), pct(bigOnMid.chipRequired)],
+    ['5,000', '1,500', num(bigOnShort.bubbleFactor, 2), pct(bigOnShort.requiredEquity), pct(bigOnShort.chipRequired)],
+    ['3,000', '5,000', num(midOnBig.bubbleFactor, 2), pct(midOnBig.requiredEquity), pct(midOnBig.chipRequired)],
+  ]}
+  caption="Computed by the engine from the ICM equities before and after each result. No dead money."
+/>
+
+The medium stack facing the chip leader needs {pct(bigOnMid.requiredEquity, 0)} to call, a risk premium of {num((bigOnMid.requiredEquity - 0.5) * 100, 0)} points. Very few hands have that much equity against any reasonable shoving range. Meanwhile the 500 stack is close to busting on its own, and if it does, the medium stack is paid without risking anything.
+
+The chip leader calling the medium stack has a smaller bubble factor, because losing does not bust it. Chip leaders can call wider and, more importantly, shove wider, since the players they shove on cannot call back.
+
+Once the bubble bursts, pressure drops. With the 500 stack gone and three left all paid, the same 5,000 against 3,000 confrontation needs only {pct(after.requiredEquity)}: the remaining pressure comes from the pay jumps between places.
+
+<Live title="Change stacks and see the threshold move">
+  <IcmTool initial={{ stacks: [5000, 3000, 1500, 500], payouts: [50, 30, 20] }} />
+</Live>
+
+## Adjustments
+
+**When you face a shove:** tighten calls, by a lot for medium stacks with a short stack still alive. Find the needed equity with the calculator, then compare it with your hand against the shover's range.
+
+**When you shove:** widen against players who must call tightly. Their bubble factor is your fold equity. The chip leader benefits most, since everyone else has more to lose against them.
+
+**Short stacks** have small bubble factors in the other direction: they have little to lose. They should still avoid busting first when a shorter stack is close to going, but they cannot wait forever.
+
+**Big stacks** should use the pressure. Open wider and shove on medium stacks who cannot afford to call.
+
+## A practical method
+
+1. Estimate the shover's range.
+2. Read the equity you need under ICM from the calculator.
+3. Read your hand's equity against that range from the equity calculator.
+4. Call only if the second number clears the first.
+
+The ICM drill gives you randomized spots with this exact calculation shown after each answer.
+
+<Remember>
+
+- Bubble factor = equity lost by losing / equity gained by winning
+- Equity needed to call = B / (1 + B). B = 1 gives 50%
+- Risk premium is how far that sits above chip pot odds
+- Medium stacks facing bigger stacks, with a short stack alive, feel the most pressure
+- Big stacks should shove wider. Callers should call tighter
+- Pressure falls once the bubble bursts, but pay jumps keep it above chip value
+
+</Remember>
+
+<Mistakes>
+
+- Calling a chip-EV range on the bubble with a medium stack
+- Passing up profitable shoves as the big stack
+- Busting before a much shorter stack
+- Applying the same tightening after the bubble has burst
+
+</Mistakes>

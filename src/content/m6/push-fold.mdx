@@ -1,0 +1,109 @@
+import { solvePushFold } from '@/engine/pushFold';
+import { loadEquity169 } from '@/generated/equity169';
+import { pct, num } from '@/lib/format';
+
+export const E = loadEquity169();
+export const at = (stack, ante = 0) => solvePushFold(E, { stack, ante, iterations: 1200 });
+export const s20 = at(20), s10 = at(10), s5 = at(5), s10a = at(10, 0.125);
+
+export const quiz = [
+  {
+    q: 'Why is a shove often better than a small raise with a short stack?',
+    choices: ['It looks stronger', 'It wins the blinds more often and removes the opponent\'s option to play after the flop', 'It is required', 'It is never better'],
+    answer: 1,
+    why: 'A small raise from a short stack commits you anyway, gives the opponent a cheap price to call, and lets them outplay you after the flop.',
+  },
+  {
+    q: 'Heads-up at 10bb with no ante, roughly what share of hands does the small blind jam in the solver\'s answer?',
+    choices: ['About 20%', 'About 40%', `About ${Math.round(s10.jamFraction * 10) * 10}%`, 'Every hand'],
+    answer: 2,
+    why: `The solver jams ${(s10.jamFraction * 100).toFixed(0)}% at 10bb. The big blind cannot call widely enough to punish it.`,
+  },
+  {
+    q: 'Why does the big blind call a jam with fewer hands than the small blind jams?',
+    choices: ['The big blind is scared', 'The jammer has two ways to win, folds and showdowns. The caller has only one', 'The big blind has fewer chips', 'It calls more'],
+    answer: 1,
+    why: 'Fold equity is the jammer\'s advantage. The caller must win at showdown, so needs a stronger hand.',
+  },
+  {
+    q: 'What happens to the jamming range as stacks get shorter?',
+    choices: ['It narrows', 'It widens', 'No change', 'It becomes only pairs'],
+    answer: 1,
+    why: `At 20bb the solver jams ${(s20.jamFraction * 100).toFixed(0)}%, at 10bb ${(s10.jamFraction * 100).toFixed(0)}%, at 5bb ${(s5.jamFraction * 100).toFixed(0)}%. Less risk for the same reward.`,
+  },
+  {
+    q: 'What does the push/fold equilibrium assume that real tournaments often break?',
+    choices: ['That cards are random', 'That chips are worth their face value, with no payout structure', 'That players have stacks', 'Nothing'],
+    answer: 1,
+    why: 'The solver here maximizes chips. Near the money, ICM makes calling more expensive and these ranges need tightening, mostly for the caller.',
+  },
+];
+
+<Objectives>
+
+- Explain why short stacks play all-in or fold
+- Read a Nash push/fold solution for jamming and calling
+- See how stack depth and antes change the ranges
+- Know what the chip-based solution leaves out
+
+</Objectives>
+
+## Two options, by design
+
+With a short stack the menu shrinks. A normal raise to 2.5bb from a 10bb stack puts a quarter of it in. If the big blind re-shoves you will usually have to call, and if they call and you miss the flop you face a tough decision with a pot that is already a large part of your stack. A small raise gets the worst of both worlds: it commits you without the fold equity of a shove.
+
+So below about 15bb, most hands are played **push or fold**: move all-in, or give up. That strips the game down to one decision for each player, which is small enough to solve exactly.
+
+## The heads-up game
+
+The small blind either jams or folds. If they jam, the big blind either calls or folds. Each player chooses a strategy for each of the 169 hand classes. The solver in this course finds the equilibrium by fictitious play: each round, both players switch a little toward the best response to the other's average, until neither can improve.
+
+<Live title="Push/fold Nash equilibrium">
+  <PushFoldTool initial={{ stack: 10 }} />
+</Live>
+
+Read it at 10bb with no ante: the small blind jams {pct(s10.jamFraction, 0)} of hands and the big blind calls {pct(s10.callFraction, 0)}.
+
+That asymmetry is the core lesson. The jammer wins two ways: everyone folds, or the hand holds at showdown. The caller wins only one way. Many hands that are a profitable jam are an unprofitable call, because the caller is facing a range that already removed its worst hands.
+
+## Depth changes everything
+
+<DataTable
+  head={['Stack', 'Small blind jams', 'Big blind calls']}
+  rows={[[20, s20], [10, s10], [5, s5]].map(([d, r]) => [`${d}bb`, pct(r.jamFraction), pct(r.callFraction)])}
+  caption="Solved by the engine, no ante. Fictitious play, 1,200 iterations each."
+/>
+
+Shorter stacks risk less to win the same blinds, so the jamming range widens. The calling range widens too, since the price improves. At very short depths almost every hand is a jam.
+
+An ante has a similar effect at a fixed depth. With an ante of one eighth of a big blind from each player, the 10bb jamming range grows from {pct(s10.jamFraction, 0)} to {pct(s10a.jamFraction, 0)}.
+
+## Using it at the table
+
+- **First in from the small blind**, jam the range for your depth. If the solver mixes a hand, either choice is close.
+- **In the big blind**, call the range for the depth, not your gut. Players folding too much in the big blind is the most common leak at short stacks.
+- **From other seats**, more players remain behind, each a potential caller. Jamming ranges are tighter the further you are from the button. The heads-up chart is a ceiling, not a guide, for early seats.
+- **Use the effective stack**, the smaller of the two, to choose the chart.
+
+## What it leaves out
+
+The solver maximizes chips. In a tournament with payouts, chips you lose are worth more than chips you win, and that changes the answer, mostly by tightening calls. The ICM lessons show how much. Away from the money and in winner-take-all formats, the chip solution is right as it is.
+
+<Remember>
+
+- Under about 15bb, play most hands push or fold
+- The jammer wins by folds or showdowns. The caller only by showdowns, so calls are tighter than jams
+- Shorter stacks and antes widen both ranges
+- Use the effective stack to pick the chart
+- Near the money, tighten calls for ICM
+
+</Remember>
+
+<Mistakes>
+
+- Min-raising and folding with a short stack
+- Folding too much in the big blind against a short stack's jam
+- Using heads-up ranges from early position at a full table
+- Applying chip ranges unchanged on the bubble
+
+</Mistakes>
