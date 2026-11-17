@@ -5,9 +5,21 @@ import {
 } from '../engine/equity';
 import type { WeightedCombo } from '../engine/ranges';
 import { fiveCardCategoryCounts } from '../engine/combinatorics';
+import { solveKuhn, type KuhnResult } from '../engine/cfr/kuhn';
+import { solvePushFold, type PushFoldInput, type PushFoldResult } from '../engine/pushFold';
+import { loadEquity169 } from '../generated/equity169';
 import { simulateVariance, type VarianceInput, type VarianceResult } from '../engine/variance';
 
+let equity169: Float32Array | null = null;
+
 const api = {
+  kuhn(iterations: number, plus: boolean): KuhnResult {
+    return solveKuhn(iterations, plus);
+  },
+  pushFold(input: PushFoldInput): PushFoldResult {
+    equity169 ??= loadEquity169();
+    return solvePushFold(equity169, input);
+  },
   equity(req: EquityRequest, onProgress?: ProgressFn): EquityResult {
     let last = 0;
     return computeEquity(
