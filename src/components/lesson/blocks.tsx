@@ -288,3 +288,13 @@ export function PloEq({ a, b, board = '', of = 0 }: { a: string; b: string; boar
     </span>
   );
 }
+
+/** A short, jargon-free summary of the whole lesson, shown before the detail. */
+export function Plain({ children }: { children: ReactNode }) {
+  return (
+    <aside className="not-prose my-8 border-l-2 border-verd bg-verd/[0.06] px-5 py-4" aria-label="In plain words">
+      <div className="label mb-1.5 text-verd">In plain words</div>
+      <div className="text-[16.5px] leading-relaxed text-bone">{children}</div>
+    </aside>
+  );
+}

@@ -3,7 +3,7 @@ import { Suspense, type ComponentProps, type ComponentType, type ReactNode } fro
 import { Link } from 'react-router-dom';
 import { C } from '../cards/PlayingCard';
 import { Figure, Working } from '../ui/primitives';
-import { Cards, DataTable, Eq, Example, Formula, LessonLink, Live, Mistakes, Objectives, PloEq, Remember, RvR, Scene, Term, VsRandom } from './blocks';
+import { Cards, DataTable, Eq, Example, Formula, LessonLink, Live, Mistakes, Objectives, Plain, PloEq, Remember, RvR, Scene, Term, VsRandom } from './blocks';
 
 import { BluffEV, BoardReader, ComboCounter, DealDemo, HandNamer, MinRaiseCalc, Num, OutsTable, PotOddsStrip, RankingTable, StartingChart, TableDiagram } from './widgets';
 import { BetSizeTheory, GeometricSizing, OmahaReader, ShortDeckTable, VsOpenChart, WrapCounter } from './widgets2';
@@ -72,7 +72,7 @@ export const MDX_COMPONENTS = {
   Objectives, Remember, Example, Mistakes, Formula, Live, Cards, Scene, Eq, Term, LessonLink, DataTable, Figure, Working, C,
   BluffEV, BoardReader, ComboCounter, DealDemo, HandNamer, MinRaiseCalc, Num, OutsTable, PotOddsStrip, RankingTable, StartingChart, TableDiagram,
   OutsTool, PotOddsTool, EquityTool, SidePotTool, VarianceTool, HeatmapTool, RangeTool,
-  BetSizeTheory, GeometricSizing, VsOpenChart, RvR, VsRandom, PushFoldTool, IcmTool, PotLimitTool, OmahaReader, WrapCounter, PloEq, ShortDeckTable,
+  BetSizeTheory, GeometricSizing, VsOpenChart, RvR, VsRandom, Plain, PushFoldTool, IcmTool, PotLimitTool, OmahaReader, WrapCounter, PloEq, ShortDeckTable,
   RiverToyGame: () => <Suspense fallback={null}><RiverToyGame /></Suspense>,
   KuhnLab: () => <Suspense fallback={null}><KuhnLab /></Suspense>,
 };

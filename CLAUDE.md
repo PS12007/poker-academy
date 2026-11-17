@@ -49,6 +49,7 @@ glossary terms for Omaha and tournaments, deeper PLO tools (range input for Omah
   It must export `quiz` (5 to 10 questions) and contain <Objectives>, <Remember> (3 to 6 items), <Mistakes> and at least one <Live>.
   tests/content/lessons.test.tsx renders every lesson and enforces this. Components usable without import are listed in
   src/components/lesson/prose.tsx (MDX_COMPONENTS).
+- Hard lessons open with <Plain>...</Plain>: two or three jargon-free sentences that state the whole idea. Add one to any new advanced lesson.
 - MDX gotchas: a block of exports must not start with a // comment (it becomes prose). Braces inside backticks are literal.
   Avoid the less-than sign in prose. No em or en dashes.
 - Tool: add a component in src/tools and set `component` in src/tools/registry.ts. Drill: same in src/trainers/registry.ts, built on DrillShell.
