@@ -19,6 +19,7 @@ export const DRILLS: DrillMeta[] = [
   { id: 'preflop', serial: 'D-06', title: 'Preflop decisions', track: "Hold'em", blurb: 'Position and action in, fold, call or raise out.', component: lazyRetry(() => import('./PreflopDrill')) },
   { id: 'mdf', serial: 'D-07', title: 'MDF and alpha', track: "Hold'em", blurb: 'Rapid-fire bet sizes. Defend how often? Bluff how often?', component: lazyRetry(() => import('./MdfDrill')) },
   { id: 'replayer', serial: 'D-08', title: 'Hand replayer', track: "Hold'em", blurb: 'Original hands street by street with a decision at each key point.', component: lazyRetry(() => import('./HandReplayer')) },
+  { id: 'push-fold', serial: 'D-11', title: 'Push or fold', track: 'Tournaments', blurb: 'Short-stack jams and calls against the Nash charts from the solver, 3 to 20 big blinds.', component: lazyRetry(() => import('./PushFoldDrill')) },
   { id: 'icm', serial: 'D-09', title: 'ICM spots', track: 'Tournaments', blurb: 'Call or fold a shove on the bubble, with the ICM math shown after.', component: lazyRetry(() => import('./IcmDrill')) },
   { id: 'plo', serial: 'D-10', title: 'Omaha hand reading', track: 'Omaha', blurb: 'Find the real best hand under the two-card rule, and count wrap outs.', component: lazyRetry(() => import('./PloDrill')) },
 ];

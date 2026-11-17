@@ -37,7 +37,7 @@ No rounded cards with drop shadows, no gradient buttons, no glass. Tokens live i
 Phase 6 (game theory) is in progress. Live site: https://ps12007.github.io/poker-academy/ (every push to main runs
 typecheck, lint, tests and deploys via .github/workflows/deploy.yml).
 
-Done: all nine modules (61 lessons), all 11 tools, all 10 drills, reference pages, review queue, placement quiz,
+Done: all nine modules (61 lessons), all 11 tools, all 11 drills, reference pages, review queue, placement quiz,
 global search (/ or Ctrl+K), offline service worker (public/sw.js), Playwright smoke tests (e2e/, run in CI before deploy).
 
 Possible next steps: more original replayer hands, more
@@ -60,4 +60,5 @@ glossary terms for Omaha and tournaments, deeper PLO tools (range input for Omah
 - Heavy computation: add a method to src/workers/engine.worker.ts and call it through useJob or useCached (src/lib/engine.ts).
 - Visual check: npm run build, npx vite preview --port 4173, then node scripts/shot.mjs <outDir> <route[@mobile][@full]>.
   Pass routes without a leading slash (Git Bash rewrites them), e.g. tools/equity or home.
-- Generated data: npm run gen (hand order) and npx tsx scripts/gen-equity169.ts (push/fold equity table, about two minutes).
+- Generated data: npm run gen (hand order), npx tsx scripts/gen-equity169.ts (push/fold equity table, about two minutes),
+  npx tsx scripts/gen-pushfold.ts (precomputed push/fold charts used by drill D-11; rerun after changing the solver or table).
