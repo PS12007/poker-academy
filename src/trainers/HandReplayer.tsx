@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react';
 import { parseCards } from '../engine/cards';
 import { potOdds } from '../engine/ev';
 import { Hand } from '../components/cards/PlayingCard';
-import { Eq } from '../components/lesson/blocks';
+import { Eq, PloEq } from '../components/lesson/blocks';
 import { Plate } from '../components/ui/primitives';
 import { useStore } from '../store';
 import { cx, pct } from '../lib/format';
@@ -203,6 +203,22 @@ const HANDS: ReplayHand[] = [
       },
     ],
     result: 'Planning from the SPR before the flop makes the later streets simple. With a strong hand at a low SPR, size your bets so the stacks can go in by the river.',
+  },
+  {
+    title: 'Top set against a big draw (Omaha)',
+    setup: 'Pot-Limit Omaha, 100bb stacks. You raise pot from the button with K♠K♦Q♥3♣ and the big blind calls. Pot about 14bb.',
+    hero: 'KsKdQh3c',
+    steps: [
+      {
+        street: 'Flop', board: 'Kh9h6d', pot: 14,
+        action: 'You flop top set on K♥9♥6♦. The big blind checks, you bet the pot, 14bb, and they raise the pot to 56bb. You have 79bb left.',
+        prompt: 'They could hold a big wrap with a flush draw. What do you do?',
+        options: ['Fold: draws are favorites', 'Call and decide on the turn', 'Re-raise all-in'],
+        answer: 2,
+        why: <>Against the worst case, a wrap plus a flush draw like J♥T♥8♣7♦, your set still has <PloEq a="KsKdQh3c" b="JhTh8c7d" board="Kh9h6d" /> equity. Against the rest of their range (two pair, smaller sets, weaker draws) you are far ahead. Calling out of nothing gains nothing: it lets them see the turn for less and you will face a shove anyway. Get the money in now.</>,
+      },
+    ],
+    result: 'In Omaha even top set is rarely a huge favorite against a big draw, but it is never a fold here. When you are at worst close to even and often far ahead, put the money in while you can.',
   },
 ];
 
